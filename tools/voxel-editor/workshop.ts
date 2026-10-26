@@ -1,3 +1,4 @@
+import { meshVoxelSource } from '../../src/assets/voxel-mesh';
 import { assetMetres, parseSource, serializeSource, SOURCE_LIMITS } from '../../src/assets/voxel-source';
 import { createBlock } from '../../src/assets/create-block';
 import { createFixtures, MAX_ASSETS } from './catalog';
@@ -9,7 +10,7 @@ export function mountWorkshop() {
   app.innerHTML = `
     <header><a class="brand" href="/">MVW <span>/ DEVELOPMENT</span></a>
     <nav aria-label="Workspace"><a href="/">Game</a><a href="/tools/voxel-editor/" aria-current="page">Voxel workshop</a></nav></header>
-    <main class="workshop"><section class="intro"><p class="eyebrow">PHASE 03 / VOXEL SOURCES</p>
+    <main class="workshop"><section class="intro"><p class="eyebrow">PHASE 04 / OPTIMIZED MESHES</p>
     <h1>Voxel workshop</h1><p>Inspect form, color, and scale before it enters the world.</p></section>
     <div class="workbench"><aside class="asset-panel" aria-label="Asset catalog">
       <h2>Session assets <span id="asset-count"></span></h2>
@@ -19,6 +20,8 @@ export function mountWorkshop() {
         <label for="import-source">Import voxel JSON</label>
         <input id="import-source" type="file" accept=".json,application/json">
         <button id="export-source" type="button">Export selected source</button>
+        <button id="export-glb" type="button">Export runtime GLB</button>
+        <p class="quiet">GLB is derived. Keep source JSON for editing.</p>
         <p id="file-result" class="quiet" aria-live="polite"></p>
       </div>
       <form id="create-asset"><h2>Create a block</h2>
@@ -41,8 +44,9 @@ export function mountWorkshop() {
       <div class="viewport" aria-label="Voxel asset scene"></div>
       <p class="viewer-help">Left-drag orbit · scroll zoom · right-drag pan · focus canvas for arrow-key pan</p>
       <dl class="asset-stats" aria-label="Asset measurements"></dl>
+      <p id="mesh-stats" class="quiet" aria-label="Mesh statistics"></p>
       <p class="quiet">1 voxel = 0.1 m · grid spacing 1 m · +Y up · front −Z<br>Axes: X red, Y green, Z blue. Origin: base centre.</p>
-    </section></div><footer><p role="status">Starting renderer…</p><span>SOURCE FORMAT V1 · JSON IMPORT / EXPORT</span></footer></main>`;
+    </section></div><footer><p role="status">Starting renderer…</p><span>SOURCE JSON + OPTIMIZED GLB</span></footer></main>`;
   function element<T extends HTMLElement>(selector: string): T {
     const result = app!.querySelector<T>(selector);
     if (!result) throw new Error(`Missing workshop element: ${selector}`);
@@ -62,7 +66,8 @@ export function mountWorkshop() {
   function display() {
     const asset = assets.find((entry) => entry.id === select.value);
     if (!asset) return;
-    viewer?.select(asset);
+    const meshStats = viewer?.select(asset) ?? meshVoxelSource(asset).stats;
+    element('#mesh-stats').textContent = `Triangles: ${meshStats.naiveTriangles.toLocaleString()} → ${meshStats.triangles.toLocaleString()} · Exposed faces: ${meshStats.visibleFaces.toLocaleString()} · Merged quads: ${meshStats.quads.toLocaleString()}`;
     const values = [
       ['Asset', asset.name], ['Grid dimensions', `${asset.size.join(' × ')} voxels`],
       ['Bounds (X × Y × Z)', `${assetMetres(asset).map((value) => value.toFixed(2)).join(' × ')} m`],
@@ -121,20 +126,44 @@ export function mountWorkshop() {
       if (!events.signal.aborted) { file.value = ''; file.disabled = false; }
     }
   }, options);
-  element('#export-source').addEventListener('click', () => {
-    error.textContent = '';
-    const asset = assets.find((entry) => entry.id === select.value);
-    if (!asset) return;
-    const url = URL.createObjectURL(new Blob([serializeSource(asset)], { type: 'application/json' }));
+  function download(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `${asset.id}.voxel.json`;
+    anchor.download = filename;
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
     const timer = setTimeout(() => { URL.revokeObjectURL(url); downloads.delete(timer); }, 1000);
     downloads.set(timer, url);
+  }
+  element('#export-source').addEventListener('click', () => {
+    error.textContent = '';
+    const asset = assets.find((entry) => entry.id === select.value);
+    if (!asset) return;
+    download(new Blob([serializeSource(asset)], { type: 'application/json' }), `${asset.id}.voxel.json`);
     fileResult.textContent = `Exported ${asset.name}. Keep the downloaded JSON to reopen it.`;
+  }, options);
+  const glbButton = element<HTMLButtonElement>('#export-glb');
+  glbButton.addEventListener('click', async () => {
+    const asset = assets.find((entry) => entry.id === select.value);
+    if (!asset) return;
+    glbButton.disabled = true;
+    error.textContent = '';
+    fileResult.textContent = `Exporting ${asset.name}…`;
+    try {
+      const { exportVoxelGlb } = await import('../../src/assets/export-glb');
+      if (events.signal.aborted) return;
+      const data = await exportVoxelGlb(asset);
+      if (events.signal.aborted) return;
+      download(new Blob([data], { type: 'model/gltf-binary' }), `${asset.id}.glb`);
+      fileResult.textContent = `Exported ${asset.name} as GLB. Keep source JSON for editing.`;
+    } catch (cause) {
+      if (!events.signal.aborted) {
+        fileResult.textContent = '';
+        error.textContent = cause instanceof Error ? cause.message : 'Unable to export GLB.';
+      }
+    } finally { if (!events.signal.aborted) glbButton.disabled = false; }
   }, options);
   app.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
     button.disabled = !viewer;

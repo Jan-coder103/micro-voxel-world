@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "test:browser": "playwright test",
     "check": "npm run lint && npm test && npm run assets:validate && npm run build && npm run test:browser",
-    "assets:validate": "node tools/assets/validate.ts"
+    "assets:validate": "node tools/assets/validate.ts",
+    "assets:export": "node tools/assets/export.ts",
+    "assets:benchmark": "node tools/assets/benchmark.ts"
   },
   "keywords": [],
   "author": "",

@@ -74,6 +74,7 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
       scene.add(current.group);
       frame();
       status.textContent = `Viewing ${asset.name} · ${asset.cells.length.toLocaleString()} voxels`;
+      return current.stats;
     },
     frame,
     grid(visible: boolean) { grid.visible = visible; axes.visible = visible; render(); },
