@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-Phase 1 foundation for a TypeScript / Three.js browser game and voxel workshop.
+TypeScript / Three.js browser game foundation and Phase 2 voxel asset viewer.
 
 ## Quick start
 
@@ -11,7 +11,15 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:5173/ for the game setup scene, or http://localhost:5173/tools/voxel-editor/ for the tool setup scene. Both show a one-metre cube and grid. Gameplay and asset editing are later phases.
+Open http://localhost:5173/ for the game setup scene, or http://localhost:5173/tools/voxel-editor/ for the voxel viewer. Gameplay and voxel editing are later phases.
+
+## Voxel viewer
+
+Select the direction marker or metre cube from the catalog. Left-drag to orbit, scroll to zoom, and right-drag to pan. Focus the canvas for arrow-key panning. Frame asset restores the perspective view; Front −Z and Top +Y give repeatable inspection angles. Toggle the metre grid/axes and bounding box independently. Measurements show voxel dimensions, physical bounds, and occupied cell count.
+
+Create a solid block with a name, color, and 1–16 voxels per axis. Each voxel is provisionally 0.1 m. Assets are centred on XZ with the base at Y=0. The session is limited to 24 assets (including two fixtures); reloading discards created assets. There is no file saving or source import/export yet.
+
+The in-memory adapter in tools/voxel-editor/provisional-assets.ts is temporary. It uses instanced cubes for inspection; schema/versioning and optimized surface meshing belong to Phases 3 and 4. See docs/decisions/0002-viewer.md.
 
 ## Commands
 

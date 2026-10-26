@@ -1,11 +1,13 @@
 # Handoff — 26 October 2026
 
-Current phase: Phase 1 exit met; automated checks passed; awaiting user verification.
+Current phase: Phase 2 viewer implemented; automated checks and agent visual inspection passed. Awaiting user verification.
 
 Read agent.md, plan.md, and tracker.md. README.md contains install/run/check commands. Foundation decisions are in docs/decisions/0001-foundation.md.
 
-Added game (/) and workshop (/tools/voxel-editor/) setup scenes using the same disposable Three.js fixture. Source entry points: src/main.ts and tools/voxel-editor/main.ts. There is no gameplay or voxel editor yet.
+The game (/) retains its setup scene. The workshop (/tools/voxel-editor/) now has a catalog, two voxel fixtures, solid-block creator, orbit/zoom/pan, camera presets, grid/axes, bounds, and measurements. Source entry points: src/main.ts and tools/voxel-editor/main.ts. Viewer UI/rendering/temporary data live under tools/voxel-editor/. There is no gameplay or voxel editing yet.
 
-Clean npm ci and npm run check pass: lint, two unit tests, strict types, production build, and four Chromium smoke tests. Inspected both game/tool captures at 800×600; cube, grid, navigation, and layout are visible and contained. Fixed border-width canvas overflow discovered by resize checks. Known build warning: 534 kB shared Three.js bundle. Reference GPU/performance target and broader browser coverage remain unverified. This handoff is included in the initial Phase 1 commit (see git log).
+`npm run check` passes: lint, 13 unit tests, strict types, production build, and 9 Chromium browser tests, including earlier regressions. Inspected full-page marker/block/top captures and the compact workshop layout. Test captures are ignored under test-results/. Known warning: ~539 kB shared Three.js bundle. Reference GPU/performance and broader browser coverage remain unverified. This handoff is included in the Phase 2 commit (see git log); Phase 1 commit is 711fdc6.
 
-Next task after verification: Phase 2 voxel asset viewer. Use a provisional fixture/adapter, add orbit controls and basic create/select behavior, and leave the final format to Phase 3. Do not start later gameplay phases automatically.
+Assets are session-only; reload discards creations. Limits: 16 cells per axis and 24 session assets. The temporary adapter is not a stable source format; instanced cubes retain internal faces/seams until meshing. See docs/decisions/0002-viewer.md and README.md for controls and scope.
+
+Next task: Phase 3 standardized voxel format, validator, import/export round trips, reference assets, and asset-authoring skill.md. Migrate the provisional adapter without losing viewer behavior. Do not start later gameplay phases automatically.
