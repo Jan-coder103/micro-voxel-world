@@ -1,0 +1,14 @@
+import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
+
+export default defineConfig({
+  build: {
+    target: 'es2022',
+    rollupOptions: {
+      input: {
+        game: resolve(import.meta.dirname, 'index.html'),
+        editor: resolve(import.meta.dirname, 'tools/voxel-editor/index.html'),
+      },
+    },
+  },
+});

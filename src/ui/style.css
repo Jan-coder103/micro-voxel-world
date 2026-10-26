@@ -1,0 +1,20 @@
+:root { font-family: system-ui, sans-serif; color: #e9eee8; background: #0b141b; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: inherit; text-decoration: none; }
+a:focus-visible { outline: 2px solid #d9b56f; outline-offset: 6px; }
+header { min-height: 80px; padding: 24px 5vw; border-bottom: 1px solid #283b43; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { font-weight: 800; letter-spacing: .12em; }
+.brand span { font-size: 11px; color: #91a6ac; font-weight: 500; }
+nav { display: flex; gap: 24px; font-size: 14px; }
+nav a { color: #91a6ac; }
+nav a[aria-current] { color: #e7c885; }
+main { max-width: 1600px; margin: auto; padding: 40px 5vw 24px; }
+.eyebrow { color: #d9b56f; font-size: 11px; letter-spacing: .2em; }
+h1 { font-size: clamp(30px, 4vw, 52px); letter-spacing: -.04em; margin: 12px 0; }
+.intro > p:last-child { color: #91a6ac; margin-bottom: 28px; }
+.viewport { height: clamp(280px, 53vh, 800px); border: 1px solid #314750; background: #111f29; overflow: hidden; }
+canvas { display: block; }
+footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: #91a6ac; font-size: 12px; }
+footer span { font-size: 10px; letter-spacing: .12em; }
+@media (max-width: 600px) { header, footer { align-items: flex-start; flex-direction: column; } .brand span { display: none; } }
