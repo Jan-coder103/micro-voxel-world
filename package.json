@@ -10,7 +10,8 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:browser": "playwright test",
-    "check": "npm run lint && npm test && npm run build && npm run test:browser"
+    "check": "npm run lint && npm test && npm run assets:validate && npm run build && npm run test:browser",
+    "assets:validate": "node tools/assets/validate.ts"
   },
   "keywords": [],
   "author": "",

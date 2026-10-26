@@ -34,3 +34,7 @@
 .asset-stats dd { font-size: 12px; margin: 4px 0 0; overflow-wrap: anywhere; }
 @media (max-width: 1000px) { .workbench { grid-template-columns: 220px minmax(0, 1fr); } .asset-panel { padding: 16px; } .asset-stats { grid-template-columns: 1fr 1fr; } .asset-stats dt { grid-row: auto; } .asset-stats dd { margin: 0; } }
 @media (max-width: 700px) { .workbench { grid-template-columns: 1fr; } .asset-panel { border-right: 0; border-bottom: 1px solid #314750; } }
+.file-controls { margin-top: 16px; }
+.file-controls > label { display: block; margin-bottom: 6px; }
+.file-controls input { font-size: 11px; }
+.file-controls button { width: 100%; margin-top: 8px; }

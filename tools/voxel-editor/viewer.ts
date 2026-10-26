@@ -1,7 +1,7 @@
 import { AxesHelper, Color, DirectionalLight, GridHelper, HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPreviewObject } from './preview-object';
-import type { PreviewAsset } from './provisional-assets';
+import type { VoxelSource } from '../../src/assets/voxel-source';
 
 export type View = 'perspective' | 'front' | 'top';
 
@@ -48,6 +48,8 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
     const direction = view === 'front' ? new Vector3(0, 0, -1)
       : view === 'top' ? new Vector3(0, 1, -0.0001) : new Vector3(1, 0.8, -1);
     controls.maxDistance = Math.max(30, distance * 2);
+    camera.far = Math.max(100, controls.maxDistance + radius * 2);
+    camera.updateProjectionMatrix();
     controls.target.copy(centre);
     camera.position.copy(centre).addScaledVector(direction.normalize(), distance);
     controls.update();
@@ -65,7 +67,7 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
   resize();
   host.dataset.state = 'ready';
   return {
-    select(asset: PreviewAsset) {
+    select(asset: VoxelSource) {
       current?.dispose();
       current = createPreviewObject(asset);
       current.helper.visible = boundsVisible;

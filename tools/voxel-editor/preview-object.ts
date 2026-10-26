@@ -1,20 +1,20 @@
 import { Box3, Box3Helper, BoxGeometry, Color, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
-import { WORLD_SCALE } from '../../src/core/scale';
-import { assetMetres, type PreviewAsset } from './provisional-assets';
+import { assetMetres, type VoxelSource } from '../../src/assets/voxel-source';
 
-export function createPreviewObject(asset: PreviewAsset) {
-  const voxel = WORLD_SCALE.assetVoxelMetres;
+export function createPreviewObject(asset: VoxelSource) {
+  const voxel = asset.voxelSize;
   const [width, height, depth] = assetMetres(asset);
   const geometry = new BoxGeometry(voxel, voxel, voxel);
   const material = new MeshStandardMaterial({ roughness: 0.9 });
   const mesh = new InstancedMesh(geometry, material, asset.cells.length);
   const transform = new Matrix4();
   const color = new Color();
+  const palette = new Map(asset.palette.map((entry) => [entry.id, entry.color]));
   asset.cells.forEach((cell, index) => {
     const [x, y, z] = cell.position;
     transform.makeTranslation((x + 0.5) * voxel - width / 2, (y + 0.5) * voxel, (z + 0.5) * voxel - depth / 2);
     mesh.setMatrixAt(index, transform);
-    mesh.setColorAt(index, color.set(cell.color));
+    mesh.setColorAt(index, color.set(palette.get(cell.palette)!));
   });
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;

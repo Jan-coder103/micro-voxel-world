@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Color, Matrix4, Vector3 } from 'three';
-import { assetMetres, createBlock, createFixtures } from '../../tools/voxel-editor/provisional-assets';
+import { assetMetres } from '../../src/assets/voxel-source';
+import { createBlock } from '../../src/assets/create-block';
+import { createFixtures } from '../../tools/voxel-editor/catalog';
 import { createPreviewObject } from '../../tools/voxel-editor/preview-object';
 
-describe('provisional viewer assets', () => {
+describe('source-backed viewer assets', () => {
   it('creates unique occupied cells and converts dimensions to metres', () => {
     const asset = createBlock('test', ' Small block ', [2, 3, 4], '#abcdef');
     expect(asset.name).toBe('Small block');
@@ -61,4 +63,18 @@ describe('provisional viewer assets', () => {
     expect(released).toEqual([1, 1, 1, 1]);
     expect(object.group.children).toHaveLength(0);
   });
+});
+
+it('uses the declared padded envelope for bounds while preserving multiple palette colors', () => {
+  const asset = createFixtures()[0];
+  asset.size = [256, 256, 256];
+  const object = createPreviewObject(asset);
+  expect(object.bounds.min.toArray()).toEqual([-12.8, 0, -12.8]);
+  expect(object.bounds.max.toArray()).toEqual([12.8, 25.6, 12.8]);
+  const color = new Color();
+  asset.cells.forEach((cell, index) => {
+    object.mesh.getColorAt(index, color);
+    expect(color.getHexString()).toBe(asset.palette.find((entry) => entry.id === cell.palette)!.color.slice(1));
+  });
+  object.dispose();
 });

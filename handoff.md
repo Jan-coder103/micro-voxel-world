@@ -1,13 +1,13 @@
 # Handoff — 26 October 2026
 
-Current phase: Phase 2 viewer implemented; automated checks and agent visual inspection passed. Awaiting user verification.
+Current phase: Phase 3 source format and authoring guidance implemented; automated checks and agent visual inspection passed. Awaiting user verification.
 
-Read agent.md, plan.md, and tracker.md. README.md contains install/run/check commands. Foundation decisions are in docs/decisions/0001-foundation.md.
+Read agent.md, plan.md, tracker.md, and README.md. Asset contract: docs/asset-authoring/format.md; agent guide: docs/asset-authoring/mvw-voxel-assets/SKILL.md; decision: docs/decisions/0003-voxel-source.md.
 
-The game (/) retains its setup scene. The workshop (/tools/voxel-editor/) now has a catalog, two voxel fixtures, solid-block creator, orbit/zoom/pan, camera presets, grid/axes, bounds, and measurements. Source entry points: src/main.ts and tools/voxel-editor/main.ts. Viewer UI/rendering/temporary data live under tools/voxel-editor/. There is no gameplay or voxel editing yet.
+The game (/) remains the setup scene. The workshop (/tools/voxel-editor/) loads two original checked-in JSON reference assets, creates session blocks, imports validated v1 sources, and downloads editable source JSON. Source authority is sparse occupancy with palette references. Fixed scale: 0.1 m voxels, base-centred pivot, +Y up, −Z front. There is no manual voxel editing or gameplay yet.
 
-`npm run check` passes: lint, 13 unit tests, strict types, production build, and 9 Chromium browser tests, including earlier regressions. Inspected full-page marker/block/top captures and the compact workshop layout. Test captures are ignored under test-results/. Known warning: ~539 kB shared Three.js bundle. Reference GPU/performance and broader browser coverage remain unverified. This handoff is included in the Phase 2 commit (see git log); Phase 1 commit is 711fdc6.
+Shared code lives in src/assets/voxel-source.ts and create-block.ts. CLI: tools/assets/validate.ts. Catalog: tools/voxel-editor/catalog.ts; provisional-assets.ts was removed. Browser file controls live in workshop.ts; rendering consumes palette references. Limits: 256 per axis, 32768 occupied cells, 64 colors, 8 MiB per source; simple block creator 16 per axis; 24 assets per session. Duplicate IDs fail without overwrite. Export before reload; no automatic persistence.
 
-Assets are session-only; reload discards creations. Limits: 16 cells per axis and 24 session assets. The temporary adapter is not a stable source format; instanced cubes retain internal faces/seams until meshing. See docs/decisions/0002-viewer.md and README.md for controls and scope.
+npm run check passed: lint, 53 unit tests, source validation, strict types/build, and 13 Chromium tests including previous regressions. Inspected marker and saved/reopened coral-block full-page captures. Captures are ignored under test-results/. Known shared Three.js warning remains ~539 kB; workshop is ~73 kB including source fixtures. Broader browsers/GPU/performance and user verification remain outstanding.
 
-Next task: Phase 3 standardized voxel format, validator, import/export round trips, reference assets, and asset-authoring skill.md. Migrate the provisional adapter without losing viewer behavior. Do not start later gameplay phases automatically.
+This handoff is included in the Phase 3 commit (see git log). Phase 2 commit: 3a878bd. Next: Phase 4 optimized surface meshing and GLB export. Preserve editable v1 sources, palette/scale/pivot fidelity, resource disposal, and earlier regression coverage. Do not start later phases automatically.

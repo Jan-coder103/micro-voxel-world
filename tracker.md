@@ -28,8 +28,23 @@ Status: implemented; automated checks passed; agent visual inspection completed.
 - Agent visual inspection: reviewed 1280 px full-page captures of the marker, a created 2×3×4 coral block, and top view, plus the 800×600 workshop capture. Confirmed readable catalog/measurements, asymmetric shape/color orientation, visible bounds, ground placement, and contained canvas. Pointer/key interactions were automated; Jan has not verified them manually.
 - Limitations: internal cube faces and minor surface seams remain in this provisional preview (Phase 4 handles optimized meshing). Only Chromium is checked. Shared bundle warning remains (~539 kB minified / 134 kB gzip); no rendering benchmark or gameplay performance claim.
 
+## Phase 3 — Standardized voxel source format and authoring guidance
+
+Status: implemented; automated checks passed; agent visual inspection completed. Awaiting user verification.
+
+- Replaced the provisional adapter with rendering-independent VoxelSource v1: fixed metre/0.1 m scale, base-centred pivot, +Y up/−Z front, explicit sparse occupancy, named opaque matte palette, category/tags/provenance, and stable IDs.
+- Strict shared validation rejects unsupported versions/fields/materials/scale, invalid dimensions/coordinates, duplicate cells/palette IDs, unresolved palette references, and excessive allocations. Budgets: 256 per axis, 32768 occupied cells, 64 palette entries, 8 MiB UTF-8. The block creator remains 16 per axis and sessions remain capped at 24.
+- Workshop import/export downloads editable JSON and reopens it after reload. Validation and duplicate-ID/session checks precede catalog mutation; failures retain the selection/preview. Download URLs/timers and asynchronous import callbacks respect teardown. Reload still discards session assets.
+- Committed original marker and metre-cube sources; the catalog loads validated independent copies. Added structural JSON Schema, format contract, scale/orientation examples, project asset-authoring SKILL.md, and decision 0003. Geometry operations are bounded authoring helpers producing occupancy; executable recipes are not source fields. No dependencies added.
+- Added npm run assets:validate for shared validation and round trips; it runs inside npm run check and returns nonzero on invalid sources. CLI input size is checked before reading.
+- Full npm run check passed: lint, 53 unit tests, reference-source validation, strict TypeScript, both production entry points, and 13 Chromium tests, retaining earlier regressions. New coverage includes field failures, collection/byte bounds, maximum sparse occupancy, metadata/palette/placement preservation, CLI success/failure, browser download/reopen with identical rendered output, atomic invalid imports, literal names, duplicate IDs, and session limits.
+- The skill-creator quick validator passed after installing its missing PyYAML dependency into ignored test output. The JSON Schema and both references were checked with jsonschema; the skill example passed both JSON Schema and the shared source validator. Project dependencies/lockfile are unchanged. Windows UTF-8 BOM imports, sparse array rejection, padded bounds/palette colors, and source file controls without WebGL also pass. Camera clipping now accommodates the larger source envelope.
+- Agent visual inspection of full-page marker and exported/reopened coral-block captures confirmed readable file controls, preserved colors/orientation, displayed metre bounds, contained canvas, and no layout overlaps. Interactions were automated; Jan has not verified manually.
+- The initial test attempt had one incorrectly prepared palette fixture; corrected it and the full suite passed. Shell sandbox process setup was unavailable; checks ran through reviewed commands outside it.
+- Limitations: opaque matte material only, no arbitrary pivots/voxel scales, no automatic persistence, manual voxel editing, optimized meshing, or GLB export. Chromium only. Existing shared Three.js warning remains (~539 kB minified / 134 kB gzip); workshop bundle is ~73 kB / 13 kB gzip including sources. No gameplay performance claim.
+
 ## Next
 
-Phase 3: standardized voxel data format, validation, round-trip import/export, reference sources, and asset-authoring skill.md. Replace the provisional adapter after deciding the authoritative representation, bounds, palette/material policy, and versioning. Keep the existing viewer tests as regressions.
+Phase 4: hidden-face removal, greedy compatible-surface meshing, BufferGeometry correctness, and GLB export that preserves v1 scale, pivot, palette appearance, and editable source. Measure geometry reduction against the reference fixtures. Keep viewer/source tests as regressions.
 
-Phases 3–20: not started. No gameplay, meshing, editor, streaming, combat, persistence, or performance benchmark is implied by the setup.
+Phases 4–20: not started. User verification of Phases 1–3 remains outstanding.
