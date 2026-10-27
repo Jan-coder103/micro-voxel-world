@@ -44,10 +44,24 @@ Five more original static landmarks and props extend the town, industrial and mi
 
 All five are connected grounded voxel shapes under the existing limits. Closed containers/tanks and elevated structures are static sparse reference geometry; ladders, doors, tanks and windows have no interaction or collision logic. Tank labels/signs are original color blocks rather than text decals. Windows remain opaque matte under v1. Rounded tanks use stepped surfaces; no LOD generation or new gameplay system is included.
 
+## Fourth reference kit
+
+Five original rural assets add a farm setting and a distinctive landmark:
+
+| Source | Dimensions X × Y × Z | Occupied cells | Greedy triangles | Details |
+| --- | --- | ---: | ---: | --- |
+| `ref-farmhouse.voxel.json` | 7 × 5 × 6 m | 18,878 | 738 | Cream hollow shell, pitched brown roof, framed front windows/door, side windows and capped brick chimney. |
+| `ref-barn.voxel.json` | 8 × 5.8 × 7 m | 26,152 | 1,354 | Red-brown hollow shell, stepped gambrel roof, pale cross-braced double doors, loft window and side windows. |
+| `ref-tractor.voxel.json` | 2.4 × 2.9 × 4.2 m | 9,864 | 690 | Olive hood, large rear/small front wheels with yellow hubs, framed matte cab, canopy, exhaust, grille, lamps and front weight. |
+| `ref-windmill.voxel.json` | 6 × 10 × 4 m | 12,390 | 4,792 | Tapered stone tower, conical roof, doorway/window, projecting axle and four diagonal wooden sails with pale panels. |
+| `ref-wooden-bridge.voxel.json` | 4 × 2.2 × 10 m | 13,644 | 728 | Alternating deck planks, under-deck stringers, grounded support piles and two continuous railings with metal bands. |
+
+Each asset is a connected grounded voxel shape within the existing budgets. The windmill rotor is a fixed silhouette with no animation/rig. Tractor wheels are static; no driving behavior is included. The bridge is a static span whose deck sits 0.8 m above its support base; terrain placement, approaches and collision are later systems. Farmhouse/barn are hollow shells with closed matte window/door surfaces. No new material, LOD, collision or gameplay behavior is added.
+
 ## Open and edit
 
 1. Run `npm run dev` and open `/tools/voxel-editor/`.
-2. Use **Import voxel JSON** to open any of these fifteen reference files. They are available as source files rather than being bundled into the default two-fixture catalog.
+2. Use **Import voxel JSON** to open any of these twenty reference files. They are available as source files rather than being bundled into the default two-fixture catalog.
 3. Check Frame asset, Front −Z and Top +Y; use the displayed metre dimensions to compare scale.
 4. Edit with the existing cell/palette controls, then **Export selected source** to keep the revision. Explicit replacement allows reopening the same ID in the session.
 5. Export GLB from the workshop or run `npm run assets:export`. Local derivatives are `assets/generated/<source-id>.glb`; keep JSON as the editing authority.

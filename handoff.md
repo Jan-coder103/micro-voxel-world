@@ -1,6 +1,6 @@
 # Handoff — 27 October 2026
 
-Current stopping point: fifteen reference assets authored in three kits after Phase 5; automated checks and agent visual inspection passed. Phase 6 has not started. Awaiting user verification.
+Current stopping point: twenty reference assets authored in four kits after Phase 5; automated checks and agent visual inspection passed. Phase 6 has not started. Awaiting user verification.
 
 Read agent.md, plan.md, tracker.md and README.md. Asset contract: docs/asset-authoring/format.md; authoring guide: docs/asset-authoring/mvw-voxel-assets/SKILL.md; mesh pipeline: docs/asset-authoring/mesh-pipeline.md; editor decision: docs/decisions/0005-voxel-editor.md.
 
@@ -10,7 +10,7 @@ JSON export marks the exact source exported; GLB export does not. Save source JS
 
 Key additions: src/assets/voxel-document.ts (pure command/history/dirty model), tools/voxel-editor/editor.ts (manual controls), tests/unit/voxel-document.test.ts and tests/browser/editor.spec.ts. workshop.ts integrates document ownership/import/export/unload handling; viewer.ts adds owned selection helper and preserves camera on edits. Existing source/mesh/GLB pipeline remains unchanged. No dependencies added.
 
-Latest npm run check passed on Linux / Node 24.22.1: lint, 89 unit tests, all seventeen source validations, strict types/build and 35 Chromium tests including earlier regressions/27 rendered comparisons. Agent visually inspected the full-page edited block capture; browser interactions were automated. Initial Node subprocess checks required running outside the sandbox (EPERM). Existing ~536 kB shared bundle warning remains; workshop ~85 kB / 18 kB gzip.
+Latest npm run check passed on Linux / Node 24.22.1: lint, 94 unit tests, all twenty-two source validations, strict types/build and 40 Chromium tests including earlier regressions/27 rendered comparisons. Agent visually inspected the full-page edited block capture; browser interactions were automated. Initial Node subprocess checks required running outside the sandbox (EPERM). Existing ~536 kB shared bundle warning remains; workshop ~85 kB / 18 kB gzip.
 
 Limitations: single-cell coordinate editing, no brush/raycast/multiselection, no automatic recovery, Chromium only, maximum-size editing latency unmeasured. User verification of Phases 1–5 remains outstanding. Phases 6–20 have not started.
 
@@ -20,6 +20,8 @@ Second kit: assets/source/ref-pine-tree.voxel.json, ref-derelict-car.voxel.json,
 
 Third kit: assets/source/ref-water-tower.voxel.json, ref-shipping-container.voxel.json, ref-bus-shelter.voxel.json, ref-fuel-tank.voxel.json and ref-watchtower.voxel.json. All validated/connected/grounded, exported to ignored GLBs and inspected in perspective/front/top. Tests cover all fifteen reference assets. ZIP and two preview sheets are in ../asset-deliveries/reference-kit-3/ with matching source/GLB hashes verified. No gameplay behavior or phase advancement. Source guide records dimensions, counts and details. Jan praised the previous artwork; functional user verification and verification of this latest kit remain outstanding.
 
-This handoff is included in the third reference-kit commit; see git log for its ID. Second kit commit: c3cbe09. First kit commit: 51781ba. Prior Phase 5 commit: 39ce560. Prior Phase 4 commit: d2d4eca. Next: Phase 6 game engine architecture (fixed timestep, lifecycle/start/pause/resume/reset, input/state ownership, diagnostics, initial pooling). Keep editor/source/meshing/GLB/viewer regressions. Do not start later phases automatically.
+Fourth kit: assets/source/ref-farmhouse.voxel.json, ref-barn.voxel.json, ref-tractor.voxel.json, ref-windmill.voxel.json and ref-wooden-bridge.voxel.json. Sources are validated, face-connected, grounded and within v1 budgets; new GLBs exported and checked against source hashes. Agent inspected all fifteen perspective/front/top captures. Tests now cover all twenty reference assets. ZIP and preview sheets: ../asset-deliveries/reference-kit-4/. Farm buildings are closed hollow shells, tractor/windmill have no animation or rig, and bridge deck is 0.8 m above its support base with terrain approaches/collision deferred. No gameplay phase advancement. Source guide has dimensions/counts/details. User verification remains outstanding.
+
+This handoff is included in the fourth reference-kit commit; see git log for its ID. Third kit commit: d3298c0. Second kit commit: c3cbe09. First kit commit: 51781ba. Prior Phase 5 commit: 39ce560. Prior Phase 4 commit: d2d4eca. Next: Phase 6 game engine architecture (fixed timestep, lifecycle/start/pause/resume/reset, input/state ownership, diagnostics, initial pooling). Keep editor/source/meshing/GLB/viewer regressions. Do not start later phases automatically.
 
 Desktop continuation: main tracks origin/main at https://github.com/Jan-coder103/micro-voxel-world.git. Use Node 24, npm ci, npm run check, npm run dev. npm run assets:export regenerates ignored GLBs. Browser-created personal session assets must be exported/transferred separately. No deployment target is configured.

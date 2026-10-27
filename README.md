@@ -29,7 +29,7 @@ See [the format contract](docs/asset-authoring/format.md), [authoring skill](doc
 
 ## Reference assets
 
-Fifteen original editable reference sources are available in [assets/source](assets/source/README.md): zombie, attack aircraft, field tree, utility building, combined road/landing pad, pine tree, derelict car, streetlight, concrete barrier, small warehouse, water tower, shipping container, bus shelter, fuel tank, and military watchtower. Import their `ref-*.voxel.json` files into the workshop; `npm run assets:export` generates their GLBs alongside the two fixtures. They are static scale/gameplay references for the next phases.
+Twenty original editable reference sources are available in [assets/source](assets/source/README.md): zombie, attack aircraft, field tree, utility building, combined road/landing pad, pine tree, derelict car, streetlight, concrete barrier, small warehouse, water tower, shipping container, bus shelter, fuel tank, military watchtower, farmhouse, barn, tractor, windmill, and wooden bridge. Import their `ref-*.voxel.json` files into the workshop; `npm run assets:export` generates their GLBs alongside the two fixtures. They are static scale/gameplay references for the next phases.
 
 ## Commands
 

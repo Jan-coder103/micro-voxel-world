@@ -100,6 +100,15 @@ Status: five more original assets authored; automated checks passed; agent visua
 - Agent reviewed all fifteen new perspective/front/top captures on a contact sheet: readable forms and details, correct facing and ground placement. Interactions/captures are automated; Jan has not manually verified this kit. Packaged five JSON sources/five GLBs with guide and previews; verified ZIP integrity and every GLB’s source hash. Durable local delivery: ../asset-deliveries/reference-kit-3/. Updated README/source guide/handoff. Prior praise is aesthetic feedback, not user verification of editor behavior or these new assets.
 - Limits remain: no LOD/collision/gameplay integration; stepped rounded surfaces (water tower 4,894 triangles, fuel tank 1,732). Existing shared bundle warning unchanged. Phase 6 has not started.
 
+## Fourth reference asset kit — before Phase 6
+
+Status: five more original rural assets authored; automated checks passed; agent visual inspection completed. Awaiting user verification.
+
+- Added ref-farmhouse (7 × 5 × 6 m), ref-barn (8 × 5.8 × 7 m), ref-tractor (2.4 × 2.9 × 4.2 m), ref-windmill (6 × 10 × 4 m) and ref-wooden-bridge (4 × 2.2 × 10 m). Established 0.1 m scale, base-centred pivot, −Z front, muted material families, original provenance and source budgets retained. Every asset is face-connected and reaches ground level. No dependencies or third-party artwork.
+- Rural silhouettes/details: farmhouse pitched roof/chimney/framed windows, barn gambrel roof/cross-braced doors/loft window, tractor unequal wheel sizes/yellow hubs/cab/exhaust, windmill taper/cone/four diagonal pale sails, bridge deck planks/stringers/grounded piles/railings. Static references: no rigs, rotating sails, driving, collision, usable interiors or gameplay integration. Bridge deck is 0.8 m above its base and needs later terrain/approach placement.
+- Extended round-trip/scale/category/connectivity/meshing and perspective/front/top import tests to all twenty references. Final npm run check passed: lint, 94 unit tests, all twenty-two source validations, strict types/build and 40 Chromium tests, retaining previous regressions/27 rendered comparisons. All five new GLBs exported successfully. No pipeline/dependency changes; existing shared bundle warning remains.
+- Agent reviewed all fifteen new inspection captures: correct form/facing/grounding and recognizable rural details. Interactions/captures are automated; user verification remains outstanding. Packaged five sources/five GLBs, guide and previews; verified archive integrity and matching source hashes. Durable local delivery: ../asset-deliveries/reference-kit-4/. Updated README/source guide/handoff. Phase 6 has not started.
+
 ## Next
 
 Phase 6: game engine architecture — modular simulation state, input abstraction, fixed timestep, start/pause/resume/reset, diagnostics, resource ownership and initial pooling. Keep editor/source/meshing/GLB/viewer tests as regressions.
