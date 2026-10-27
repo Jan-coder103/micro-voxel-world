@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with Phase 14 procedural settlements.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with procedural settlements and Phase 15 persistent zombie encounters.
 
 ## Quick start
 
@@ -31,9 +31,9 @@ Implementation and automated verification do not establish player enjoyment or p
 
 Open `/tools/streaming/?terrain=regional` or choose **Terrain explorer** from Game. Load a uint32 seed and jump to Plains, Forest, Mountains, River, Lake, Coast, Ocean or an earlier Settlement reservation. The district buttons below select the generated settlements. WASD/arrows move the inspection camera at 80 m/s. Choose **City**, **Rural**, **Industrial**, **Military**, **Airport**, or **Harbor** to inspect generated districts. Seeded streets connect valid plots and neighboring regions where terrain permits. Houses, height-varied city blocks, warehouses, tanks, barracks, towers, runways/aprons and coastal piers reuse shared original voxel kits. A missing valid district is reported explicitly.
 
-**Fly this region** opens `/tools/flight/?terrain=regional&seed=103` at the selected location. Existing flight controls apply. Water contact crashes, terrain/water collision works independently of workers, and Recover / Reset returns to the selected approach. Buildings and foundation envelopes stop the aircraft even before chunks arrive; trees remain visual scenery. A conservative chase-camera adjustment clears building envelopes. Regional exploration and flight have no persistent changes; existing combat populations and saved markers retain generator v1.
+**Fly this region** opens `/tools/flight/?terrain=regional&seed=103` at the selected location. Existing flight controls apply. Water contact crashes, terrain/water collision works independently of workers, and Recover / Reset returns to the selected approach. Buildings and foundation envelopes stop the aircraft even before chunks arrive; trees remain visual scenery. A conservative chase-camera adjustment clears building envelopes. Regional flight saves zombie damage in its separate population scope; terrain/structures stay static. Existing combat populations and saved markers retain generator v1.
 
-Generator v2 combines global layered value noise, ridged mountain elevation, moisture biomes, a continuous descending river with a level lake reach, coastal/ocean fields and terraced surfaces. Vegetation is baked into owned chunk meshes in the two near tiers. Four terrain tiers keep shared 1 m boundaries; a reused coarse underlay covers late detail. This is an erosion-inspired heightfield, with opaque water surfaces rather than full physical hydrology. Structure content v1 adds terrain-checked roads/plots and bounded settlements; `&structures=0` keeps the earlier terrain-only view. Interiors and loot remain deferred decorative ideas; there is no on-foot interaction. See [settlement decisions](docs/decisions/0014-procedural-settlements.md). See [terrain decisions](docs/decisions/0013-regional-terrain.md). `node --experimental-transform-types tools/benchmarks/terrain.ts` measures CPU generation and payload sizes.
+Generator v2 combines global layered value noise, ridged mountain elevation, moisture biomes, a continuous descending river with a level lake reach, coastal/ocean fields and terraced surfaces. Vegetation is baked into owned chunk meshes in the two near tiers. Four terrain tiers keep shared 1 m boundaries; a reused coarse underlay covers late detail. This is an erosion-inspired heightfield, with opaque water surfaces rather than full physical hydrology. Structure content v1 adds terrain-checked roads/plots and bounded settlements; `&structures=0` disables structures, with a separate population save scope in regional flight. Interiors and loot remain deferred decorative ideas; there is no on-foot interaction. See [settlement decisions](docs/decisions/0014-procedural-settlements.md). See [terrain decisions](docs/decisions/0013-regional-terrain.md). `node --experimental-transform-types tools/benchmarks/terrain.ts` measures CPU generation and payload sizes.
 
 Jan deferred the Phase 12 playtest and physical-GPU gates on 27 October 2026. They remain outstanding; neither player enjoyment nor hardware FPS has been verified.
 
@@ -116,3 +116,13 @@ Platform and tooling choices are in docs/decisions/0001-foundation.md. The initi
 ## Continue on another computer
 
 Pull main (or clone the GitHub repository), use Node 24, then run `npm ci`, `npm run check`, and `npm run dev`. Use `npm run assets:export` to regenerate ignored GLBs. Read handoff.md for the latest stopping point. Browser-created session assets must be exported as JSON and transferred separately; they are not automatically committed.
+
+Regional population (Phase 15): open `/tools/flight/?terrain=regional`, or use
+**Fly this region** in the regional terrain explorer. **Approach nearby horde** sets
+up a development attack pass; Start, Space and 1/2/3 use the flight weapon controls.
+The population panel shows nearby survivors and persistent kills/cleared encounters.
+Recover resets the aircraft, preserving zombie damage. Seeded population coverage
+is −4096 to 4096 m per axis; terrain continues beyond it. Damage saves automatically
+in a separate generator-v2/seed/structure population scope. Storage failures appear
+in the population panel and preserve session play. Regional groups currently hold
+validated positions; moving regional patrols and mission progression are deferred.
