@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 const kit = [
+  ['ref-water-tower', 'Water tower reference', '6.00 × 11.00 × 6.00 m'],
+  ['ref-shipping-container', 'Shipping container reference', '2.50 × 2.60 × 6.10 m'],
+  ['ref-bus-shelter', 'Bus shelter reference', '5.00 × 2.80 × 2.00 m'],
+  ['ref-fuel-tank', 'Fuel tank reference', '4.80 × 4.00 × 7.00 m'],
+  ['ref-watchtower', 'Military watchtower reference', '4.60 × 9.00 × 4.60 m'],
   ['ref-pine-tree', 'Pine tree reference', '4.00 × 8.00 × 4.00 m'],
   ['ref-derelict-car', 'Derelict car reference', '2.00 × 1.50 × 4.40 m'],
   ['ref-streetlight', 'Streetlight reference', '1.00 × 6.50 × 2.40 m'],

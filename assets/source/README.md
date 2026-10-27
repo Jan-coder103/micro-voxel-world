@@ -30,10 +30,24 @@ Five complementary static environment assets use the same scale, facing and pale
 
 The streetlight has no actual light source or emission, and the car is a static prop with no driving/animation. The pine’s 7,628 triangles are a detailed reference, pending later vegetation LOD/instancing work. No collision, interior gameplay or performance claim is included. All five have connected occupancy reaching ground level. The warehouse uses a sparse shell close to the occupied-cell budget; additions must continue respecting the validator.
 
+## Third reference kit
+
+Five more original static landmarks and props extend the town, industrial and military set:
+
+| Source | Dimensions X × Y × Z | Occupied cells | Greedy triangles | Details |
+| --- | --- | ---: | ---: | --- |
+| `ref-water-tower.voxel.json` | 6 × 11 × 6 m | 20,748 | 4,894 | Four grounded legs, diagonal braces, inspection ladder/platform, cylindrical tank with dark bands and a tapered roof. |
+| `ref-shipping-container.voxel.json` | 2.5 × 2.6 × 6.1 m | 8,236 | 494 | Hollow painted shell, corrugated sides, rusty corner posts, paired door locking bars and pale label plate. |
+| `ref-bus-shelter.voxel.json` | 5 × 2.8 × 2 m | 5,446 | 254 | Concrete slab, metal frame, flat canopy, matte back panels, supported wooden bench and sign panel. |
+| `ref-fuel-tank.voxel.json` | 4.8 × 4 × 7 m | 14,996 | 1,732 | Horizontal cylindrical shell, paired concrete saddles, retaining bands, fill neck, front pipe and yellow warning plate. |
+| `ref-watchtower.voxel.json` | 4.6 × 9 × 4.6 m | 12,751 | 1,624 | Grounded corner posts, diagonal braces, elevated cabin, wraparound matte windows, ladder, platform and roof mast. |
+
+All five are connected grounded voxel shapes under the existing limits. Closed containers/tanks and elevated structures are static sparse reference geometry; ladders, doors, tanks and windows have no interaction or collision logic. Tank labels/signs are original color blocks rather than text decals. Windows remain opaque matte under v1. Rounded tanks use stepped surfaces; no LOD generation or new gameplay system is included.
+
 ## Open and edit
 
 1. Run `npm run dev` and open `/tools/voxel-editor/`.
-2. Use **Import voxel JSON** to open any of these ten reference files. They are available as source files rather than being bundled into the default two-fixture catalog.
+2. Use **Import voxel JSON** to open any of these fifteen reference files. They are available as source files rather than being bundled into the default two-fixture catalog.
 3. Check Frame asset, Front −Z and Top +Y; use the displayed metre dimensions to compare scale.
 4. Edit with the existing cell/palette controls, then **Export selected source** to keep the revision. Explicit replacement allows reopening the same ID in the session.
 5. Export GLB from the workshop or run `npm run assets:export`. Local derivatives are `assets/generated/<source-id>.glb`; keep JSON as the editing authority.

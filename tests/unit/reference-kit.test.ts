@@ -4,6 +4,11 @@ import { parseSource, serializeSource } from '../../src/assets/voxel-source';
 import { meshVoxelSource } from '../../src/assets/voxel-mesh';
 
 const kit = [
+  ['ref-water-tower', 'prop', [60, 110, 60]],
+  ['ref-shipping-container', 'prop', [25, 26, 61]],
+  ['ref-bus-shelter', 'prop', [50, 28, 20]],
+  ['ref-fuel-tank', 'prop', [48, 40, 70]],
+  ['ref-watchtower', 'building', [46, 90, 46]],
   ['ref-pine-tree', 'vegetation', [40, 80, 40]],
   ['ref-derelict-car', 'prop', [20, 15, 44]],
   ['ref-streetlight', 'prop', [10, 65, 24]],
