@@ -236,3 +236,9 @@ Status: implemented; automated checks passed; agent visual inspection completed;
 Phase 14 is implemented, tested and committed. Phase 15 regional zombie populations is next; do not begin it within this phase. Preserve deferred Phase 12 player-feedback and physical-GPU gates for later review.
 
 Phases 15–20: not started. Full user functional verification remains outstanding.
+
+## Repository privacy audit — 27 October 2026
+
+- Audited all 18 local commits and 307 historical file blobs for common provider tokens, private keys, credential assignments and authenticated URLs; no credential patterns found. GitHub main matched the audited local HEAD before this change. This is a pattern-based audit, not a guarantee against all possible secrets.
+- Commit metadata exposes the author name/email; historical handoff notes include local home paths. Existing history was preserved.
+- Hardened `.gitignore` for environment files, local credentials/keys, logs and editor files, preserving placeholder environment examples and existing generated-output rules. Verified representative paths and that no tracked files match the new rules.

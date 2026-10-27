@@ -1,8 +1,38 @@
+# Dependencies and generated output
 node_modules/
 dist/
 coverage/
 playwright-report/
 test-results/
-*.local
-
 assets/generated/*.glb
+*.tsbuildinfo
+
+# Local configuration and secrets; examples must contain placeholders only
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+.npmrc
+.netrc
+.git-credentials
+.aws/
+.ssh/
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Logs and local editor/OS files
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
