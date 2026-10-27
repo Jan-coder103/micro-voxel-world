@@ -1,3 +1,5 @@
+import markerSource from '../../assets/source/direction-marker.voxel.json';
+import { createVoxelMesh } from './voxel-mesh';
 import { BoxGeometry, Color, DirectionalLight, GridHelper, HemisphereLight, Mesh, MeshStandardMaterial, Scene } from 'three';
 
 /** Disposable setup fixture, not a voxel asset format or terrain implementation. */
@@ -10,13 +12,20 @@ export function createSetupScene() {
   cube.name = 'one-metre-scale-fixture';
   cube.position.y = 0.5;
   scene.add(cube);
+  const marker = createVoxelMesh(markerSource);
+  marker.mesh.position.set(-3, 0, -3);
+  scene.add(marker.mesh);
   const grid = new GridHelper(20, 20, '#557c80', '#283f4b');
   scene.add(grid, new HemisphereLight('#dceeff', '#546343', 2));
   const sun = new DirectionalLight('#ffe0ae', 3);
   sun.position.set(4, 8, 3);
   scene.add(sun);
 
-  return { scene, dispose() {
+  let disposed = false;
+  return { scene, cube, dispose() {
+    if (disposed) return;
+    disposed = true;
+    marker.dispose();
     geometry.dispose();
     material.dispose();
     grid.geometry.dispose();

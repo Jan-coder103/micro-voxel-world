@@ -19,6 +19,7 @@ describe('setup fixture', () => {
     let released = 0;
     cube.geometry.addEventListener('dispose', () => released++);
     fixture.dispose();
+    fixture.dispose();
     expect(released).toBe(1);
     expect(fixture.scene.children).toHaveLength(0);
   });

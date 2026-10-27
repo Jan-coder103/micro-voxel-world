@@ -18,3 +18,8 @@ canvas { display: block; }
 footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: #91a6ac; font-size: 12px; }
 footer span { font-size: 10px; letter-spacing: .12em; }
 @media (max-width: 600px) { header, footer { align-items: flex-start; flex-direction: column; } .brand span { display: none; } }
+.controls { margin-bottom: 16px; color: #91a6ac; font-size: 13px; }
+.controls button { padding: 9px 20px; margin-right: 8px; border: 1px solid #557c80; background: #203540; color: #e9eee8; cursor: pointer; }
+.controls button:disabled { opacity: .4; cursor: default; }
+.controls #diagnostics { display: block; font-variant-numeric: tabular-nums; }
+.viewport:focus-visible { outline: 2px solid #d9b56f; outline-offset: 3px; }

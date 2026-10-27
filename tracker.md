@@ -109,8 +109,20 @@ Status: five more original rural assets authored; automated checks passed; agent
 - Extended round-trip/scale/category/connectivity/meshing and perspective/front/top import tests to all twenty references. Final npm run check passed: lint, 94 unit tests, all twenty-two source validations, strict types/build and 40 Chromium tests, retaining previous regressions/27 rendered comparisons. All five new GLBs exported successfully. No pipeline/dependency changes; existing shared bundle warning remains.
 - Agent reviewed all fifteen new inspection captures: correct form/facing/grounding and recognizable rural details. Interactions/captures are automated; user verification remains outstanding. Packaged five sources/five GLBs, guide and previews; verified archive integrity and matching source hashes. Durable local delivery: ../asset-deliveries/reference-kit-4/. Updated README/source guide/handoff. Phase 6 has not started.
 
+## Phase 6 — Game engine architecture
+
+Status: implemented; automated checks passed; agent visual inspection completed. Awaiting user verification.
+
+- Added rendering-independent Simulation with ready/running/paused/disposed lifecycle, a 60 Hz accumulator, eight-step catchup cap and reported discarded time. Pause drops fractional accumulated time; resume starts a new browser timestamp. Reset clears position, ticks, timing, input and pooled effects while retaining pool allocations.
+- Focus-scoped WASD/arrows move the metre test cube at 3 m/s within an 8 m boundary. Space exercises a preallocated 16-slot, one-second cosmetic pulse pool. Input clears on focus loss; window blur/hidden tabs pause and require explicit resume. This is an architecture exercise, not aircraft or weapon gameplay.
+- Game controls expose Start/Pause/Resume/Reset and diagnostics. The direction marker uses the same validated source and greedy mesher as the workshop. Explicit idempotent disposal cancels animation, disconnects resize/input/browser listeners, and releases all mesh/renderer resources. Persisted pagehide retains resources for browser back-forward cache; HMR removes its pagehide listener.
+- New unit coverage compares 30/144 Hz results, lifecycle/reset/disposed guards, capped catchup, invalid elapsed time, fixed pool identity/reuse/expiry and repeated fixture disposal. Browser coverage exercises focused motion, pulses, pause/resume, repeated reset, control-focus isolation and repeated teardown. Existing regressions remain enabled.
+- Agent inspected the full-page engine capture: readable controls/diagnostics, visible metre grid/cube/shared marker, contained viewport. Interactions were automated; Jan has not manually verified. Decision: docs/decisions/0006-engine.md. No new dependencies.
+- Final `npm run check` passed on Node 24.22.1: lint, 97 unit tests, all 22 committed source validations, strict TypeScript/production build and 42 Chromium browser tests, preserving earlier regressions and 27 rendered comparisons. Shared bundle is ~548 kB minified / 137 kB gzip.
+- Limitations: direct fixed-state rendering without interpolation, Chromium only, cosmetic pulses rather than weapons, no terrain/flight/combat or device performance claim. Existing bundle warning remains. Initial sandbox subprocess output failures required the established outside-sandbox check workflow; first browser run exposed diagnostics status-role ambiguity, corrected before final checks.
+
 ## Next
 
-Phase 6: game engine architecture — modular simulation state, input abstraction, fixed timestep, start/pause/resume/reset, diagnostics, resource ownership and initial pooling. Keep editor/source/meshing/GLB/viewer tests as regressions.
+Phase 7: micro-voxel terrain and environment rendering. Preserve engine/editor/source/meshing/GLB/viewer regressions. Do not start later phases automatically.
 
-Phases 6–20: not started. User verification of Phases 1–5 remains outstanding.
+Phases 7–20: not started. User verification of Phases 1–5 remains outstanding.
