@@ -58,8 +58,21 @@ Status: implemented; automated checks passed; agent visual inspection completed.
 - Early check attempts found test-only TypeScript issues and a JSON import attribute mismatch in the browser harness; corrected them before the full passing run. Sandbox process setup remains unavailable; work/checks used reviewed commands outside it.
 - Limitations: opaque matte only; no manual editing/undo, lower-detail LOD generation, collision proxies, or runtime export cache. Only Chromium is checked. Existing Three.js bundle warning remains (~536 kB minified / 134 kB gzip); workshop ~78 kB / 16 kB gzip and lazy GLB exporter ~37 kB / 11 kB gzip. No gameplay performance claim.
 
+## Phase 5 — Complete voxel asset editor
+
+Status: implemented; automated checks passed; agent visual inspection completed. Awaiting user verification.
+
+- Added rendering-independent VoxelDocument with atomic validated add/remove/paint, palette add/update/remove (including reference renames), and source name/grid changes. Coordinate selection reports occupancy and draws a white cell box; editor commands preserve the camera. Empty additions, occupied removals, invalid bounds/references, used-palette deletion and removing the final cell are handled with actionable errors. Shrinking never silently crops source data.
+- Per-asset undo/redo retains up to 64 snapshots / 8 MiB UTF-8, evicting oldest steps. Invalid/no-op commands preserve history; new edits discard redo. Source getters return owned copies; source metadata/array order survive history and JSON round trips. Selection/catalog switching retains documents and histories.
+- Created sources start unsaved; imported sources/fixtures start clean. Source JSON export records the exported comparison; GLB never clears dirty state. Browser unload guard detects any unsaved document. Explicit import replacement supports existing IDs, including edited fixtures, validates before replacement, discards only that document’s edits/history, and resets the replacement option after success. Default duplicate rejection and session limits remain.
+- Updated README, format/authoring guidance, agent entry point and decision 0005. No new dependencies or schema changes. Edits remesh once per explicit command; coordinate selection only updates the helper. Generated derivatives remain ignored.
+- Final `npm run check` passed on Linux, Node 24.22.1: lint, 74 unit tests, committed-source validation, strict TypeScript/production build and 20 Chromium browser tests. All earlier source/meshing/GLB/viewer regressions pass, including the 27 existing rendered comparisons. New coverage exercises edit/history round trips, branching and atomic failures, palette references, final-cell protection, step/UTF-8 history bounds, ownership, dirty/export comparisons, per-asset history, representative edit/export/reopen, fixture replacement, invalid replacement, browser navigation warning, and editing/GLB export without WebGL.
+- Agent visual inspection of the 1280 px full-page edited block capture confirmed resized bounds, rose cells and disconnected addition, white selection box, readable file/edit/palette controls, history/dirty feedback and contained canvas. Interactions were automated; Jan has not verified them manually.
+- Initial sandbox run could not capture Node subprocess output (EPERM); full checks succeeded outside the sandbox. Initial browser checks found an active-palette reset after rename and ambiguous alert selectors; corrected both, plus a test dialog handling deadlock, before the final passing run.
+- Limitations: coordinate-based single-cell editing; no brush, raycast picking or multiselection. V1 requires at least one occupied cell. Downloads are user-managed; no automatic persistence/recovery. Browser unload warnings may be suppressed. History bounds exclude current sources and saved comparisons; large files retain fewer steps. Maximum-size interactive timing is unmeasured. Chromium only. Existing shared Three.js warning remains (~536 kB); workshop ~85 kB / 18 kB gzip. No gameplay performance claim.
+
 ## Next
 
-Phase 5: manual add/remove/paint tools, palette editing, selection, reliable undo/redo, dirty-state feedback and source/export file handling using the existing v1 format and GLB pipeline. Keep meshing/source/viewer/export tests as regressions.
+Phase 6: game engine architecture — modular simulation state, input abstraction, fixed timestep, start/pause/resume/reset, diagnostics, resource ownership and initial pooling. Keep editor/source/meshing/GLB/viewer tests as regressions.
 
-Phases 5–20: not started. User verification of Phases 1–4 remains outstanding.
+Phases 6–20: not started. User verification of Phases 1–5 remains outstanding.

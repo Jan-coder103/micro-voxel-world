@@ -38,3 +38,11 @@
 .file-controls > label { display: block; margin-bottom: 6px; }
 .file-controls input { font-size: 11px; }
 .file-controls button { width: 100%; margin-top: 8px; }
+#source-editor { margin-top: 20px; padding: 18px; border: 1px solid #314750; }
+#source-editor form, #source-editor fieldset { margin-top: 16px; }
+#source-editor label { display: block; }
+#source-editor select { min-height: 0; margin: 6px 0; }
+#source-editor .edit-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+#source-editor input { margin-top: 5px; }
+#source-editor #edit-error { color: #f2a390; font-size: 12px; }
+#dirty-state { color: #e7c885; font-size: 12px; }

@@ -1,4 +1,4 @@
-import { AxesHelper, Color, DirectionalLight, GridHelper, HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { Box3, Box3Helper, AxesHelper, Color, DirectionalLight, GridHelper, HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPreviewObject } from './preview-object';
 import type { VoxelSource } from '../../src/assets/voxel-source';
@@ -27,6 +27,9 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
   const axes = new AxesHelper(0.6);
   axes.position.y = 0.002;
   scene.add(grid, axes);
+  const selection = new Box3Helper(new Box3(), new Color('#ffffff'));
+  selection.visible = false;
+  scene.add(selection);
   const camera = new PerspectiveCamera(40, 1, 0.01, 100);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.minDistance = 0.15;
@@ -67,14 +70,23 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
   resize();
   host.dataset.state = 'ready';
   return {
-    select(asset: VoxelSource) {
+    select(asset: VoxelSource, preserveView = false) {
       current?.dispose();
       current = createPreviewObject(asset);
       current.helper.visible = boundsVisible;
       scene.add(current.group);
-      frame();
+      if (!preserveView) frame();
+      else render();
       status.textContent = `Viewing ${asset.name} · ${asset.cells.length.toLocaleString()} voxels`;
       return current.stats;
+    },
+    highlight(asset: VoxelSource, position: [number, number, number]) {
+      selection.visible = position.every((n, axis) => Number.isInteger(n) && n >= 0 && n < asset.size[axis]);
+      if (selection.visible) {
+        const min = new Vector3(position[0] * 0.1 - asset.size[0] * 0.05, position[1] * 0.1, position[2] * 0.1 - asset.size[2] * 0.05);
+        selection.box.set(min, min.clone().addScalar(0.1));
+      }
+      render();
     },
     frame,
     grid(visible: boolean) { grid.visible = visible; axes.visible = visible; render(); },
@@ -90,6 +102,7 @@ export function mountViewer(host: HTMLElement, status: HTMLElement) {
       const materials = Array.isArray(grid.material) ? grid.material : [grid.material];
       materials.forEach((material) => material.dispose());
       axes.dispose();
+      selection.dispose();
       scene.clear();
       renderer.dispose();
       renderer.domElement.remove();

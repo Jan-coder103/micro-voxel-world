@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with optimized meshing and GLB export (Phase 4).
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export (Phase 5).
 
 ## Quick start
 
@@ -11,13 +11,17 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:5173/ for the game setup scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Gameplay and manual voxel editing are later phases.
+Open http://localhost:5173/ for the game setup scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Gameplay is a later phase.
 
 ## Voxel workshop
 
 Select the direction marker or metre cube from the catalog. Left-drag to orbit, scroll to zoom, and right-drag to pan. Focus the canvas for arrow-key panning. Frame asset restores perspective; Front −Z and Top +Y provide repeatable inspection angles. Toggle the metre grid/axes and bounding box independently. Measurements show grid dimensions, declared physical bounds, and occupied cells.
 
-Create a solid block with a name, color, and 1–16 voxels per axis. Each voxel is 0.1 m, with +Y up, −Z forward, and the base centred on XZ. Use **Export selected source** to download an editable `.voxel.json` file. Reload and use **Import voxel JSON** to reopen it. The session holds up to 24 assets including fixtures; reload discards the session, so keep your downloads. Duplicate IDs fail without overwriting existing assets.
+Use **Edit source** to select a zero-based X/Y/Z coordinate; a white wire box marks it in the preview. **Add voxel** fills an empty cell, **Remove voxel** clears an occupied cell, and **Paint voxel** applies the active palette entry. The last occupied voxel cannot be removed because v1 sources must be nonempty. Edit the source name or enlarge its grid envelope (up to 256 per axis) before adding outside the original block. Shrinking across occupied cells fails without cropping. Resizing keeps integer coordinates and recalculates the base-centred pivot.
+
+Palette controls add named colors, update colors/IDs (including cell references), and remove unused entries. Each asset has independent Undo/Redo history, capped at 64 steps and 8 MiB; oldest steps expire. Invalid commands preserve source and history. Switching assets retains edits/history. Source JSON export clears the unsaved indicator for that exact source; GLB export leaves it unchanged. Closing or leaving with unsaved source changes triggers the browser's warning when supported. Keep downloaded JSON; there is no automatic persistence or recovery. History and selection are session-only.
+
+Create a solid block with a name, color, and 1–16 voxels per axis. Each voxel is 0.1 m, with +Y up, −Z forward, and the base centred on XZ. Use **Export selected source** to download an editable `.voxel.json` file. Reload and use **Import voxel JSON** to reopen it. The session holds up to 24 assets including fixtures; reload discards the session, so keep your downloads. Duplicate IDs fail by default. Explicitly enable **Replace matching session ID on import** to reopen an existing ID, including an edited fixture; successful replacement discards only that asset’s current edits/history and resets the option. Invalid imports preserve existing assets.
 
 Source v1 uses sparse occupancy, a named palette of opaque matte colors, explicit units/placement, and provenance. Imported sources may span up to 256 cells per axis with at most 32768 occupied cells, 64 palette entries, and 8 MiB of UTF-8 JSON. Unsupported versions, fields, scales, materials, references, and coordinates produce field-specific errors before catalog mutation. Use **Export runtime GLB** to download an optimized runtime mesh. Keep JSON for editing; there is no automatic persistence. The workshop reports triangle reduction for the selected source.
 

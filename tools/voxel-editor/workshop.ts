@@ -1,3 +1,5 @@
+import { VoxelDocument } from '../../src/assets/voxel-document';
+import { mountEditor } from './editor';
 import { meshVoxelSource } from '../../src/assets/voxel-mesh';
 import { assetMetres, parseSource, serializeSource, SOURCE_LIMITS } from '../../src/assets/voxel-source';
 import { createBlock } from '../../src/assets/create-block';
@@ -10,7 +12,7 @@ export function mountWorkshop() {
   app.innerHTML = `
     <header><a class="brand" href="/">MVW <span>/ DEVELOPMENT</span></a>
     <nav aria-label="Workspace"><a href="/">Game</a><a href="/tools/voxel-editor/" aria-current="page">Voxel workshop</a></nav></header>
-    <main class="workshop"><section class="intro"><p class="eyebrow">PHASE 04 / OPTIMIZED MESHES</p>
+    <main class="workshop"><section class="intro"><p class="eyebrow">PHASE 05 / VOXEL EDITOR</p>
     <h1>Voxel workshop</h1><p>Inspect form, color, and scale before it enters the world.</p></section>
     <div class="workbench"><aside class="asset-panel" aria-label="Asset catalog">
       <h2>Session assets <span id="asset-count"></span></h2>
@@ -19,6 +21,7 @@ export function mountWorkshop() {
       <div class="file-controls">
         <label for="import-source">Import voxel JSON</label>
         <input id="import-source" type="file" accept=".json,application/json">
+        <label><input id="replace-source" type="checkbox"> Replace matching session ID on import (discards that asset’s edits and history)</label>
         <button id="export-source" type="button">Export selected source</button>
         <button id="export-glb" type="button">Export runtime GLB</button>
         <p class="quiet">GLB is derived. Keep source JSON for editing.</p>
@@ -43,6 +46,7 @@ export function mountWorkshop() {
       </div>
       <div class="viewport" aria-label="Voxel asset scene"></div>
       <p class="viewer-help">Left-drag orbit · scroll zoom · right-drag pan · focus canvas for arrow-key pan</p>
+      <section id="source-editor" aria-label="Source editor"></section>
       <dl class="asset-stats" aria-label="Asset measurements"></dl>
       <p id="mesh-stats" class="quiet" aria-label="Mesh statistics"></p>
       <p class="quiet">1 voxel = 0.1 m · grid spacing 1 m · +Y up · front −Z<br>Axes: X red, Y green, Z blue. Origin: base centre.</p>
@@ -59,15 +63,25 @@ export function mountWorkshop() {
   const stats = element('.asset-stats');
   const error = element('#create-error');
   const assets = createFixtures();
+  const documents = new Map(assets.map((asset) => [asset.id, new VoxelDocument(asset)]));
   const downloads = new Map<ReturnType<typeof setTimeout>, string>();
   const viewer = mountViewer(host, status);
   const events = new AbortController();
   const options = { signal: events.signal };
-  function display() {
+  const editor = mountEditor(element('#source-editor'), () => documents.get(select.value)!, () => {
+    const asset = documents.get(select.value)!.source;
+    assets[assets.findIndex((item) => item.id === asset.id)] = asset;
+    refresh(asset.id, true);
+  }, events.signal, (position) => viewer?.highlight(documents.get(select.value)!.source, position));
+  window.addEventListener('beforeunload', (event) => {
+    if ([...documents.values()].some((doc) => doc.dirty)) { event.preventDefault(); event.returnValue = ''; }
+  }, options);
+  function display(preserveView = false) {
     const asset = assets.find((entry) => entry.id === select.value);
     if (!asset) return;
-    const meshStats = viewer?.select(asset) ?? meshVoxelSource(asset).stats;
+    const meshStats = viewer?.select(asset, preserveView) ?? meshVoxelSource(asset).stats;
     element('#mesh-stats').textContent = `Triangles: ${meshStats.naiveTriangles.toLocaleString()} → ${meshStats.triangles.toLocaleString()} · Exposed faces: ${meshStats.visibleFaces.toLocaleString()} · Merged quads: ${meshStats.quads.toLocaleString()}`;
+    editor.refresh();
     const values = [
       ['Asset', asset.name], ['Grid dimensions', `${asset.size.join(' × ')} voxels`],
       ['Bounds (X × Y × Z)', `${assetMetres(asset).map((value) => value.toFixed(2)).join(' × ')} m`],
@@ -81,13 +95,13 @@ export function mountWorkshop() {
       return [term, detail];
     }));
   }
-  function refresh(id: string) {
+  function refresh(id: string, preserveView = false) {
     select.replaceChildren(...assets.map((asset) => new Option(asset.name, asset.id)));
     select.value = id;
     element('#asset-count').textContent = `${assets.length} / ${MAX_ASSETS}`;
-    display();
+    display(preserveView);
   }
-  select.addEventListener('change', display, options);
+  select.addEventListener('change', () => display(), options);
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     error.textContent = '';
@@ -96,6 +110,7 @@ export function mountWorkshop() {
       const data = new FormData(form);
       const asset = createBlock(`block-${crypto.randomUUID()}`, String(data.get('assetName')),
         [Number(data.get('width')), Number(data.get('height')), Number(data.get('depth'))], String(data.get('color')));
+      documents.set(asset.id, new VoxelDocument(asset, false));
       assets.push(asset);
       refresh(asset.id);
     } catch (cause) {
@@ -115,9 +130,12 @@ export function mountWorkshop() {
       const contents = await source.text();
       if (events.signal.aborted) return;
       const asset = parseSource(contents);
-      if (assets.some((entry) => entry.id === asset.id)) throw new Error('asset.id: already in this session. Use a distinct ID for a different source.');
-      if (assets.length >= MAX_ASSETS) throw new Error('Session limit reached (24 assets). Export your work and reload.');
-      assets.push(asset);
+      const existing = assets.findIndex((entry) => entry.id === asset.id);
+      if (existing !== -1 && !element<HTMLInputElement>('#replace-source').checked) throw new Error('asset.id: already in this session. Use a distinct ID for a different source, or enable replacement.');
+      if (existing === -1 && assets.length >= MAX_ASSETS) throw new Error('Session limit reached (24 assets). Export your work and reload.');
+      documents.set(asset.id, new VoxelDocument(asset));
+      if (existing === -1) assets.push(asset); else assets[existing] = asset;
+      element<HTMLInputElement>('#replace-source').checked = false;
       refresh(asset.id);
       fileResult.textContent = `Imported ${asset.name}.`;
     } catch (cause) {
@@ -142,6 +160,8 @@ export function mountWorkshop() {
     const asset = assets.find((entry) => entry.id === select.value);
     if (!asset) return;
     download(new Blob([serializeSource(asset)], { type: 'application/json' }), `${asset.id}.voxel.json`);
+    documents.get(asset.id)!.markExported(asset);
+    editor.refresh();
     fileResult.textContent = `Exported ${asset.name}. Keep the downloaded JSON to reopen it.`;
   }, options);
   const glbButton = element<HTMLButtonElement>('#export-glb');

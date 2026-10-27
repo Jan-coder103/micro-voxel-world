@@ -5,4 +5,4 @@ Read plan.md for design and phase acceptance, tracker.md for actual progress, an
 Work one coherent phase at a time; preserve the distinction between implemented and user-verified work.
 Add meaningful tests for features, rerun earlier tests, update tracker/handoff, and commit tested changes as required by plan.md §15.
 Use npm scripts in README.md. Keep simulation state independent of rendering. Do not add destruction, multiplayer, or on-foot systems.
-For asset work, read docs/asset-authoring/format.md and docs/asset-authoring/mvw-voxel-assets/SKILL.md. Read docs/asset-authoring/mesh-pipeline.md for optimized meshes/GLB. Phases 3–4 are implemented; manual editing is Phase 5.
+For asset work, read docs/asset-authoring/format.md and docs/asset-authoring/mvw-voxel-assets/SKILL.md. Read docs/asset-authoring/mesh-pipeline.md for optimized meshes/GLB. Phases 3–5 are implemented; Phase 6 is game engine architecture.
