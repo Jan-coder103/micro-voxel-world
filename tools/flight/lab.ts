@@ -1,4 +1,5 @@
 import { BoxGeometry, Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { demandFrames } from '../../src/rendering/demand-frames';
 import { RegionalPopulation } from '../../src/hordes/regional-population';
 import { createRegionalPopulationView } from '../../src/rendering/regional-population-view';
 import { Flight } from '../../src/flight/flight';
@@ -27,6 +28,7 @@ function mount() {
   let renderer:WebGLRenderer;
   try { renderer=new WebGLRenderer({antialias:true}); } catch { status.textContent='WebGL 2 unavailable.'; app.querySelectorAll('button,select').forEach(b=>(b as HTMLButtonElement).disabled=true); return ()=>{}; }
   host.append(renderer.domElement);
+  let wake=()=>{};
   const scene=new Scene(); scene.background=new Color('#aebec0'); scene.fog=new Fog('#aebec0',80,180);
   const sun=new DirectionalLight('#ffdfb2',2.6); sun.position.set(-30,60,20); scene.add(sun,new HemisphereLight('#d9ebf2','#687052',2));
   const camera=new PerspectiveCamera(65,1,.2,regional?1400:350);
@@ -40,13 +42,13 @@ function mount() {
   const world=structures?new SettlementWorld(seed):undefined,cityView=structures?createSettlementView():undefined;if(cityView)scene.add(cityView.group);
   let workers:ReturnType<typeof createTerrainWorkers>|undefined;
   let stream:ChunkStream<TerrainData,ReturnType<typeof attachTerrain>>|undefined;
-  try { workers=createTerrainWorkers(); stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,markerGeometry,markerMaterial,true);const release=cityView?.attach(`${spec.x},${spec.z}`,data.buildings??[]),dispose=r.dispose;r.dispose=()=>{release?.();dispose();};scene.add(r.group);return r;}); }
+  try { workers=createTerrainWorkers(); stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,markerGeometry,markerMaterial,true);const release=cityView?.attach(`${spec.x},${spec.z}`,data.buildings??[]),dispose=r.dispose;r.dispose=()=>{release?.();dispose();};scene.add(r.group);return r;},undefined,()=>wake()); }
   catch { status.textContent='Terrain workers unavailable. Reload to retry.'; app.querySelectorAll('button,select').forEach(b=>(b as HTMLButtonElement).disabled=true); }
   const flight=new Flight(ground,world?(origin,direction,range)=>world.ray(origin,direction,range,6):undefined);
   const resetFlight=()=>{flight.reset();if(regional){const x=Number(params.get('x')??16),z=Number(params.get('z')??16);if(Number.isFinite(x)&&Number.isFinite(z)&&Math.abs(x)<130000&&Math.abs(z)<130000)flight.position={x,z,y:Math.min(240,ground(x,z)+65)};}};
   resetFlight();
   const keys=new Set<string>(), releases:(()=>void)[]=[];
-  const listen=(target:EventTarget,type:string,fn:EventListener)=>{target.addEventListener(type,fn);releases.push(()=>target.removeEventListener(type,fn));};
+  const listen=(target:EventTarget,type:string,fn:EventListener)=>{const handler:EventListener=e=>{fn(e);wake();};target.addEventListener(type,handler);releases.push(()=>target.removeEventListener(type,handler));};
   let storage:Storage|undefined;try{storage=localStorage;}catch{/* Session-only diagnostics below. */}
   const population=regional?new RegionalPopulation(seed,storage,structures):undefined;
   const populationView=population?createRegionalPopulationView(population):undefined;if(populationView)scene.add(populationView.group);
@@ -67,17 +69,17 @@ function mount() {
   listen(app.querySelector('#start')!,'click',()=>{if(stream)flight.start();previous=undefined;host.focus();});
   listen(app.querySelector('#pause')!,'click',pause);
   if(weaponSelect)listen(weaponSelect,'change',()=>{weapon=weaponSelect.value as WeaponId;clear();});
-  if(audio)listen(app.querySelector('#sound')!,'click',()=>{void audio.toggle().then(()=>{if(disposed)return;app.querySelector('#sound')!.textContent=audio.muted?'Enable sound':'Mute sound';});});
+  if(audio)listen(app.querySelector('#sound')!,'click',()=>{void audio.toggle().then(()=>{if(disposed)return;app.querySelector('#sound')!.textContent=audio.muted?'Enable sound':'Mute sound';wake();});});
   let snap=true;
   listen(app.querySelector('#reset')!,'click',()=>{clear();resetFlight();combat?.reset();heardShots=0;previous=undefined;snap=true;});
   listen(app.querySelector('#assist')!,'change',e=>{flight.assisted=(e.target as HTMLSelectElement).value==='assisted';clear();});
-  const resize=()=>{renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(Math.max(1,host.clientWidth),Math.max(1,host.clientHeight));camera.aspect=host.clientWidth/Math.max(1,host.clientHeight);camera.updateProjectionMatrix();};
+  const resize=()=>{renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(Math.max(1,host.clientWidth),Math.max(1,host.clientHeight));camera.aspect=host.clientWidth/Math.max(1,host.clientHeight);camera.updateProjectionMatrix();wake();};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
-  let disposed=false,frame=0,previous:number|undefined,lastReport=0;
-  const desired=new Vector3(), target=new Vector3();
+  let disposed=false,previous:number|undefined,lastReport=0,renderedFrames=0;
+  const desired=new Vector3(), target=new Vector3(),cameraBefore=new Vector3();
   const held=(...codes:string[])=>Number(codes.some(c=>keys.has(c)));
   const animate=(now:number)=>{
-    if(disposed)return;
+    if(disposed)return false;
     const dt=previous===undefined?0:Math.max(0,(now-previous)/1000);previous=now;
     flight.advance(dt,{pitch:held('KeyS','ArrowDown')-held('KeyW','ArrowUp'),bank:held('KeyD','ArrowRight')-held('KeyA','ArrowLeft'),throttle:held('KeyE')-held('KeyQ')},()=>{
       if(!combat)return;
@@ -89,20 +91,25 @@ function mount() {
     if(combat&&audio&&combat.shots!==heardShots){heardShots=combat.shots;audio.play(WEAPONS[combat.lastWeapon].sound);}
     if(flight.state!=='running')audio?.stop();
     const p=flight.position;stream?.update(wantedChunks(seed,p.x+(regional?Math.sin(flight.heading)*64:0),p.z-(regional?Math.cos(flight.heading)*64:0)).map(s=>regional?{...s,generator:'regional-v2' as const,...(structures?{structures:true as const}:{})}:s));fallback?.update(p.x,p.z);cityView?.update();aircraft.position.set(p.x,p.y,p.z);aircraft.rotation.set(flight.pitch,-flight.heading,-flight.bank,'YXZ');
+    cameraBefore.copy(camera.position);
     desired.set(p.x-Math.sin(flight.heading)*21,p.y+8,p.z+Math.cos(flight.heading)*21);
     camera.position.lerp(desired,snap?1:1-Math.exp(-Math.min(dt,.1)*6));snap=false;
     camera.position.y=Math.max(camera.position.y,ground(camera.position.x,camera.position.z)+4);
     if(world)for(const b of world.buildings({minX:camera.position.x-.1,maxX:camera.position.x+.1,minZ:camera.position.z-.1,maxZ:camera.position.z+.1}))camera.position.y=Math.max(camera.position.y,b.y+b.height+4);
-    target.set(p.x+Math.sin(flight.heading)*20,p.y+Math.sin(flight.pitch)*20,p.z-Math.cos(flight.heading)*20);camera.lookAt(target);renderer.render(scene,camera);
-    if(now-lastReport>100){lastReport=now;const current=stream?.resident.has(chunkKey(Math.floor(p.x/32),Math.floor(p.z/32)))??false;
-      const sample={...p,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
+    target.set(p.x+Math.sin(flight.heading)*20,p.y+Math.sin(flight.pitch)*20,p.z-Math.cos(flight.heading)*20);camera.lookAt(target);renderer.render(scene,camera);renderedFrames++;
+    const cameraSettling=regional&&flight.state!=='running'&&(cameraBefore.distanceToSquared(camera.position)>1e-8||dt===0&&camera.position.distanceToSquared(desired)>1e-4);
+    const keepAnimating=!regional||flight.state==='running'||cameraSettling||(stream?.completed??0)>0;
+    if(now-lastReport>100||!keepAnimating){lastReport=now;const current=stream?.resident.has(chunkKey(Math.floor(p.x/32),Math.floor(p.z/32)))??false;
+      const sample={...p,renderedFrames,populationRebuilds:populationView?.rebuilds??0,idle:!keepAnimating,settled:stream?.settled??false,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
       if(population){const c=population.counts,panel=app.querySelector<HTMLElement>('#population-stats')!;const local=population.resident.get(`rp1:${Math.floor(p.x/128)},${Math.floor(p.z/128)}`);const chosen=selectedEncounter?population.resident.get(selectedEncounter):local;const encounter=chosen?.encounter.id??null,remaining=chosen?.targets.filter(t=>t.health>0).length??0;panel.dataset.sample=JSON.stringify({...c,encounter,remaining,error:population.error});panel.textContent=`Regional population · ${c.alive} nearby · ${c.killed} killed · ${c.cleared} encounters cleared · local ${encounter??'outside coverage'}: ${remaining} remaining${population.error?' · '+population.error:''}`;}
       if(combat){const combatSample={shots:combat.shots,hits:combat.hits,damage:combat.damage,kills:combat.kills,blasts:combat.blasts,weapon,effects:combat.effects.filter(e=>e.active).length,capacity:combat.effects.length,droppedEffects:combat.droppedEffects,voices:audio?.activeVoices??0,targets:combat.targets.map(t=>({id:t.id,health:t.health}))};const panel=app.querySelector<HTMLElement>('#combat-stats')!;panel.dataset.sample=JSON.stringify(combatSample);panel.textContent=`${WEAPONS[weapon].name} · ${combat.shots} shots · ${combat.hits} damaging hits · ${combat.damage.toFixed(0)} damage · ${combat.kills}${population?' regional kills':'/'+combat.targets.length+' targets cleared'} · ${combat.blasts} blasts · effects ${combatSample.effects}/128 · dropped cosmetics ${combat.droppedEffects}`;app.querySelector('#audio-status')!.textContent=audio?.state??'Muted';}
       stats.textContent=`${flight.state} · ${flight.speed.toFixed(1)} m/s · altitude ${sample.altitude.toFixed(1)} m AGL · throttle ${(flight.throttle*100).toFixed(0)}% · chunk ${current?'visible':'loading gap'} · residents ${sample.resident}/49 · jobs ${sample.pending} · results ${sample.ready} · stale ${sample.stale} · failures ${sample.failures} · dropped ${flight.dropped.toFixed(2)} s`;
       if(stream)status.textContent=stream.lastError?`Terrain generation error: ${stream.lastError}`:flight.state==='crashed'?`${flight.reason} · Recover / Reset to try again.`:`${flight.state} · ${flight.assisted?'Assisted':'Direct'} controls · ${current?'terrain available':'terrain loading; collision active'}`;
-    }frame=requestAnimationFrame(animate);
-  };frame=requestAnimationFrame(animate);
-  return ()=>{if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();releases.forEach(r=>r());clear();population?.checkpoint();populationView?.dispose();audio?.dispose();combatView?.dispose();stream?.dispose();workers?.dispose();fallback?.dispose();cityView?.dispose();parts.forEach(g=>g.dispose());bodyMaterial.dispose();cockpitMaterial.dispose();terrainMaterial.dispose();markerGeometry.dispose();markerMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
+    }
+    return keepAnimating;
+  };
+  const frames=demandFrames(animate);wake=()=>{lastReport=-Infinity;frames.invalidate();};wake();
+  return ()=>{if(disposed)return;disposed=true;frames.dispose();observer.disconnect();releases.forEach(r=>r());clear();population?.checkpoint();populationView?.dispose();audio?.dispose();combatView?.dispose();stream?.dispose();workers?.dispose();fallback?.dispose();cityView?.dispose();parts.forEach(g=>g.dispose());bodyMaterial.dispose();cockpitMaterial.dispose();terrainMaterial.dispose();markerGeometry.dispose();markerMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
 }
 const release=mount();
 const dispose=()=>{window.removeEventListener('pagehide',onHide);release();};

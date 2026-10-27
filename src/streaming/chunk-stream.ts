@@ -12,7 +12,8 @@ export class ChunkStream<T, R extends OwnedChunk> {
   stale = 0;
   failures = 0;
   lastError = '';
-  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}) {}
+  /** wake lets demand-rendered owners pump replies without polling unfinished jobs. */
+  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}, private wake: () => void = () => {}) {}
   get pending() { return this.jobs.size; }
   get completed() { return this.ready.length; }
   get wanted() { return this.desired.size; }
@@ -44,7 +45,7 @@ export class ChunkStream<T, R extends OwnedChunk> {
       void this.load(spec,job.controller.signal).then((data) => {
         if (job.controller.signal.aborted || !this.current(spec)) { this.release(data); this.stale++; }
         else this.ready.push({spec,data});
-      }).catch((error: unknown) => { if (!job.controller.signal.aborted && !this.disposed) { this.failures++; this.lastError=String(error); this.failed.add(signature(spec)); } }).finally(() => this.jobs.delete(job));
+      }).catch((error: unknown) => { if (!job.controller.signal.aborted && !this.disposed) { this.failures++; this.lastError=String(error); this.failed.add(signature(spec)); } }).finally(() => { this.jobs.delete(job); if(!this.disposed)this.wake(); });
     }
   }
   dispose() {

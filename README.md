@@ -130,3 +130,8 @@ validated positions; moving regional patrols and mission progression are deferre
 Performance planning: [Phase 16 notes](docs/performance/phase-16-notes.md) summarize
 observed costs, the software-rendered test baseline, proposed priorities and the
 measurements needed before changing behavior.
+
+The first Phase 16 optimization lets **regional Flight** sleep once a paused/ready
+scene and camera settle. Controls, resizing and arriving terrain wake it again.
+Static zombie instance buffers update only after population changes; damage still
+saves immediately. Legacy Clearpass/outdoor rendering is unchanged by this slice.

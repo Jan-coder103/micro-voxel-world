@@ -42,6 +42,22 @@ describe('regional population authority',()=>{
     const failed=new RegionalPopulation(103,{getItem:()=>null,setItem:()=>{throw new Error('Quota');}});const ft=failed.targets(populated(failed))[0];ft.health=0;failed.damaged(ft);expect(failed.error).toContain('Quota');expect(failed.counts.killed).toBe(1);
     expect(new RegionalPopulation(103).error).toContain('session only');
   });
+  it('keeps static instance buffers unchanged until damage, tier change or residency changes',()=>{
+    const p=new RegionalPopulation(103,memory()),e=populated(p),o={x:e.x*128+64,y:80,z:e.z*128+64};p.update(o);
+    const view=createRegionalPopulationView(p);view.update();const batches=view.group.children as InstancedMesh[],versions=()=>batches.map(b=>b.instanceMatrix.version),before=versions(),revision=p.revision;
+    for(let i=0;i<120;i++){p.update(o);view.update();}expect(view.rebuilds).toBe(1);expect(versions()).toEqual(before);expect(p.revision).toBe(revision);
+    const total=()=>batches[0].count+batches[1].count;
+    const count=total(),t=p.targets(e)[0];t.health=0;p.damaged(t);view.update();expect(total()).toBe(count-1);expect(view.rebuilds).toBe(2);view.update();expect(view.rebuilds).toBe(2);
+    const r=p.resident.get(e.id)!;expect(r.tier).toBe('near');p.update({...o,x:o.x+180});expect(r.tier).toBe('medium');view.update();expect(view.rebuilds).toBe(3);
+    p.update({...o,x:8000});view.update();expect(batches.every(b=>b.count===0)).toBe(true);p.update(o);view.update();expect(p.resident.get(e.id)!.targets[0].health).toBe(0);expect(total()).toBe(count-1);view.dispose();
+  });
+  it('preserves immediate damage durability while skipping unchanged checkpoints and stale damage',()=>{
+    const storage=memory(),write=vi.spyOn(storage,'setItem'),p=new RegionalPopulation(103,storage),e=populated(p),t=p.targets(e)[0];p.checkpoint();expect(write).not.toHaveBeenCalled();
+    t.health=17;p.damaged(t);expect(write).toHaveBeenCalledTimes(1);expect(new RegionalPopulation(103,storage).targets(e)[0].health).toBe(17);
+    p.checkpoint();p.checkpoint();p.damaged(t);expect(write).toHaveBeenCalledTimes(1);
+    const stale=p.targets(e)[0];stale.health=40;p.damaged(stale);expect(p.targets(e)[0].health).toBe(17);expect(write).toHaveBeenCalledTimes(1);
+    t.health=0;p.damaged(t);expect(write).toHaveBeenCalledTimes(2);expect(new RegionalPopulation(103,storage).targets(e)[0].health).toBe(0);
+  });
   it('bounds resident/cache/render allocation and disposes shared resources once',()=>{
     const p=new RegionalPopulation(103,memory());p.update(observer);const view=createRegionalPopulationView(p);view.update();expect(view.group.children).toHaveLength(3);const dispose=vi.spyOn((view.group.children[0] as InstancedMesh).geometry,'dispose');
     for(let x=-3900;x<4000;x+=512){p.update({x,y:80,z:observer.z});view.update();expect(p.counts.resident).toBeLessThanOrEqual(49);expect(p.counts.cache).toBeLessThanOrEqual(64);}view.dispose();view.dispose();expect(dispose).toHaveBeenCalledOnce();

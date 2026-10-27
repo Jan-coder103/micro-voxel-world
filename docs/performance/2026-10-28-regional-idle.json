@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-28",
+  "baselineCommit": "1af654b",
+  "scenario": {
+    "route": "/tools/flight/?terrain=regional",
+    "seed": 103,
+    "state": "ready",
+    "measurementWindowMs": 1200,
+    "condition": "49 resident terrain chunks, no pending/ready terrain results, settled camera",
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "method": "Browser test wraps WebGL2 clear and bufferSubData, preserving original calls; captures counter deltas over a 1.2 s wall-clock window. The after-check also asserts unchanged application frame/rebuild counters.",
+  "before": {
+    "state": "ready",
+    "windowMs": 1200,
+    "clears": 26,
+    "uploads": 78
+  },
+  "after": {
+    "device": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "width": 1150,
+      "height": 380,
+      "dpr": 1
+    },
+    "state": "ready",
+    "windowMs": 1200,
+    "clears": 0,
+    "uploads": 0,
+    "renderedFrames": 27,
+    "instanceRebuilds": 1
+  },
+  "unitEvidence": {
+    "unchangedPopulationUpdates": 120,
+    "additionalMatrixRebuilds": 0,
+    "durability": "Actual health decreases persist synchronously; unchanged checkpoints perform no write."
+  },
+  "limitations": [
+    "Single before and after sample; measures eliminated idle draws/uploads, not total CPU percentage or active-gameplay FPS.",
+    "Software-rendered Chromium. Physical-GPU performance acceptance remains outstanding.",
+    "Scope is regional Flight; legacy Clearpass/outdoor loops are unchanged."
+  ]
+}

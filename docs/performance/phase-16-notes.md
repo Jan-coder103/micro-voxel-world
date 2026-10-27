@@ -204,3 +204,23 @@ sample spacing casually could let shots tunnel through obstacles.
 Suggested first implementation slice: regional profiling plus settled paused-scene
 rendering and dirty population buffers. Persistence and generation/streaming changes
 follow if their measurements justify them. All items above remain proposals.
+
+## First implementation slice — 28 October 2026
+
+Regional Flight now sleeps after paused/ready/crashed scenes settle, waking for
+controls, resize, sound status and worker replies. Population residency changes
+only on cell changes; static instance buffers rebuild only when membership, tier
+or health changes. Unchanged save checkpoints skip writing, while actual damage
+still saves immediately. See [decision 0016](../decisions/0016-regional-idle-rendering.md)
+for the scope, correctness constraints and verification.
+
+The short initial settled-scene comparison dropped from 26 scene renders / 78 buffer updates
+to zero of each over 1.2 seconds. This measures eliminated work, not physical-GPU FPS
+or total CPU usage. Broader profiling and the unimplemented proposals above remain
+Phase 16 work. Legacy Clearpass/outdoor idle loops are not changed by this slice.
+
+Verification for this slice: lint, 182 unit tests, 22 asset validations, types/build
+and all 67 browser checks passed (46 before an interruption, 21 on resumption;
+unchanged runtime code/build). The focused eight-browser-check run also passed.
+The measured [idle comparison](2026-10-28-regional-idle.json) records the scope and
+limitations; full Phase 16 hardware performance acceptance is still outstanding.

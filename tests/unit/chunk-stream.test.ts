@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ChunkStream } from '../../src/streaming/chunk-stream';
 import { generateTerrain, wantedChunks, type ChunkSpec, type Lod } from '../../src/streaming/terrain-data';
 const spec=(x=0,lod:Lod=0,seed=103):ChunkSpec => ({x,z:0,lod,seed});
@@ -35,6 +35,14 @@ describe('chunk lifecycle', () => {
     stream.update([spec()]); resolve(1); await flush(); expect(stream.completed).toBe(1);
     stream.update([]); expect(freed).toEqual([1]);
     stream.update([spec()]); stream.dispose(); resolve(2); await flush(); expect(freed).toEqual([1,2]); expect(attached).toBe(0);
+  });
+  it('wakes an idle owner for ready, failed and stale jobs, never after disposal', async()=>{
+    const wake=vi.fn(),jobs:{resolve:(n:number)=>void;reject:(e:Error)=>void}[]=[];
+    const stream=new ChunkStream<number,{dispose():void}>(()=>new Promise((resolve,reject)=>jobs.push({resolve,reject})),()=>({dispose(){}}),undefined,wake);
+    stream.update([spec()]);expect(wake).not.toHaveBeenCalled();jobs[0].resolve(1);await flush();expect(wake).toHaveBeenCalledTimes(1);expect(stream.pending).toBe(0);expect(stream.completed).toBe(1);
+    stream.update([spec()]);expect(stream.settled).toBe(true);stream.update([spec(1)]);jobs[1].reject(new Error('worker failed'));await flush();expect(wake).toHaveBeenCalledTimes(2);expect(stream.failures).toBe(1);
+    stream.update([spec(2)]);stream.update([]);jobs[2].resolve(3);await flush();expect(wake).toHaveBeenCalledTimes(3);expect(stream.stale).toBe(1);
+    stream.update([spec(3)]);stream.dispose();jobs[3].resolve(4);await flush();expect(wake).toHaveBeenCalledTimes(3);
   });
   it('surfaces generation/integration failures without a per-frame retry loop', async () => {
     let attempts=0;

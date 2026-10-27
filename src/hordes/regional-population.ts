@@ -19,7 +19,10 @@ export class RegionalPopulation implements TargetQuery {
   private readonly cache=new Map<string,Encounter>();
   private readonly damage=new Map<string,number[]>();
   readonly key:string;
-  error=''; private writable=true;
+  error=''; private writable=true;private dirty=false;
+  private cellX:number|undefined;private cellZ:number|undefined;private renderRevision=0;
+  /** Changes only when resident presentation can differ: membership, tier or health. */
+  get revision(){return this.renderRevision;}
   constructor(readonly seed:number,private readonly storage?:StorageLike,structures=true){
     this.world=new SettlementWorld(seed);this.structures=structures;
     this.key=`mvw:regional-population:v1:g2:s${structures?1:0}:p1:${seed}`;
@@ -65,14 +68,23 @@ export class RegionalPopulation implements TargetQuery {
   targets(e:Encounter):Target[]{const health=this.damage.get(e.id);return e.members.map((p,i)=>({id:`${e.id}:${i}`,position:{...p},radius:.65,maxHealth:REGIONAL_HEALTH,health:health?.[i]??REGIONAL_HEALTH}));}
   update(observer:Point){
     if(![observer.x,observer.z].every(n=>Number.isFinite(n)&&Math.abs(n)<131000))throw new Error('Invalid population observer');
-    const cx=Math.floor(observer.x/128),cz=Math.floor(observer.z/128),wanted=new Set<string>();
-    for(let z=Math.max(-32,cz-3);z<=Math.min(31,cz+3);z++)for(let x=Math.max(-32,cx-3);x<=Math.min(31,cx+3);x++){
-      const id=encounterId(x,z);wanted.add(id);let r=this.resident.get(id);
-      if(!r){const encounter=this.encounter(x,z);r={encounter,tier:'far',targets:this.targets(encounter)};this.resident.set(id,r);}
-      r.tier=hordeTier(Math.hypot(x*128+64-observer.x,z*128+64-observer.z)/3,r.tier);
+    const cx=Math.floor(observer.x/128),cz=Math.floor(observer.z/128);
+    let changed=false;
+    if(cx!==this.cellX||cz!==this.cellZ){
+      this.cellX=cx;this.cellZ=cz;
+      for(let z=Math.max(-32,cz-3);z<=Math.min(31,cz+3);z++)for(let x=Math.max(-32,cx-3);x<=Math.min(31,cx+3);x++){
+        const id=encounterId(x,z);
+        if(!this.resident.has(id)){const encounter=this.encounter(x,z);this.resident.set(id,{encounter,tier:'far',targets:this.targets(encounter)});changed=true;}
+      }
+      for(const [id,r] of this.resident)if(Math.abs(r.encounter.x-cx)>3||Math.abs(r.encounter.z-cz)>3){this.resident.delete(id);changed=true;}
     }
-    for(const id of this.resident.keys())if(!wanted.has(id))this.resident.delete(id);
+    for(const r of this.resident.values()){
+      const tier=hordeTier(Math.hypot(r.encounter.x*128+64-observer.x,r.encounter.z*128+64-observer.z)/3,r.tier);
+      if(tier!==r.tier){r.tier=tier;changed=true;}
+    }
+    if(changed)this.renderRevision++;
   }
+
   query(min:Point,max:Point):Target[]{
     if(![min.x,min.y,min.z,max.x,max.y,max.z].every(n=>Number.isFinite(n)&&Math.abs(n)<=134000)||max.x<min.x||max.y<min.y||max.z<min.z||Math.max(max.x-min.x,max.y-min.y,max.z-min.z)>1024)throw new Error('Invalid population query');
     const result:Target[]=[];
@@ -85,12 +97,14 @@ export class RegionalPopulation implements TargetQuery {
     const match=/^rp1:(-?\d+),(-?\d+):(\d+)$/.exec(target.id);if(!match)throw new Error('Unknown regional target');
     const x=Number(match[1]),z=Number(match[2]),i=Number(match[3]),e=this.encounter(x,z);
     if(target.id!==`${e.id}:${i}`||!e.members[i]||!Number.isFinite(target.health)||target.health<0||target.health>REGIONAL_HEALTH)throw new Error('Invalid regional damage');
-    const health=this.damage.get(e.id)??e.members.map(()=>REGIONAL_HEALTH);health[i]=Math.min(health[i],target.health);this.damage.set(e.id,health);
-    const resident=this.resident.get(e.id);if(resident)resident.targets[i].health=health[i];this.checkpoint();
+    const health=this.damage.get(e.id)??e.members.map(()=>REGIONAL_HEALTH),previous=health[i];health[i]=Math.min(previous,target.health);
+    const resident=this.resident.get(e.id);if(resident)resident.targets[i].health=health[i];
+    if(health[i]===previous)return;
+    this.damage.set(e.id,health);this.renderRevision++;this.dirty=true;this.checkpoint();
   }
   checkpoint(){
-    if(!this.writable)return;
-    try{const wounds=[...this.damage].map(([id,h])=>{const [x,z]=id.slice(4).split(',').map(Number);return [x,z,h];});const text=JSON.stringify({schema:1,generator:2,population:1,structures:this.structures,seed:this.seed,wounds});if(text.length>SAVE_LIMIT)throw new Error('Population save exceeds 2 MiB');this.storage!.setItem(this.key,text);}
+    if(!this.writable||!this.dirty)return;
+    try{const wounds=[...this.damage].map(([id,h])=>{const [x,z]=id.slice(4).split(',').map(Number);return [x,z,h];});const text=JSON.stringify({schema:1,generator:2,population:1,structures:this.structures,seed:this.seed,wounds});if(text.length>SAVE_LIMIT)throw new Error('Population save exceeds 2 MiB');this.storage!.setItem(this.key,text);this.dirty=false;}
     catch(error){this.error=String(error);this.writable=false;}
   }
   get counts(){let alive=0,cleared=0,killed=0;for(const r of this.resident.values())alive+=r.targets.filter(t=>t.health>0).length;for(const h of this.damage.values()){killed+=h.filter(n=>n===0).length;if(h.length&&h.every(n=>n===0))cleared++;}return {resident:this.resident.size,alive,cleared,killed,changed:this.damage.size,cache:this.cache.size};}
