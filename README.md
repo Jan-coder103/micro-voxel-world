@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight and weapons range.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range and seeded horde lab.
 
 ## Quick start
 
@@ -12,6 +12,16 @@ npm run dev
 ```
 
 Open http://localhost:5173/ for the outdoor test scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
+
+## Horde lab
+
+Open http://localhost:5173/tools/hordes/ or follow **Horde lab** from Game. Start / Resume runs the population and focuses the scene. WASD/arrows move the observer; hold Space to fire the selected Phase 10 weapon. Tracking explicitly aims at the first living home member (encounter 0,0); uncheck it to aim with the pointer. This observer lab proves crowd systems; aircraft and a complete combat objective are Phase 12 work.
+
+The seeded test region contains 81 encounters × 32 stable members = 2,592 total before kills. At most 49 groups are resident. Near zombies use the original instanced voxel model and 60 Hz local separation; medium boxes update formations at 10 Hz; far gold proxies advance a group at 1 Hz. Hysteresis reduces tier switching. Near / Medium / Far move the observer to inspect home LOD. Rectangular patrol corridors keep formations clear of the visible static walls. Walls and terrain block shots and blast visibility. Damage queries resolve real member slots even in far/unloaded groups.
+
+Wounds, kills, formation offsets and patrol progress save per seed/generator/population version in this browser/origin. Travel east unloads home; Near view / Home returns without respawning it. Reload starts paused at home with saved population. A cleared encounter has all 32 members dead; partial clearance persists too. Another seed opens its own population. There is no respawn/reset button. The record is bounded to 81 groups / 512 KiB; corruption/storage denial/quota failures show **Session only**, preserve saved bytes and retain this session's state. No cloud sync or cross-tab merge. Unloaded groups freeze, then resume on return.
+
+Diagnostics distinguish global population, residents, active individuals and far proxies, plus worker/render/resource counts. Effects/audio retain their 128-slot/eight-voice caps. Focus/window/visibility loss pauses and checkpoints; resume explicitly. Sound starts muted. This is a bounded correctness demonstration, with simple patrol navigation and body-sphere hit proxies, not a huge-horde FPS claim. See [horde decisions](docs/decisions/0011-hordes.md).
 
 ## Weapons lab
 
@@ -61,7 +71,7 @@ Twenty original editable reference sources are available in [assets/source](asse
 - `npm run assets:validate -- path/to/asset.voxel.json` — validate one or more named source files; failures return nonzero.
 - `npm run assets:export` — regenerate all optimized GLBs into assets/generated/ (ignored by Git); pass source paths after `--` for selected assets.
 - `npm run assets:benchmark` — measure reference geometry reduction and CPU meshing time.
-- `npm run build` — typecheck and build all five entry points into dist/.
+- `npm run build` — typecheck and build all six entry points into dist/.
 - `npm run preview` — serve the production build locally.
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).
