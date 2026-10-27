@@ -6,7 +6,7 @@ export function bootstrap() {
   if (!app) throw new Error('Missing application root');
   app.innerHTML = `
     <header><a class="brand" href="/">MVW <span>/ DEVELOPMENT</span></a>
-    <nav aria-label="Workspace"><a href="/" aria-current="page">Game</a><a href="/tools/streaming/">Streaming lab</a><a href="/tools/voxel-editor/">Voxel workshop</a></nav></header>
+    <nav aria-label="Workspace"><a href="/tools/flight/">Flight lab</a><a href="/" aria-current="page">Game</a><a href="/tools/streaming/">Streaming lab</a><a href="/tools/voxel-editor/">Voxel workshop</a></nav></header>
     <main><section class="intro"><p class="eyebrow">PHASE 07 / ENVIRONMENT</p>
     <h1>Micro Voxel World</h1>
     <p>A world built small. A vision that flies large.</p></section>
