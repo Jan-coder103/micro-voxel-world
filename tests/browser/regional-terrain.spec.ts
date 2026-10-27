@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 const read=async(page:Page,label:string)=>JSON.parse(await page.getByLabel(label).getAttribute('data-sample')??'{}');
-async function ready(page:Page){await expect.poll(async()=>(await read(page,'Streaming diagnostics')).settled,{timeout:30000}).toBe(true);const s=await read(page,'Streaming diagnostics');expect(s.generator).toBe(2);expect(s.resident).toBe(49);expect(s.failures).toBe(0);expect(s.pending+s.ready).toBe(0);expect(s.geometries).toBeLessThanOrEqual(51);}
+async function ready(page:Page){await expect.poll(async()=>(await read(page,'Streaming diagnostics')).settled,{timeout:30000}).toBe(true);const s=await read(page,'Streaming diagnostics');expect(s.generator).toBe(2);expect(s.resident).toBe(49);expect(s.failures).toBe(0);expect(s.pending+s.ready).toBe(0);expect(s.geometries).toBeLessThanOrEqual(59);}
 test('regional landmarks stream reproducibly across seed changes and launch aircraft without touching saves',async({page})=>{
   test.setTimeout(120000);
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));

@@ -84,7 +84,7 @@ function nearbySites(spec:ChunkSpec):SettlementSite[]{
   return sites;
 }
 /** Baked cuboids share the chunk's owned buffers/material; no per-tree GPU objects. */
-export function decorateRegion(spec:ChunkSpec,positions:number[],normals:number[],colors:number[]) {
+export function decorateRegion(spec:ChunkSpec,positions:number[],normals:number[],colors:number[],reserved?:(x:number,z:number)=>boolean) {
   const box=(x:number,y:number,z:number,w:number,h:number,color:number[])=>{
     const corners=[[x-w/2,y,z-w/2],[x+w/2,y,z-w/2],[x+w/2,y+h,z-w/2],[x-w/2,y+h,z-w/2],[x-w/2,y,z+w/2],[x+w/2,y,z+w/2],[x+w/2,y+h,z+w/2],[x-w/2,y+h,z+w/2]];
     for(const [a,b,c,d,nx,ny,nz] of [[0,3,2,1,0,0,-1],[4,5,6,7,0,0,1],[0,4,7,3,-1,0,0],[1,2,6,5,1,0,0],[3,7,6,2,0,1,0],[0,1,5,4,0,-1,0]]){
@@ -92,10 +92,11 @@ export function decorateRegion(spec:ChunkSpec,positions:number[],normals:number[
     }
   };
   // A low site beacon is a descriptor preview, not a generated building.
-  for(const site of nearbySites(spec))if(Math.floor(site.x/32)===spec.x && Math.floor(site.z/32)===spec.z){
+  for(const site of reserved?[]:nearbySites(spec))if(Math.floor(site.x/32)===spec.x && Math.floor(site.z/32)===spec.z){
     box(site.x-spec.x*32,site.y,site.z-spec.z*32,2,4,[.85,.65,.24]);
   }
   for(const tree of regionTrees(spec)){
+    if(reserved?.(tree.x,tree.z))continue;
     const x=tree.x-spec.x*32,z=tree.z-spec.z*32;
     box(x,tree.y-.2,z,.65,tree.height,[.26,.19,.12]);
     box(x,tree.y+tree.height*.45,z,3.5,tree.height*.6,[.16,.29,.12]);

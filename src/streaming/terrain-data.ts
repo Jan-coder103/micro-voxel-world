@@ -1,12 +1,13 @@
 import { regionalSample, decorateRegion } from '../world/regional-terrain.ts';
+import { appendRoads, settlementWorld, type Building } from '../world/settlements.ts';
 export const CHUNK_SIZE = 32;
 export const WORLD_LIMIT = 4096;
 export const GENERATOR_VERSION = 1;
 export type Lod = 0 | 1 | 2 | 3;
-export interface ChunkSpec { x: number; z: number; lod: Lod; seed: number; generator?: 'regional-v2' }
-export interface TerrainData { positions: Float32Array; normals: Float32Array; colors: Float32Array }
+export interface ChunkSpec { x: number; z: number; lod: Lod; seed: number; generator?: 'regional-v2'; structures?: true }
+export interface TerrainData { positions: Float32Array; normals: Float32Array; colors: Float32Array; buildings?: Building[] }
 export const chunkKey = (x: number, z: number) => `${x},${z}`;
-export const signature = (s: ChunkSpec) => `${s.seed}:${s.x},${s.z}:${s.lod}${s.generator ? `:${s.generator}` : ''}`;
+export const signature = (s: ChunkSpec) => `${s.seed}:${s.x},${s.z}:${s.lod}${s.generator ? `:${s.generator}` : ''}${s.structures ? ':s1' : ''}`;
 export function heightAt(seed: number, x: number, z: number): number {
   let hash=seed>>>0;
   hash=Math.imul(hash^(hash>>>16),0x7feb352d); hash=Math.imul(hash^(hash>>>15),0x846ca68b); hash^=hash>>>16;
@@ -50,6 +51,8 @@ export function generateTerrain(spec: ChunkSpec): TerrainData {
     const centre=vertex(x+step/2,z+step/2);
     perimeter.forEach((p,i) => triangle(centre,p,perimeter[(i+1)%perimeter.length]));
   }
-  if (spec.generator) decorateRegion(spec,positions,normals,colors);
-  return { positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors) };
+  const structures=spec.generator && spec.structures;
+  if (spec.generator) decorateRegion(spec,positions,normals,colors,structures ? (x,z)=>settlementWorld(spec.seed).reserved(x,z) : undefined);
+  const buildings=structures ? appendRoads(spec.seed,spec.x,spec.z,positions,normals,colors) : undefined;
+  return { positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors),...(buildings?{buildings}: {}) };
 }

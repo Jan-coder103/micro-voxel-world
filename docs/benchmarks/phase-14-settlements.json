@@ -1,0 +1,211 @@
+{
+  "structureVersion": 1,
+  "node": "v24.22.1",
+  "note": "CPU generation only; excludes building kit meshing, GPU copies, JS temporaries and descriptor strings. Not gameplay FPS or GPU time.",
+  "reports": [
+    {
+      "seed": 103,
+      "district": "harbor",
+      "discoveryMs": 309.389837,
+      "roads": 104,
+      "nodes": 45,
+      "buildings": 30,
+      "chunks": 49,
+      "terrainTriangles": 32876,
+      "residentArrayBytes": 3550608,
+      "peakChunkArrayBytes": 504144,
+      "generationMs": {
+        "median": 0.8314830000000484,
+        "p95": 7.134141,
+        "max": 29.23508499999997
+      }
+    },
+    {
+      "seed": 103,
+      "district": "city",
+      "discoveryMs": 309.389837,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 35360,
+      "residentArrayBytes": 3818880,
+      "peakChunkArrayBytes": 514512,
+      "generationMs": {
+        "median": 1.293450000000007,
+        "p95": 5.908905000000004,
+        "max": 21.63953700000002
+      }
+    },
+    {
+      "seed": 103,
+      "district": "airport",
+      "discoveryMs": 309.389837,
+      "roads": 102,
+      "nodes": 52,
+      "buildings": 24,
+      "chunks": 49,
+      "terrainTriangles": 34596,
+      "residentArrayBytes": 3736368,
+      "peakChunkArrayBytes": 515376,
+      "generationMs": {
+        "median": 0.9370020000000068,
+        "p95": 4.0793930000000955,
+        "max": 22.477655000000027
+      }
+    },
+    {
+      "seed": 103,
+      "district": "rural",
+      "discoveryMs": 309.389837,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 35232,
+      "residentArrayBytes": 3805056,
+      "peakChunkArrayBytes": 489888,
+      "generationMs": {
+        "median": 1.241692999999941,
+        "p95": 3.5463230000000294,
+        "max": 23.04000199999996
+      }
+    },
+    {
+      "seed": 103,
+      "district": "industrial",
+      "discoveryMs": 309.389837,
+      "roads": 127,
+      "nodes": 57,
+      "buildings": 35,
+      "chunks": 49,
+      "terrainTriangles": 35204,
+      "residentArrayBytes": 3802032,
+      "peakChunkArrayBytes": 513216,
+      "generationMs": {
+        "median": 1.0575619999999617,
+        "p95": 4.005257000000029,
+        "max": 18.645746999999915
+      }
+    },
+    {
+      "seed": 103,
+      "district": "military",
+      "discoveryMs": 309.389837,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 35348,
+      "residentArrayBytes": 3817584,
+      "peakChunkArrayBytes": 514080,
+      "generationMs": {
+        "median": 1.069917999999916,
+        "p95": 3.374765000000025,
+        "max": 16.417093000000023
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "harbor",
+      "discoveryMs": 145.28109900000004,
+      "roads": 43,
+      "nodes": 19,
+      "buildings": 16,
+      "chunks": 49,
+      "terrainTriangles": 26372,
+      "residentArrayBytes": 2848176,
+      "peakChunkArrayBytes": 473040,
+      "generationMs": {
+        "median": 0.7438319999998839,
+        "p95": 3.224232999999913,
+        "max": 23.09282999999982
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "rural",
+      "discoveryMs": 145.28109900000004,
+      "roads": 126,
+      "nodes": 55,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 34944,
+      "residentArrayBytes": 3773952,
+      "peakChunkArrayBytes": 491832,
+      "generationMs": {
+        "median": 1.0742600000000948,
+        "p95": 3.2790840000000117,
+        "max": 17.765083000000004
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "airport",
+      "discoveryMs": 145.28109900000004,
+      "roads": 98,
+      "nodes": 52,
+      "buildings": 20,
+      "chunks": 49,
+      "terrainTriangles": 34424,
+      "residentArrayBytes": 3717792,
+      "peakChunkArrayBytes": 483408,
+      "generationMs": {
+        "median": 1.015820000000076,
+        "p95": 3.1968169999997826,
+        "max": 17.974666999999954
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "industrial",
+      "discoveryMs": 145.28109900000004,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 34856,
+      "residentArrayBytes": 3764448,
+      "peakChunkArrayBytes": 513216,
+      "generationMs": {
+        "median": 1.0477959999998347,
+        "p95": 3.460578999999825,
+        "max": 19.883064999999988
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "military",
+      "discoveryMs": 145.28109900000004,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 34976,
+      "residentArrayBytes": 3777408,
+      "peakChunkArrayBytes": 513648,
+      "generationMs": {
+        "median": 1.0663150000000314,
+        "p95": 3.4881639999998697,
+        "max": 19.78157699999997
+      }
+    },
+    {
+      "seed": 12012,
+      "district": "city",
+      "discoveryMs": 145.28109900000004,
+      "roads": 128,
+      "nodes": 57,
+      "buildings": 36,
+      "chunks": 49,
+      "terrainTriangles": 35328,
+      "residentArrayBytes": 3815424,
+      "peakChunkArrayBytes": 480384,
+      "generationMs": {
+        "median": 1.1964010000001508,
+        "p95": 3.4430560000000696,
+        "max": 14.851563999999826
+      }
+    }
+  ]
+}

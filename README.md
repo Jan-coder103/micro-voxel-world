@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab and the Phase 12 combat prototype.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with Phase 14 procedural settlements.
 
 ## Quick start
 
@@ -27,13 +27,13 @@ Run isolated **Crowd benchmark** and **Sustained-fire benchmark** from Settings,
 
 Implementation and automated verification do not establish player enjoyment or physical-GPU performance. The Phase 12 gate remains open for feedback on approach, aiming, hit feedback and recovery (deferred by Jan until later playtesting).
 
-## Regional terrain explorer (Phase 13)
+## Regional terrain and settlements (Phases 13–14)
 
-Open `/tools/streaming/?terrain=regional` or choose **Terrain explorer** from Game. Load a uint32 seed and jump to Plains, Forest, Mountains, River, Lake, Coast, Ocean or a Settlement reservation. WASD/arrows move the inspection camera at 80 m/s. Gold beacons identify stable, dry settlement candidates; roads and buildings are Phase 14.
+Open `/tools/streaming/?terrain=regional` or choose **Terrain explorer** from Game. Load a uint32 seed and jump to Plains, Forest, Mountains, River, Lake, Coast, Ocean or an earlier Settlement reservation. The district buttons below select the generated settlements. WASD/arrows move the inspection camera at 80 m/s. Choose **City**, **Rural**, **Industrial**, **Military**, **Airport**, or **Harbor** to inspect generated districts. Seeded streets connect valid plots and neighboring regions where terrain permits. Houses, height-varied city blocks, warehouses, tanks, barracks, towers, runways/aprons and coastal piers reuse shared original voxel kits. A missing valid district is reported explicitly.
 
-**Fly this region** opens `/tools/flight/?terrain=regional&seed=103` at the selected location. Existing flight controls apply. Water contact crashes, terrain/water collision works independently of workers, and Recover / Reset returns to the selected approach. Trees are visual scenery with no collision yet. Regional exploration and flight have no persistent changes; existing combat populations and saved markers retain generator v1.
+**Fly this region** opens `/tools/flight/?terrain=regional&seed=103` at the selected location. Existing flight controls apply. Water contact crashes, terrain/water collision works independently of workers, and Recover / Reset returns to the selected approach. Buildings and foundation envelopes stop the aircraft even before chunks arrive; trees remain visual scenery. A conservative chase-camera adjustment clears building envelopes. Regional exploration and flight have no persistent changes; existing combat populations and saved markers retain generator v1.
 
-Generator v2 combines global layered value noise, ridged mountain elevation, moisture biomes, a continuous descending river with a level lake reach, coastal/ocean fields and terraced surfaces. Vegetation is baked into owned chunk meshes in the two near tiers. Four terrain tiers keep shared 1 m boundaries; a reused coarse underlay covers late detail. This is an erosion-inspired heightfield, with opaque water surfaces and settlement descriptors rather than full hydrology or cities. See [terrain decisions](docs/decisions/0013-regional-terrain.md). `node --experimental-transform-types tools/benchmarks/terrain.ts` measures CPU generation and payload sizes.
+Generator v2 combines global layered value noise, ridged mountain elevation, moisture biomes, a continuous descending river with a level lake reach, coastal/ocean fields and terraced surfaces. Vegetation is baked into owned chunk meshes in the two near tiers. Four terrain tiers keep shared 1 m boundaries; a reused coarse underlay covers late detail. This is an erosion-inspired heightfield, with opaque water surfaces rather than full physical hydrology. Structure content v1 adds terrain-checked roads/plots and bounded settlements; `&structures=0` keeps the earlier terrain-only view. Interiors and loot remain deferred decorative ideas; there is no on-foot interaction. See [settlement decisions](docs/decisions/0014-procedural-settlements.md). See [terrain decisions](docs/decisions/0013-regional-terrain.md). `node --experimental-transform-types tools/benchmarks/terrain.ts` measures CPU generation and payload sizes.
 
 Jan deferred the Phase 12 playtest and physical-GPU gates on 27 October 2026. They remain outstanding; neither player enjoyment nor hardware FPS has been verified.
 
@@ -99,6 +99,7 @@ Twenty original editable reference sources are available in [assets/source](asse
 - `npm run preview` — serve the production build locally.
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).
+- `npm run settlements:benchmark` — deterministic district-generation CPU/payload measurements (not GPU time).
 - `npm run combat:benchmark` — fixed-tick crowd/sustained-fire CPU measurements (Node 24 transform-types flag).
 - `npm run check` — lint, unit tests, source validation, production build, browser checks.
 

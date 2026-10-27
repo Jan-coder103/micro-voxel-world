@@ -216,8 +216,23 @@ Status: implemented; automated checks passed; agent visual inspection completed;
 - CPU generation/payload report: docs/benchmarks/phase-13-terrain.json. Measurements are CPU work, not GPU frame time or hardware-FPS acceptance.
 - Limits: authored-style procedural cuboid trees (visual only), opaque surface water, one regional drainage backbone/lake, approximate erosion-inspired shaping, heightfield geometry, tier pops/late detail and coarse-underlay approximation. Settlement descriptors are not generated towns. Player playtest and physical-GPU evidence remain deferred.
 
+## Phase 14 — Procedural cities and buildings
+
+Status: implemented; automated checks passed; agent visual inspection completed; user playtest and physical-GPU evidence remain deferred.
+
+- Added structure content v1 on regional terrain, independent of v1 combat/marker save scopes. Regional explorer/flight enable it by default; `&structures=0` retains terrain-only inspection. Chunk signatures reject stale payloads across structure-content changes.
+- Deterministic 512 m regional plans create rural, city, industrial, military, airport and shoreline-constrained harbor districts. Safe connected local streets, driveways and validated paired cross-region road portals use stable IDs. Plot footprints reject water/steep relief and reserve vegetation margins. Roads are clipped to chunks; terrain remains static.
+- Reuses seven unchanged original voxel sources through shared global instance batches plus shared foundation geometry. Repeated buildings share geometry/materials, retain single owner chunk and LOD identity, and release membership on eviction/replacement. A 512-building cap and explicit final disposal bound resources.
+- Regional flight samples authoritative structure envelopes without loaded meshes, with 6 m primitive-airframe padding and a building-aware camera height. Navigation exposes connected road graphs, plot access IDs and dry-ground/building walkability for Phase 15. No new population or mission integration.
+- Airport constraints keep the runway clear, with apron/hangars/control landmark. Harbor requires an ocean shore, a valid fixed deck and safe land approach. Other mixes distinguish houses, city height variants, tanks/warehouses and military containers/towers.
+- Interior furniture/loot remains a deferred decorative idea until an aircraft gameplay purpose exists. No explorable interiors, pickups or on-foot systems. Decision: docs/decisions/0014-procedural-settlements.md.
+- Unit checks cover four seeds/six types, deterministic IDs/load order, connected graphs and paired portals, dry foundations, non-overlap, driveways, chunk ownership/LOD identity, vegetation, unloaded collision/real flight, navigation, bounded queries and shared instance lifetime. Browser district/seed/traversal/flight/recovery/save-preservation checks and earlier regressions passed. Navigation also rejects radius footprints that cross water despite a dry centre.
+- CPU evidence: docs/benchmarks/phase-14-settlements.json; `npm run settlements:benchmark`. 49-chunk windows held 16–36 buildings and 2.85–3.82 MB terrain arrays, peak chunk 515,376 bytes. Local generation p95 ~3.2–7.1 ms; discovery ~145–309 ms (overlapping final validation). Excludes source meshing, GPU copies, temporary arrays and descriptor strings; no gameplay FPS claim.
+- Final validation passed: lint, 170 unit tests, all 22 source validations, strict types/seven-entry build and all 63 browser tests (61 earlier regressions plus two settlement checks). The final shoreline-footprint correction is covered by the complete unit rerun and rebuilt output; it is not used by browser rendering/flight. Agent inspected final city/airport/harbor/flight captures; no user/hardware verification claimed.
+- Limits: bounded small settlements, sampled terrain rules and conservative solid collision, no universal inter-city connectivity/river routing, visual trees and static opaque water, no metropolitan districts at release scale, inherited coarse underlay/LOD artifacts. Source JSON adds startup payload/synchronous meshing; Phase 16 optimization remains separate. No new dependencies or source edits.
+
 ## Next
 
-Phase 13 is implemented and tested. Phase 14 procedural cities/buildings is the next development phase; do not start it within this phase. Retain the deferred Phase 12 playtest/GPU checks for later review.
+Phase 14 is implemented, tested and committed. Phase 15 regional zombie populations is next; do not begin it within this phase. Preserve deferred Phase 12 player-feedback and physical-GPU gates for later review.
 
-Phases 14–20: not started. Full user functional verification remains outstanding.
+Phases 15–20: not started. Full user functional verification remains outstanding.

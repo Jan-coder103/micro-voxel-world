@@ -14,6 +14,7 @@
     "assets:validate": "node tools/assets/validate.ts",
     "assets:export": "node tools/assets/export.ts",
     "assets:benchmark": "node tools/assets/benchmark.ts",
+    "settlements:benchmark": "node --experimental-transform-types tools/benchmarks/settlements.ts",
     "combat:benchmark": "node --experimental-transform-types tools/benchmarks/combat.ts"
   },
   "keywords": [],
