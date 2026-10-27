@@ -7,6 +7,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         game: resolve(import.meta.dirname, 'index.html'),
+        streaming: resolve(import.meta.dirname, 'tools/streaming/index.html'),
         editor: resolve(import.meta.dirname, 'tools/voxel-editor/index.html'),
       },
     },
