@@ -19,13 +19,22 @@ export class ChunkStream<T, R extends OwnedChunk> {
   get wanted() { return this.desired.size; }
   get settled() { return this.resident.size === this.desired.size && [...this.desired].every(([key,s]) => this.resident.has(key) && signature(this.resident.get(key)!.spec) === signature(s)) && !this.jobs.size && !this.ready.length; }
   private current(spec: ChunkSpec) { const s=this.desired.get(chunkKey(spec.x,spec.z)); return !this.disposed && s !== undefined && signature(s)===signature(spec); }
-  update(specs: ChunkSpec[]) {
+  update(specs: readonly ChunkSpec[]) {
     if (this.disposed) return;
-    this.desired = new Map(specs.map((s) => [chunkKey(s.x,s.z), {...s}]));
-    const signatures=new Set(specs.map(signature)); this.failed.forEach((id) => { if (!signatures.has(id)) this.failed.delete(id); });
-    for (const job of this.jobs) if (!this.current(job.spec)) job.controller.abort();
-    this.ready = this.ready.filter((result) => { if (this.current(result.spec)) return true; this.release(result.data); this.stale++; return false; });
-    for (const [key,entry] of this.resident) if (!this.desired.has(key)) { entry.resource.dispose(); this.resident.delete(key); }
+    // Compare owned snapshots, including order (which controls job priority).
+    const previous = this.desired.values();
+    const changed = specs.length !== this.desired.size || specs.some(s => {
+      const old = previous.next().value;
+      return !old || s.x !== old.x || s.z !== old.z || s.seed !== old.seed ||
+        s.lod !== old.lod || s.generator !== old.generator || s.structures !== old.structures;
+    });
+    if (changed) {
+      this.desired = new Map(specs.map((s) => [chunkKey(s.x,s.z), {...s}]));
+      const signatures=new Set(specs.map(signature)); this.failed.forEach((id) => { if (!signatures.has(id)) this.failed.delete(id); });
+      for (const job of this.jobs) if (!this.current(job.spec)) job.controller.abort();
+      this.ready = this.ready.filter((result) => { if (this.current(result.spec)) return true; this.release(result.data); this.stale++; return false; });
+      for (const [key,entry] of this.resident) if (!this.desired.has(key)) { entry.resource.dispose(); this.resident.delete(key); }
+    }
     // At most two GPU integrations and two total outstanding payloads, per frame.
     for (let i=0; i<2 && this.ready.length; i++) {
       const result=this.ready.shift()!;

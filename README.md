@@ -135,3 +135,8 @@ The first Phase 16 optimization lets **regional Flight** sleep once a paused/rea
 scene and camera settle. Controls, resizing and arriving terrain wake it again.
 Static zombie instance buffers update only after population changes; damage still
 saves immediately. Legacy Clearpass/outdoor rendering is unchanged by this slice.
+
+Flight also reuses its requested terrain plan until the look-ahead point crosses
+a chunk boundary. Worker replies continue to integrate while plans are unchanged.
+The [planning microbenchmark](docs/performance/2026-10-28-chunk-plan.json) measures
+this CPU work separately from integrated gameplay and hardware FPS.

@@ -1,0 +1,16 @@
+{
+  "scenario": "60 seconds at 100 m/s, 60 Hz, four square-route legs, seed 103, regional structures",
+  "runtime": "v24.22.1",
+  "samples": 15,
+  "before": {
+    "medianMs": 20.099740999999938,
+    "rebuilds": 3600,
+    "checksum": 165396
+  },
+  "after": {
+    "medianMs": 2.4886390000000347,
+    "rebuilds": 185,
+    "checksum": 165396
+  },
+  "limits": "Pure main-thread plan construction only; excludes workers, uploads, rendering and collision. Not hardware FPS acceptance."
+}

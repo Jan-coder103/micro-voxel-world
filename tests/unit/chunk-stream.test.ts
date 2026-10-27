@@ -44,6 +44,21 @@ describe('chunk lifecycle', () => {
     stream.update([spec(2)]);stream.update([]);jobs[2].resolve(3);await flush();expect(wake).toHaveBeenCalledTimes(3);expect(stream.stale).toBe(1);
     stream.update([spec(3)]);stream.dispose();jobs[3].resolve(4);await flush();expect(wake).toHaveBeenCalledTimes(3);
   });
+  it('pumps equivalent plans and detects caller mutation, priority, seed and content changes', async () => {
+    const loaded:ChunkSpec[]=[];
+    const stream=new ChunkStream(async (s:ChunkSpec)=>{loaded.push({...s});return s;},()=>({dispose(){}}));
+    const wanted=[spec(),spec(1),spec(2)];
+    stream.update(wanted);await flush();
+    stream.update(wanted.map(s=>({...s})));await flush();
+    stream.update(wanted);expect(stream.settled).toBe(true);expect(loaded).toHaveLength(3);
+    wanted[0].seed=104;stream.update(wanted);await flush();stream.update(wanted);
+    expect(stream.resident.get('0,0')!.spec.seed).toBe(104);
+    wanted[0].generator='regional-v2';wanted[0].structures=true;
+    stream.update(wanted);await flush();stream.update(wanted);
+    expect(stream.resident.get('0,0')!.spec).toMatchObject({generator:'regional-v2',structures:true});
+    stream.update([]);stream.update([spec(7),spec(6),spec(5)]);await flush();
+    expect(loaded.slice(-2).map(s=>s.x)).toEqual([7,6]);stream.dispose();
+  });
   it('surfaces generation/integration failures without a per-frame retry loop', async () => {
     let attempts=0;
     const stream=new ChunkStream(async () => {attempts++;throw new Error('worker failed');}, () => ({dispose(){}}));

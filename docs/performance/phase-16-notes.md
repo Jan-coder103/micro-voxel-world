@@ -224,3 +224,22 @@ and all 67 browser checks passed (46 before an interruption, 21 on resumption;
 unchanged runtime code/build). The focused eight-browser-check run also passed.
 The measured [idle comparison](2026-10-28-regional-idle.json) records the scope and
 limitations; full Phase 16 hardware performance acceptance is still outstanding.
+
+## Second implementation slice — streaming plans, 28 October 2026
+
+Flight now reuses the frozen requested plan while the look-ahead point remains in
+one 32 m cell. The shared stream skips map/signature/cancellation/eviction rebuilds
+for equal ordered requests, while continuing to integrate replies and submit work.
+Bias, tiers, resource caps and authoritative collision remain unchanged.
+
+The fixed 60-second 100 m/s planning microbenchmark reduced construction count
+from 3600 to 185; median aggregate CPU across 15 warmed samples was 20.10 → 2.49 ms.
+This isolates plan construction and does not measure rendering, worker latency or
+integrated gameplay. See [evidence](2026-10-28-chunk-plan.json) and
+[decision](../decisions/0017-streaming-plan-reuse.md). Run with Node 24:
+`node --experimental-transform-types tools/benchmarks/chunk-plan.ts`.
+
+Second-slice verification passed lint, 184 unit tests, 22 asset validations, types/
+build and all 67 browser checks across split single-worker runs (46 before signal
+143 termination, 21 on resumption; unchanged runtime/build). Agent inspected the
+regional recovery capture. User and hardware verification remain outstanding.

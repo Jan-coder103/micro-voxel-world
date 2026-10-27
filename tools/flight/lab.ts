@@ -1,10 +1,11 @@
+import { ChunkPlan } from '../../src/streaming/chunk-plan';
 import { BoxGeometry, Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { demandFrames } from '../../src/rendering/demand-frames';
 import { RegionalPopulation } from '../../src/hordes/regional-population';
 import { createRegionalPopulationView } from '../../src/rendering/regional-population-view';
 import { Flight } from '../../src/flight/flight';
 import { ChunkStream } from '../../src/streaming/chunk-stream';
-import { chunkKey, heightAt, wantedChunks, type TerrainData } from '../../src/streaming/terrain-data';
+import { chunkKey, heightAt, type TerrainData } from '../../src/streaming/terrain-data';
 import { createTerrainWorkers } from '../../src/streaming/worker-pool';
 import { attachTerrain } from '../../src/rendering/streamed-terrain';
 import { Combat, rangeTargets, WEAPONS, type WeaponId } from '../../src/combat/weapons';
@@ -44,6 +45,7 @@ function mount() {
   let stream:ChunkStream<TerrainData,ReturnType<typeof attachTerrain>>|undefined;
   try { workers=createTerrainWorkers(); stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,markerGeometry,markerMaterial,true);const release=cityView?.attach(`${spec.x},${spec.z}`,data.buildings??[]),dispose=r.dispose;r.dispose=()=>{release?.();dispose();};scene.add(r.group);return r;},undefined,()=>wake()); }
   catch { status.textContent='Terrain workers unavailable. Reload to retry.'; app.querySelectorAll('button,select').forEach(b=>(b as HTMLButtonElement).disabled=true); }
+  const chunkPlan=new ChunkPlan(seed,regional,structures);
   const flight=new Flight(ground,world?(origin,direction,range)=>world.ray(origin,direction,range,6):undefined);
   const resetFlight=()=>{flight.reset();if(regional){const x=Number(params.get('x')??16),z=Number(params.get('z')??16);if(Number.isFinite(x)&&Number.isFinite(z)&&Math.abs(x)<130000&&Math.abs(z)<130000)flight.position={x,z,y:Math.min(240,ground(x,z)+65)};}};
   resetFlight();
@@ -90,7 +92,7 @@ function mount() {
     combatView?.update();
     if(combat&&audio&&combat.shots!==heardShots){heardShots=combat.shots;audio.play(WEAPONS[combat.lastWeapon].sound);}
     if(flight.state!=='running')audio?.stop();
-    const p=flight.position;stream?.update(wantedChunks(seed,p.x+(regional?Math.sin(flight.heading)*64:0),p.z-(regional?Math.cos(flight.heading)*64:0)).map(s=>regional?{...s,generator:'regional-v2' as const,...(structures?{structures:true as const}:{})}:s));fallback?.update(p.x,p.z);cityView?.update();aircraft.position.set(p.x,p.y,p.z);aircraft.rotation.set(flight.pitch,-flight.heading,-flight.bank,'YXZ');
+    const p=flight.position;stream?.update(chunkPlan.at(p.x+(regional?Math.sin(flight.heading)*64:0),p.z-(regional?Math.cos(flight.heading)*64:0)));fallback?.update(p.x,p.z);cityView?.update();aircraft.position.set(p.x,p.y,p.z);aircraft.rotation.set(flight.pitch,-flight.heading,-flight.bank,'YXZ');
     cameraBefore.copy(camera.position);
     desired.set(p.x-Math.sin(flight.heading)*21,p.y+8,p.z+Math.cos(flight.heading)*21);
     camera.position.lerp(desired,snap?1:1-Math.exp(-Math.min(dt,.1)*6));snap=false;
@@ -100,7 +102,7 @@ function mount() {
     const cameraSettling=regional&&flight.state!=='running'&&(cameraBefore.distanceToSquared(camera.position)>1e-8||dt===0&&camera.position.distanceToSquared(desired)>1e-4);
     const keepAnimating=!regional||flight.state==='running'||cameraSettling||(stream?.completed??0)>0;
     if(now-lastReport>100||!keepAnimating){lastReport=now;const current=stream?.resident.has(chunkKey(Math.floor(p.x/32),Math.floor(p.z/32)))??false;
-      const sample={...p,renderedFrames,populationRebuilds:populationView?.rebuilds??0,idle:!keepAnimating,settled:stream?.settled??false,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
+      const sample={...p,renderedFrames,chunkPlanRebuilds:chunkPlan.rebuilds,populationRebuilds:populationView?.rebuilds??0,idle:!keepAnimating,settled:stream?.settled??false,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
       if(population){const c=population.counts,panel=app.querySelector<HTMLElement>('#population-stats')!;const local=population.resident.get(`rp1:${Math.floor(p.x/128)},${Math.floor(p.z/128)}`);const chosen=selectedEncounter?population.resident.get(selectedEncounter):local;const encounter=chosen?.encounter.id??null,remaining=chosen?.targets.filter(t=>t.health>0).length??0;panel.dataset.sample=JSON.stringify({...c,encounter,remaining,error:population.error});panel.textContent=`Regional population · ${c.alive} nearby · ${c.killed} killed · ${c.cleared} encounters cleared · local ${encounter??'outside coverage'}: ${remaining} remaining${population.error?' · '+population.error:''}`;}
       if(combat){const combatSample={shots:combat.shots,hits:combat.hits,damage:combat.damage,kills:combat.kills,blasts:combat.blasts,weapon,effects:combat.effects.filter(e=>e.active).length,capacity:combat.effects.length,droppedEffects:combat.droppedEffects,voices:audio?.activeVoices??0,targets:combat.targets.map(t=>({id:t.id,health:t.health}))};const panel=app.querySelector<HTMLElement>('#combat-stats')!;panel.dataset.sample=JSON.stringify(combatSample);panel.textContent=`${WEAPONS[weapon].name} · ${combat.shots} shots · ${combat.hits} damaging hits · ${combat.damage.toFixed(0)} damage · ${combat.kills}${population?' regional kills':'/'+combat.targets.length+' targets cleared'} · ${combat.blasts} blasts · effects ${combatSample.effects}/128 · dropped cosmetics ${combat.droppedEffects}`;app.querySelector('#audio-status')!.textContent=audio?.state??'Muted';}
       stats.textContent=`${flight.state} · ${flight.speed.toFixed(1)} m/s · altitude ${sample.altitude.toFixed(1)} m AGL · throttle ${(flight.throttle*100).toFixed(0)}% · chunk ${current?'visible':'loading gap'} · residents ${sample.resident}/49 · jobs ${sample.pending} · results ${sample.ready} · stale ${sample.stale} · failures ${sample.failures} · dropped ${flight.dropped.toFixed(2)} s`;

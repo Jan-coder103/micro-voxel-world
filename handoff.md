@@ -1,17 +1,48 @@
 # Handoff — 28 October 2026
 
-Phase 16 first optimization slice is implemented and tested. This handoff belongs to its local commit; consult git log for the hash. Phase 16 overall remains IN PROGRESS: hardware targets, maximum-speed/dense regional workloads, source meshing/generation and broader streaming profiling remain. Phase 12 player feedback and physical-GPU acceptance stay explicitly deferred, not passed. User verification remains outstanding.
+Phase 16 second optimization slice implements streaming plan reuse. This handoff
+belongs to its local commit; consult git log for the hash. Automated checks passed; agent visual inspection completed. Phase 16 overall remains IN PROGRESS. Phase 17 aircraft variety has
+not started. Phase 12 player feedback and physical-GPU acceptance remain deferred,
+not passed; user verification remains outstanding.
 
-Regional Flight now sleeps after a paused/ready/crashed scene and chase camera settle. Controls, resize, asynchronous sound status and terrain-worker replies wake it. Running flight, camera easing/safety clamps, collision, effects and streaming limits are preserved. Legacy Clearpass/outdoor loops remain continuous.
+Flight's `ChunkPlan` owns a frozen requested window, rebuilding only when the
+existing look-ahead point crosses a 32 m boundary. Regional bias remains 64 m;
+legacy flight/weapons remain unbiased. The shared stream compares ordered values
+with owned snapshots before rebuilding desired maps and cancellation/eviction
+state. Equal plans still pump replies and submit jobs. Seed/tier/content changes,
+caller mutation and loading priority are handled. Existing 49-resident/two-payload/
+two-integration limits, authoritative collision and saves are unchanged.
 
-Population residency rebuilds only when its 128 m observer cell changes. Existing per-update tier hysteresis is preserved. Revision tracking skips unchanged instance-buffer work and live-member temporary arrays. Actual health decreases still save synchronously; unchanged checkpoints and stale/no-op damage skip writing. Population generation, IDs, save schemas/durability and fixed-step physics are unchanged. Moving regional agents would need to invalidate positional changes before extending this static revision contract.
+Fixed 60-second 100 m/s square-route planning benchmark: 3600 → 185 constructions;
+median aggregate pure-planning CPU 20.10 → 2.49 ms across 15 warmed samples. This is
+a small isolated saving, not FPS or integrated streaming latency. Evidence:
+docs/performance/2026-10-28-chunk-plan.json; runner:
+`node --experimental-transform-types tools/benchmarks/chunk-plan.ts`.
+Decision: docs/decisions/0017-streaming-plan-reuse.md.
 
-Measured settled ready window over 1.2 seconds: before 26 scene clears / 78 buffer updates; after zero of each, one population rebuild during initial loading. Unit coverage confirms 120 unchanged updates cause no extra matrix rebuilds. Evidence: docs/performance/2026-10-28-regional-idle.json; design: docs/decisions/0016-regional-idle-rendering.md. This measures eliminated idle work, not a hardware FPS or total CPU-percentage improvement.
+Passed: lint, 184 unit tests, 22 asset validations, strict types/build and all 67
+browser checks across two single-worker runs against unchanged runtime/build. The
+first process terminated with signal 143 after 46 passes; the remaining 21 passed
+on resumption in 2.4 minutes. Its leftover preview server was identified and
+stopped before resumption. Agent inspected the regional recovery screenshot:
+readable controls, visible aircraft/terrain/groups, no overlap. This is automated
+interaction plus visual inspection, not Jan playtesting. Initial sandbox CLI-output
+failures disappeared on reviewed outside-sandbox rerun. Existing bundle-size
+warnings remain. No visual design, source assets, dependencies or save formats
+changed. Earlier demand rendering and dirty population buffers remain in place.
 
-Passed: lint, all 182 unit tests, all 22 asset validations, strict types and production build. Focused browser run passed all 8 checks. The full single-worker browser run passed 46 checks before an intentional interruption; the remaining 21 checks passed on resumption in 2.3 minutes. Thus all 67 browser checks are verified across split runs against unchanged runtime code/build, not one uninterrupted run. Resumed coverage includes all six districts, setup/navigation, streaming, viewer, source handling and weapons. Agent inspected the resized regional ready/recovery capture: readable controls and visible aircraft/terrain/groups with no overlaps. No dependencies or source assets changed. Existing bundle-size warnings remain.
+Key files: src/streaming/chunk-plan.ts, src/streaming/chunk-stream.ts,
+tools/flight/lab.ts, tests/unit/chunk-plan.test.ts and chunk-stream.test.ts.
+Flight diagnostics now include chunkPlanRebuilds.
 
-Key runtime files: src/rendering/demand-frames.ts; src/streaming/chunk-stream.ts (optional owner wake callback); src/hordes/regional-population.ts; src/rendering/regional-population-view.ts; tools/flight/lab.ts. Tests: tests/unit/demand-frames.test.ts, chunk-stream.test.ts and regional-population.test.ts; tests/browser/regional-performance.spec.ts counts actual WebGL clear/upload deltas and checks wake/resize/controls/fire/pause/resume/focus/recovery/teardown.
+Next: profile cold startup/source meshing and integrated regional maximum-speed
+travel/dense combat, including queue latency, integration spikes and long-travel
+memory. The measured plan saving is modest; larger performance claims need actual
+integrated profiles. Agree reference hardware and targets with Jan before marking
+Phase 16 accepted. Preserve deterministic generation, clearance durability,
+collision readiness and bounded ownership.
 
-Next: choose the next measured Phase 16 slice with Jan using docs/performance/phase-16-notes.md. Startup generation/source meshing, broader streaming scheduling and non-regional idle loops remain candidates. Preserve deterministic generation, saved clearance, collision readiness and bounded resource ownership; do not change gameplay or durability merely to improve a timing result.
-
-Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22. CLI subprocess/local-server checks need reviewed outside-sandbox access. Prefer one browser worker on this software-rendered host and tell Jan before sustained CPU-heavy work. Tests and preview servers must stop afterward. The earlier interrupted preview server was explicitly cleaned up before resumption. No deployment configured.
+Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22.
+CLI subprocess/local-server checks need reviewed outside-sandbox access. Prefer
+one browser worker on this software-rendered host and tell Jan before sustained
+CPU-heavy work. Tests and preview servers must stop afterward. No deployment.
