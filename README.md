@@ -126,3 +126,7 @@ is −4096 to 4096 m per axis; terrain continues beyond it. Damage saves automat
 in a separate generator-v2/seed/structure population scope. Storage failures appear
 in the population panel and preserve session play. Regional groups currently hold
 validated positions; moving regional patrols and mission progression are deferred.
+
+Performance planning: [Phase 16 notes](docs/performance/phase-16-notes.md) summarize
+observed costs, the software-rendered test baseline, proposed priorities and the
+measurements needed before changing behavior.

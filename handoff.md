@@ -17,3 +17,10 @@ The earlier two-worker browser run saturated CPU under SwiftShader software rend
 Next: work with Jan on Phase 16 optimization. Separate software-test rendering cost from actual hardware gameplay first; profile continuous rendering while paused, synchronous source meshing/regional generation, per-frame population presentation and per-hit save serialization. Preserve deterministic IDs, saved clearance and bounded resource ownership. Do not assume a particular optimization until measured. No Phase 16 code changes yet.
 
 Use Node 24: `/home/user/.nvm/versions/node/v24.22.1/bin`. Default shell Node is 22. Required checks need reviewed outside-sandbox CLI child-process/local-server access because sandbox subprocess output is incomplete. No deployment configured. The prior repository privacy audit and Phase 14 details remain in tracker/history.
+
+Performance-notes follow-up: docs/performance/phase-16-notes.md now records proposed
+priorities and validation; docs/performance/2026-10-27-test-baseline.json preserves
+summary measurements from the completed serial browser run. README links to the
+notes. Phase 16 implementation remains unstarted; no additional heavy tests ran.
+Suggested first slice is regional profiling, settled paused rendering and dirty
+population buffers, subject to the measured baseline and Jan's priorities.
