@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus the Phase 6 engine test scene.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus the Phase 7 outdoor rendering scene.
 
 ## Quick start
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:5173/ for the engine test scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. Flight and combat are later phases.
+Open http://localhost:5173/ for the outdoor test scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
 
 ## Voxel workshop
 

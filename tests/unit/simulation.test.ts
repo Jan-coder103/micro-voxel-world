@@ -24,3 +24,13 @@ describe('engine simulation', () => {
     s.advance(NaN, idle); expect(Number.isFinite(s.x)).toBe(true);
   });
 });
+
+it('resolves test movement against injected collision queries and slides along bounds', () => {
+  const s = new Simulation((x) => x <= 1);
+  s.start();
+  for (let i = 0; i < 120; i++) s.advance(1 / 60, { x: 1, z: 1, pulse: false });
+  expect(s.x).toBeLessThanOrEqual(1);
+  expect(s.x).toBeGreaterThan(.9);
+  expect(s.z).toBeGreaterThan(4);
+  s.reset(); expect(s.x).toBe(0); expect(s.z).toBe(0);
+});

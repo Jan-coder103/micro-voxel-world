@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 test('engine lifecycle, focused input and reset remain repeatable', async ({ page }) => {
+  test.setTimeout(90000);
   await page.goto('/');
+  // Lifecycle coverage uses Low; outdoor.spec measures both presets separately.
+  await page.getByLabel('Render quality').selectOption('low');
   const scene = page.locator('.viewport');
   const diagnostics = page.getByLabel('Engine diagnostics');
   await expect(scene).toHaveAttribute('data-lifecycle', 'ready');

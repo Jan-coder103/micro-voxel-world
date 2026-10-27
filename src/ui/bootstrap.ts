@@ -7,11 +7,11 @@ export function bootstrap() {
   app.innerHTML = `
     <header><a class="brand" href="/">MVW <span>/ DEVELOPMENT</span></a>
     <nav aria-label="Workspace"><a href="/" aria-current="page">Game</a><a href="/tools/voxel-editor/">Voxel workshop</a></nav></header>
-    <main><section class="intro"><p class="eyebrow">PHASE 06 / ENGINE</p>
+    <main><section class="intro"><p class="eyebrow">PHASE 07 / ENVIRONMENT</p>
     <h1>Micro Voxel World</h1>
     <p>A world built small. A vision that flies large.</p></section>
-    <section aria-label="Simulation controls" class="controls"><button id="start">Start</button><button id="pause">Pause</button><button id="reset">Reset</button><p>Focus the scene · WASD / arrows to move · hold Space for test pulses</p><div id="diagnostics" role="group" aria-label="Engine diagnostics"></div></section><section tabindex="0" class="viewport" aria-label="Setup scene"></section>
-    <footer><p role="status">Starting renderer…</p><span>ENGINE TEST SCENE · NO FLIGHT OR COMBAT</span></footer></main>`;
+    <section aria-label="Simulation controls" class="controls"><button id="start">Start</button><button id="pause">Pause</button><button id="reset">Reset</button><p>Focus the scene · WASD / arrows to move · hold Space for test pulses · cube stops at static proxies</p><label>Render quality <select id="quality" disabled><option value="high">High · shadows</option><option value="low">Low · no shadows</option></select></label> <label><input id="fog" type="checkbox" checked disabled> Distance fog</label> <label><input id="proxies" type="checkbox" disabled> Collision bounds</label><p id="render-stats" role="group" aria-label="Rendering measurements"></p><div id="diagnostics" role="group" aria-label="Engine diagnostics"></div></section><section tabindex="0" class="viewport" aria-label="Outdoor test scene"></section>
+    <footer><p role="status">Starting renderer…</p><span>STATIC OUTDOOR SCENE · NO FLIGHT OR COMBAT</span></footer></main>`;
   const host = app.querySelector<HTMLElement>('.viewport');
   const status = app.querySelector<HTMLElement>('[role="status"]');
   if (!host || !status) throw new Error('Missing preview elements');

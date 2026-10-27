@@ -23,3 +23,5 @@ footer span { font-size: 10px; letter-spacing: .12em; }
 .controls button:disabled { opacity: .4; cursor: default; }
 .controls #diagnostics { display: block; font-variant-numeric: tabular-nums; }
 .viewport:focus-visible { outline: 2px solid #d9b56f; outline-offset: 3px; }
+.controls select { padding: 6px 10px; background: #203540; color: #e9eee8; border: 1px solid #557c80; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; margin: 4px 14px 4px 0; }

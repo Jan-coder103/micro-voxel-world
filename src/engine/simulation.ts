@@ -4,6 +4,7 @@ export const STEP = 1 / 60;
 
 /** Rendering-independent state. Pool entries are allocated once and reused. */
 export class Simulation {
+  constructor(private readonly canOccupy: (x: number, z: number) => boolean = () => true) {}
   status: Lifecycle = 'ready';
   ticks = 0;
   x = 0;
@@ -29,8 +30,10 @@ export class Simulation {
       this.accumulator = Math.max(0, this.accumulator - STEP);
       this.ticks++;
       const length = Math.max(1, Math.hypot(input.x, input.z));
-      this.x = Math.max(-8, Math.min(8, this.x + input.x / length * STEP * 3));
-      this.z = Math.max(-8, Math.min(8, this.z + input.z / length * STEP * 3));
+      const x = Math.max(-8, Math.min(8, this.x + input.x / length * STEP * 3));
+      const z = Math.max(-8, Math.min(8, this.z + input.z / length * STEP * 3));
+      if (this.canOccupy(x, this.z)) this.x = x;
+      if (this.canOccupy(this.x, z)) this.z = z;
       this.cooldown = Math.max(0, this.cooldown - STEP);
       for (const p of this.pulses) if (p.active) { p.age += STEP; if (p.age >= 1) p.active = false; }
       if (input.pulse && this.cooldown <= 1e-10) {
