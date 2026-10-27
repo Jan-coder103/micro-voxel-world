@@ -27,6 +27,10 @@ Source v1 uses sparse occupancy, a named palette of opaque matte colors, explici
 
 See [the format contract](docs/asset-authoring/format.md), [authoring skill](docs/asset-authoring/mvw-voxel-assets/SKILL.md), and [Phase 3 decision](docs/decisions/0003-voxel-source.md). The viewer now uses hidden-face removal and greedy surface meshes; [the mesh pipeline](docs/asset-authoring/mesh-pipeline.md) explains GLB export and [reference measurements](docs/benchmarks/phase-4-meshing.md).
 
+## Reference assets
+
+Five original editable sources are available in [assets/source](assets/source/README.md): zombie, attack aircraft, field tree, utility building, and combined road/landing pad. Import their `ref-*.voxel.json` files into the workshop; `npm run assets:export` generates their GLBs alongside the two fixtures. They are static scale/gameplay references for the next phases.
+
 ## Commands
 
 - `npm run dev` — local development server.

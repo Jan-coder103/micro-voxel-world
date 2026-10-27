@@ -1,5 +1,27 @@
 # Source assets
 
-Original editable v1 references: `direction-marker.voxel.json` (asymmetric color/orientation marker) and `metre-cube.voxel.json` (1 m scale cube). Each records its provenance. The workshop loads fresh validated copies of these files.
+All sources are original editable VoxelSource v1 JSON with 0.1 m cells, +Y up, −Z front and a base-centred pivot. `direction-marker.voxel.json` and `metre-cube.voxel.json` remain the two default workshop fixtures.
 
-See `docs/asset-authoring/format.md` and `docs/asset-authoring/mvw-voxel-assets/SKILL.md` for authoring. Run `npm run assets:validate` before committing sources. Do not copy visual references into release assets without established rights. Generated runtime meshes belong under `assets/generated/` after the meshing phase.
+## First reference kit
+
+These five static assets establish scale and silhouettes for the coming engine/environment/flight phases. They are reference artwork, with no rig, animation, collision proxy or gameplay behavior. They share muted earth/slate colors, pale markings and warm warning accents. Each source records original authorship/provenance; no third-party model or texture was used.
+
+| Source | Dimensions X × Y × Z | Occupied cells | Greedy triangles | Details |
+| --- | --- | ---: | ---: | --- |
+| `ref-zombie.voxel.json` | 0.9 × 1.8 × 0.7 m | 442 | 198 | Green face/hands, pale eyes, worn coat, separated legs, boots; face points −Z. |
+| `ref-attack-aircraft.voxel.json` | 17.4 × 4.8 × 16.4 m | 30,262 | 2,470 | Original A-10-style silhouette: broad wings, tapered nose/cannon, matte canopy, twin raised nacelles, twin fins, hardpoints and fixed landing gear. |
+| `ref-field-tree.voxel.json` | 4 × 6 × 4 m | 23,312 | 5,240 | Grounded trunk, connected branches, rounded/lobed stepped canopy and three broad foliage tones. |
+| `ref-utility-building.voxel.json` | 8 × 4 × 6 m | 20,550 | 286 | Hollow static shell, foundation band, front door/windows, side windows, flat roof/parapet and roof plant. |
+| `ref-road-landing-pad.voxel.json` | 12 × 0.1 × 16 m | 17,600 | 1,288 | Eight-metre approach road joined to a twelve-metre apron, lane/edge lines, yellow ring and white H. |
+
+Dimensions describe the declared envelope, including padding. All occupancy is connected by shared cell faces and reaches ground level. Aircraft fuselage/nacelles and the building are sparse shells to stay under the 32,768-cell budget. Windows and canopy use opaque matte colors under v1; they are not transparent glass. The apron is a ground/orientation reference and possible later helicopter pad, not a fixed-wing runway or a prescribed aircraft spawn location. Its ring is approximately 9 m across.
+
+## Open and edit
+
+1. Run `npm run dev` and open `/tools/voxel-editor/`.
+2. Use **Import voxel JSON** to open any of these five files. They are available as source files rather than being bundled into the default two-fixture catalog.
+3. Check Frame asset, Front −Z and Top +Y; use the displayed metre dimensions to compare scale.
+4. Edit with the existing cell/palette controls, then **Export selected source** to keep the revision. Explicit replacement allows reopening the same ID in the session.
+5. Export GLB from the workshop or run `npm run assets:export`. Local derivatives are `assets/generated/<source-id>.glb`; keep JSON as the editing authority.
+
+See `docs/asset-authoring/format.md` and `docs/asset-authoring/mvw-voxel-assets/SKILL.md`. Run `npm run assets:validate` and `npm run check` before committing source changes. Generated GLBs remain ignored and are regenerated after switching machines. These assets do not establish final art quality, crowd performance or an aircraft flight model.
