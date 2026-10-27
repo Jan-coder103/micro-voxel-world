@@ -11,12 +11,12 @@ export class Flight {
   reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason=''; }
   start() { if(this.state==='ready'||this.state==='paused') this.state='running'; }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
-  advance(dt:number,input:FlightInput) {
+  advance(dt:number,input:FlightInput,onStep?:()=>void) {
     if(!Number.isFinite(dt)||dt<0) throw new Error('Invalid flight elapsed time');
     if(this.state!=='running') return;
     if(![input.pitch,input.bank,input.throttle].every(Number.isFinite)) throw new Error('Invalid flight input');
     const accepted=Math.min(dt,8/60); this.dropped+=dt-accepted; this.accumulator+=accepted;
-    while(this.accumulator+1e-10>=1/60 && this.state==='running') { this.accumulator-=1/60; this.step(input); }
+    while(this.accumulator+1e-10>=1/60 && this.state==='running') { this.accumulator-=1/60; this.step(input); if(this.state==='running')onStep?.(); }
   }
   private step(input:FlightInput) {
     const dt=1/60;

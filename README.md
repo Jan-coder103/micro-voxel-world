@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus the Phase 7 outdoor scene and Phase 8 streaming lab.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight and weapons range.
 
 ## Quick start
 
@@ -12,6 +12,12 @@ npm run dev
 ```
 
 Open http://localhost:5173/ for the outdoor test scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
+
+## Weapons lab
+
+Open http://localhost:5173/tools/weapons/ or follow **Weapons lab** from Game. Start / Resume focuses flight; Space fires forward. Keys 1/2/3 or the Weapon selector choose minigun (20 shots/s), autocannon (5 shots/s) or explosive shell (1 shot/s). Flight controls are shared with Flight lab. Gold spheres are resettable test targets: three airborne for level passes and three on the ground for dive attacks. Recover / Reset restores aircraft, target health, counters and pooled effects. These are range fixtures, not zombies or persistent enemies.
+
+Tracers, muzzle flashes, impacts and wireframe blast volumes accompany authoritative ray hits. Terrain blocks shots and blast visibility even while chunks load. Explosions use linear centre-distance damage falloff with a 16 m radius and leave terrain intact. Ammunition is unlimited for testing. Diagnostics report damage, clears, blasts, effects and dropped cosmetics. Sound starts muted; Enable sound activates synthesized placeholder audio, and Mute sound disables it. Audio failure is reported and leaves weapons working. Leaving viewport focus pauses flight/firing and stops sound; resume explicitly. See [weapon decisions](docs/decisions/0010-weapons.md).
 
 ## Flight lab
 
@@ -55,7 +61,7 @@ Twenty original editable reference sources are available in [assets/source](asse
 - `npm run assets:validate -- path/to/asset.voxel.json` — validate one or more named source files; failures return nonzero.
 - `npm run assets:export` — regenerate all optimized GLBs into assets/generated/ (ignored by Git); pass source paths after `--` for selected assets.
 - `npm run assets:benchmark` — measure reference geometry reduction and CPU meshing time.
-- `npm run build` — typecheck and build all four entry points into dist/.
+- `npm run build` — typecheck and build all five entry points into dist/.
 - `npm run preview` — serve the production build locally.
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).
