@@ -7,7 +7,7 @@ export class Flight {
   state:'ready'|'running'|'paused'|'crashed'='ready';
   reason=''; assisted=true; dropped=0;
   private accumulator=0;
-  constructor(private readonly ground:(x:number,z:number)=>number) { this.reset(); }
+  constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined) { this.reset(); }
   reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason=''; }
   start() { if(this.state==='ready'||this.state==='paused') this.state='running'; }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
@@ -28,6 +28,9 @@ export class Flight {
     this.heading+=Math.tan(this.bank)*.65*dt;
     const old=this.position;
     const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pitch)*this.speed*dt,y:old.y+Math.sin(this.pitch)*this.speed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pitch)*this.speed*dt};
+    const length=Math.hypot(next.x-old.x,next.y-old.y,next.z-old.z),direction={x:(next.x-old.x)/length,y:(next.y-old.y)/length,z:(next.z-old.z)/length};
+    const obstacle=this.obstacle?.(old,direction,length);
+    if(obstacle!==undefined){this.position={x:old.x+direction.x*obstacle,y:old.y+direction.y*obstacle,z:old.z+direction.z*obstacle};this.state='crashed';this.reason='Obstacle collision';this.accumulator=0;return;}
     const count=Math.max(1,Math.ceil(this.speed*dt/.25));
     for(let i=1;i<=count;i++) {
       const t=i/count, x=old.x+(next.x-old.x)*t,y=old.y+(next.y-old.y)*t,z=old.z+(next.z-old.z)*t;

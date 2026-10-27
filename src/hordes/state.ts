@@ -1,5 +1,5 @@
-import { GENERATOR_VERSION } from '../streaming/terrain-data';
-import type { StorageLike } from '../persistence/chunk-deltas';
+import { GENERATOR_VERSION } from '../streaming/terrain-data.ts';
+import type { StorageLike } from '../persistence/chunk-deltas.ts';
 export const MEMBERS=32, REGION_LIMIT=4, TOTAL_POPULATION=81*MEMBERS, POPULATION_VERSION=1, HEALTH=40;
 export const groupId=(x:number,z:number)=>`horde:${x},${z}`;
 export interface GroupState { x:number;z:number;progress:number;health:number[];offsets:number[] }

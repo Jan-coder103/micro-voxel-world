@@ -6,6 +6,7 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       input: {
+        prototype: resolve(import.meta.dirname, 'play/index.html'),
         game: resolve(import.meta.dirname, 'index.html'),
         hordes: resolve(import.meta.dirname, 'tools/hordes/index.html'),
         weapons: resolve(import.meta.dirname, 'tools/weapons/index.html'),

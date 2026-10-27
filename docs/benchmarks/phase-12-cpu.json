@@ -1,0 +1,58 @@
+{
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "Intel(R) Core(TM) i5-3570K CPU @ 3.40GHz",
+  "logicalCpus": 4,
+  "note": "Fixed-tick CPU model timings, no renderer/GPU; isolated in-memory populations.",
+  "scenarios": [
+    {
+      "scenario": "crowd",
+      "seed": 12012,
+      "warmupTicks": 60,
+      "measuredTicks": 3600,
+      "simulatedSeconds": 60,
+      "stepCpuMs": {
+        "median": 0.34008700000003955,
+        "p95": 0.5551289999998517,
+        "max": 2.3447610000000623
+      },
+      "peaks": {
+        "residents": 42,
+        "individuals": 864,
+        "effects": 0,
+        "querySlots": 0
+      },
+      "shots": 0,
+      "damage": 0,
+      "killed": 0,
+      "remainingPopulation": 2592,
+      "droppedSimulationSeconds": 0,
+      "flightState": "running"
+    },
+    {
+      "scenario": "fire",
+      "seed": 12012,
+      "warmupTicks": 60,
+      "measuredTicks": 3600,
+      "simulatedSeconds": 60,
+      "stepCpuMs": {
+        "median": 0.3518719999997302,
+        "p95": 0.5604049999999461,
+        "max": 3.6635739999996986
+      },
+      "peaks": {
+        "residents": 42,
+        "individuals": 863,
+        "effects": 7,
+        "querySlots": 960
+      },
+      "shots": 1220,
+      "damage": 4792,
+      "killed": 108,
+      "remainingPopulation": 2484,
+      "droppedSimulationSeconds": 0,
+      "flightState": "running"
+    }
+  ]
+}

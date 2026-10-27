@@ -1,6 +1,6 @@
-import type { Point } from '../flight/flight';
-import type { Target,TargetQuery } from '../combat/weapons';
-import { groupId,HordeStore,MEMBERS,HEALTH,patrol,REGION_LIMIT,type GroupState } from './state';
+import type { Point } from '../flight/flight.ts';
+import type { Target,TargetQuery } from '../combat/weapons.ts';
+import { groupId,HordeStore,MEMBERS,HEALTH,patrol,REGION_LIMIT,type GroupState } from './state.ts';
 export type HordeTier='near'|'medium'|'far';
 export interface ResidentHorde { state:GroupState;tier:HordeTier;elapsed:number;targets:Target[]|undefined }
 export const blocked=(x:number,z:number)=>x>=13.5&&x<=18.5&&z>=9.5&&z<=22.5;
@@ -57,10 +57,10 @@ export class Hordes implements TargetQuery {
       for(const t of targets){this.lastQueryMembers++;const p=t.position;if(t.health>0&&p.x+.65>=min.x&&p.x-.65<=max.x&&p.y+.65>=min.y&&p.y-.65<=max.y&&p.z+.65>=min.z&&p.z-.65<=max.z)result.add(t);}
     }return result;
   }
-  blocker=(origin:Point,direction:Point,range:number):number|undefined=>{
+  blocker=(origin:Point,direction:Point,range:number,margin=0):number|undefined=>{
     let nearest:number|undefined;const end={x:origin.x+direction.x*range,z:origin.z+direction.z*range};
     for(let z=Math.max(-REGION_LIMIT,Math.floor(Math.min(origin.z,end.z)/32));z<=Math.min(REGION_LIMIT,Math.floor(Math.max(origin.z,end.z)/32));z++)for(let x=Math.max(-REGION_LIMIT,Math.floor(Math.min(origin.x,end.x)/32));x<=Math.min(REGION_LIMIT,Math.floor(Math.max(origin.x,end.x)/32));x++){
-      const y=this.ground(x*32+16,z*32+16),min=[x*32+14,y,z*32+10],max=[x*32+18,y+3,z*32+22],o=[origin.x,origin.y,origin.z],d=[direction.x,direction.y,direction.z];let enter=0,exit=range;
+      const y=this.ground(x*32+16,z*32+16),min=[x*32+14-margin,y-margin,z*32+10-margin],max=[x*32+18+margin,y+3+margin,z*32+22+margin],o=[origin.x,origin.y,origin.z],d=[direction.x,direction.y,direction.z];let enter=0,exit=range;
       for(let axis=0;axis<3;axis++){if(Math.abs(d[axis])<1e-10){if(o[axis]<min[axis]||o[axis]>max[axis]){exit=-1;break;}}else{const a=(min[axis]-o[axis])/d[axis],b=(max[axis]-o[axis])/d[axis];enter=Math.max(enter,Math.min(a,b));exit=Math.min(exit,Math.max(a,b));}}
       if(enter<=exit&&exit>=0&&(nearest===undefined||enter<nearest))nearest=enter;
     }return nearest;

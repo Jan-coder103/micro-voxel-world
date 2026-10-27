@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range and seeded horde lab.
+TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab and the Phase 12 combat prototype.
 
 ## Quick start
 
@@ -12,6 +12,20 @@ npm run dev
 ```
 
 Open http://localhost:5173/ for the outdoor test scene, or http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
+
+## Play the combat prototype
+
+Open http://localhost:5173/play/ or select **Play prototype** from Game. Operation Clearpass combines the authored aircraft, streamed terrain, moving hordes, weapons, audio and one complete objective. Clear the three marked encounters (96 members), fly within 60 m of the sector below 70 m AGL, then return within 20 m of the base ring. Default seed 12012 keeps this sortie separate from the lab's default population.
+
+Start / Resume focuses the scene. W/S or up/down pitch down/up; A/D or left/right bank to turn; Q/E adjust throttle; Space fires; 1/2/3 choose minigun/autocannon/explosive shell. Assisted aim is on by default and locks objective members within 70° of the aircraft nose and 240 m. Uncheck it for nose aiming. After clearance, steer toward the base marker or choose **Return assist**; it flies the same aircraft model and manual steering cancels it. Esc, focus loss, window blur and hidden tabs pause flight/firing.
+
+A crash fails the attempt. **Recover aircraft** returns to the approach, preserving wounds and kills; it resets the flyover requirement so recovery cannot teleport to victory. Reload keeps population but starts a fresh ready aircraft/attempt. Already-cleared sectors still require a flyover and return. Load another seed in Settings for a separate population. There are no mission rewards or unlocks yet.
+
+A coarse reusable terrain underlay covers late streamed detail and the horizon; authoritative terrain/wall collision remains available independently of workers. A two-chunk forward bias preloads the attack direction. Keep above 9 m AGL: the authored aircraft uses a conservative envelope at every attitude. The HUD shows clearance, flyover, speed, altitude, target lock and base/sector navigation. Audio starts muted. Settings includes 100% / 75% render scale, save status and measured diagnostics.
+
+Run isolated **Crowd benchmark** and **Sustained-fire benchmark** from Settings, or open `/play/?benchmark=crowd` and `/play/?benchmark=fire`. Add `&scale=0.75` for Low. They use fresh in-memory population and never read/write player saves; controls are disabled during the automated orbit. After 60 warmup + 180 measured frames, download the JSON report. `npm run combat:benchmark` runs two reproducible 60-second fixed-tick CPU scenarios without rendering. Browser rAF intervals, simulation/presentation CPU and rendering submission CPU are separate measurements, not GPU frame times. See [the prototype decision](docs/decisions/0012-combat-prototype.md) and [benchmark evidence](docs/benchmarks/phase-12-combat.md).
+
+Implementation and automated verification do not establish player enjoyment or physical-GPU performance. The Phase 12 gate remains open for feedback on approach, aiming, hit feedback and recovery before Phase 13.
 
 ## Horde lab
 
@@ -71,10 +85,11 @@ Twenty original editable reference sources are available in [assets/source](asse
 - `npm run assets:validate -- path/to/asset.voxel.json` — validate one or more named source files; failures return nonzero.
 - `npm run assets:export` — regenerate all optimized GLBs into assets/generated/ (ignored by Git); pass source paths after `--` for selected assets.
 - `npm run assets:benchmark` — measure reference geometry reduction and CPU meshing time.
-- `npm run build` — typecheck and build all six entry points into dist/.
+- `npm run build` — typecheck and build all seven entry points into dist/.
 - `npm run preview` — serve the production build locally.
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).
+- `npm run combat:benchmark` — fixed-tick crowd/sustained-fire CPU measurements (Node 24 transform-types flag).
 - `npm run check` — lint, unit tests, source validation, production build, browser checks.
 
 PowerShell users whose execution policy blocks npm.ps1 can use npm.cmd / npx.cmd.
