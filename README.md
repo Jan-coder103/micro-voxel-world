@@ -25,7 +25,17 @@ A coarse reusable terrain underlay covers late streamed detail and the horizon; 
 
 Run isolated **Crowd benchmark** and **Sustained-fire benchmark** from Settings, or open `/play/?benchmark=crowd` and `/play/?benchmark=fire`. Add `&scale=0.75` for Low. They use fresh in-memory population and never read/write player saves; controls are disabled during the automated orbit. After 60 warmup + 180 measured frames, download the JSON report. `npm run combat:benchmark` runs two reproducible 60-second fixed-tick CPU scenarios without rendering. Browser rAF intervals, simulation/presentation CPU and rendering submission CPU are separate measurements, not GPU frame times. See [the prototype decision](docs/decisions/0012-combat-prototype.md) and [benchmark evidence](docs/benchmarks/phase-12-combat.md).
 
-Implementation and automated verification do not establish player enjoyment or physical-GPU performance. The Phase 12 gate remains open for feedback on approach, aiming, hit feedback and recovery before Phase 13.
+Implementation and automated verification do not establish player enjoyment or physical-GPU performance. The Phase 12 gate remains open for feedback on approach, aiming, hit feedback and recovery (deferred by Jan until later playtesting).
+
+## Regional terrain explorer (Phase 13)
+
+Open `/tools/streaming/?terrain=regional` or choose **Terrain explorer** from Game. Load a uint32 seed and jump to Plains, Forest, Mountains, River, Lake, Coast, Ocean or a Settlement reservation. WASD/arrows move the inspection camera at 80 m/s. Gold beacons identify stable, dry settlement candidates; roads and buildings are Phase 14.
+
+**Fly this region** opens `/tools/flight/?terrain=regional&seed=103` at the selected location. Existing flight controls apply. Water contact crashes, terrain/water collision works independently of workers, and Recover / Reset returns to the selected approach. Trees are visual scenery with no collision yet. Regional exploration and flight have no persistent changes; existing combat populations and saved markers retain generator v1.
+
+Generator v2 combines global layered value noise, ridged mountain elevation, moisture biomes, a continuous descending river with a level lake reach, coastal/ocean fields and terraced surfaces. Vegetation is baked into owned chunk meshes in the two near tiers. Four terrain tiers keep shared 1 m boundaries; a reused coarse underlay covers late detail. This is an erosion-inspired heightfield, with opaque water surfaces and settlement descriptors rather than full hydrology or cities. See [terrain decisions](docs/decisions/0013-regional-terrain.md). `node --experimental-transform-types tools/benchmarks/terrain.ts` measures CPU generation and payload sizes.
+
+Jan deferred the Phase 12 playtest and physical-GPU gates on 27 October 2026. They remain outstanding; neither player enjoyment nor hardware FPS has been verified.
 
 ## Horde lab
 

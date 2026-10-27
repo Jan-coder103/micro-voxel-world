@@ -802,6 +802,8 @@ The original phase order is retained. Work within a phase may overlap with prere
 
 **Milestone gate:** Resolve foundational flight/combat/streaming problems before building large amounts of content. A reasonable optional investigation earlier in the roadmap is a disposable primitive flight-and-shooting spike; it does not replace the source's asset-tool phases or count as the complete prototype.
 
+**27 October 2026 — Jan’s decision:** Defer the Phase 12 player-feedback and physical-GPU acceptance gates until later playtesting. Proceed with Phase 13; these checks remain outstanding and are not considered passed.
+
 ### Phase 13 — Advanced procedural terrain generation
 
 **Source scope:** Layered noise, biome maps, elevation, erosion-inspired shaping, deterministic seeds, forests, mountains, plains, rivers, coastlines, ocean, lakes, and settlements.

@@ -1,0 +1,137 @@
+{
+  "generator": 2,
+  "description": "Single-process CPU generation and typed-array payload only; not GPU frame times or gameplay FPS.",
+  "node": "v24.22.1",
+  "reports": [
+    {
+      "seed": 103,
+      "landmark": "Forest",
+      "chunks": 49,
+      "generationMs": {
+        "median": 1.0741580000000113,
+        "p95": 11.234983999999997,
+        "max": 82.616436
+      },
+      "residentPayloadBytes": 2870640,
+      "peakChunkPayloadBytes": 489024,
+      "triangles": 26580
+    },
+    {
+      "seed": 103,
+      "landmark": "Mountains",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7218790000000013,
+        "p95": 3.1359990000000266,
+        "max": 27.415986000000032
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    },
+    {
+      "seed": 103,
+      "landmark": "River",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7188620000000583,
+        "p95": 2.8546780000000354,
+        "max": 10.757810000000006
+      },
+      "residentPayloadBytes": 2454624,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22728
+    },
+    {
+      "seed": 103,
+      "landmark": "Lake",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7046490000000176,
+        "p95": 5.836770999999999,
+        "max": 11.635645000000068
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    },
+    {
+      "seed": 103,
+      "landmark": "Ocean",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.6972959999999375,
+        "p95": 4.36100399999998,
+        "max": 18.35971500000005
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    },
+    {
+      "seed": 12012,
+      "landmark": "Forest",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7164729999999508,
+        "p95": 3.47487000000001,
+        "max": 13.737306999999987
+      },
+      "residentPayloadBytes": 2769552,
+      "peakChunkPayloadBytes": 481248,
+      "triangles": 25644
+    },
+    {
+      "seed": 12012,
+      "landmark": "Mountains",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7194890000000669,
+        "p95": 3.5991960000000063,
+        "max": 11.995127999999909
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    },
+    {
+      "seed": 12012,
+      "landmark": "River",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7320310000000063,
+        "p95": 2.519574000000034,
+        "max": 10.375157000000058
+      },
+      "residentPayloadBytes": 2466288,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22836
+    },
+    {
+      "seed": 12012,
+      "landmark": "Lake",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.7197180000000571,
+        "p95": 2.48618399999998,
+        "max": 10.331465999999978
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    },
+    {
+      "seed": 12012,
+      "landmark": "Ocean",
+      "chunks": 49,
+      "generationMs": {
+        "median": 0.6935210000000325,
+        "p95": 2.7935920000001033,
+        "max": 10.623319999999921
+      },
+      "residentPayloadBytes": 2446848,
+      "peakChunkPayloadBytes": 442368,
+      "triangles": 22656
+    }
+  ]
+}
