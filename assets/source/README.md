@@ -16,10 +16,24 @@ These five static assets establish scale and silhouettes for the coming engine/e
 
 Dimensions describe the declared envelope, including padding. All occupancy is connected by shared cell faces and reaches ground level. Aircraft fuselage/nacelles and the building are sparse shells to stay under the 32,768-cell budget. Windows and canopy use opaque matte colors under v1; they are not transparent glass. The apron is a ground/orientation reference and possible later helicopter pad, not a fixed-wing runway or a prescribed aircraft spawn location. Its ring is approximately 9 m across.
 
+## Second reference kit
+
+Five complementary static environment assets use the same scale, facing and palette families:
+
+| Source | Dimensions X × Y × Z | Occupied cells | Greedy triangles | Details |
+| --- | --- | ---: | ---: | --- |
+| `ref-pine-tree.voxel.json` | 4 × 8 × 4 m | 20,500 | 7,628 | Four overlapping tapered foliage tiers, exposed trunk, deep green needles and broad highlights. |
+| `ref-derelict-car.voxel.json` | 2 × 1.5 × 4.4 m | 5,712 | 412 | Grounded tires/hubs, stepped cabin, matte windows, headlights/tail lamps, bumpers and rust patches; nose faces −Z. |
+| `ref-streetlight.voxel.json` | 1 × 6.5 × 2.4 m | 674 | 94 | Concrete plinth, slim metal pole, forward arm, lamp housing and pale underside lens. |
+| `ref-road-barrier.voxel.json` | 3 × 1 × 0.8 m | 1,620 | 160 | Tapered concrete profile, wide base and yellow/dark diagonal markings on both broad faces. |
+| `ref-small-warehouse.voxel.json` | 10 × 5 × 8 m | 31,446 | 662 | Hollow industrial shell with connected stepped gable roof, shutter/slats, service door, side windows and warning jambs. |
+
+The streetlight has no actual light source or emission, and the car is a static prop with no driving/animation. The pine’s 7,628 triangles are a detailed reference, pending later vegetation LOD/instancing work. No collision, interior gameplay or performance claim is included. All five have connected occupancy reaching ground level. The warehouse uses a sparse shell close to the occupied-cell budget; additions must continue respecting the validator.
+
 ## Open and edit
 
 1. Run `npm run dev` and open `/tools/voxel-editor/`.
-2. Use **Import voxel JSON** to open any of these five files. They are available as source files rather than being bundled into the default two-fixture catalog.
+2. Use **Import voxel JSON** to open any of these ten reference files. They are available as source files rather than being bundled into the default two-fixture catalog.
 3. Check Frame asset, Front −Z and Top +Y; use the displayed metre dimensions to compare scale.
 4. Edit with the existing cell/palette controls, then **Export selected source** to keep the revision. Explicit replacement allows reopening the same ID in the session.
 5. Export GLB from the workshop or run `npm run assets:export`. Local derivatives are `assets/generated/<source-id>.glb`; keep JSON as the editing authority.

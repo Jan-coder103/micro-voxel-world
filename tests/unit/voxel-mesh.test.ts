@@ -157,4 +157,4 @@ it('runs the reproducible reference benchmark without imposing a hardware timing
     expect(Number.isFinite(entry.medianMs)).toBe(true);
     expect(entry.maxMs).toBeGreaterThanOrEqual(entry.medianMs);
   }
-});
+}, 30_000); // CLI benchmarks every committed source; the reference library grows over time.
