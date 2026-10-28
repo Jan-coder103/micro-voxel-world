@@ -2,6 +2,9 @@ import type { ChunkSpec } from '../streaming/terrain-data';
 
 /** Independent v2 field: old combat/marker worlds retain generator v1. Units are metres. */
 export const REGIONAL_VERSION = 2;
+// Base <=60, offset -7, noise <=9+2.5+0.4, ridges <=125; valleys only lower.
+// Rounded terrain <=189.9 m; all water levels <=55 m. Collision broad phase only.
+export const REGIONAL_HEIGHT_CEILING=190;
 export type Biome = 'ocean' | 'coast' | 'river' | 'lake' | 'plains' | 'forest' | 'mountains';
 const clamp = (n:number) => Math.max(0,Math.min(1,n));
 const smooth = (n:number) => { const t=clamp(n); return t*t*(3-2*t); };

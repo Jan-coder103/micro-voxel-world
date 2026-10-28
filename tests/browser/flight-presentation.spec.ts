@@ -34,6 +34,7 @@ for(const [url,label,hostSelector] of [['/play/','Prototype diagnostics','.sorti
   await host.dispatchEvent('keydown',{code:'KeyC',repeat:true});
   const orbited=await read(page,label);
   expect(orbited.orbit).toBe(true);expect(orbited.ticks).toBe(0);
+  expect(orbited.camera.x).toBeLessThan(before.camera.x);expect(orbited.camera.y).toBeLessThan(before.camera.y);
   const distance=(sample:typeof orbited)=>Math.hypot(sample.camera.x-sample.renderPose.position.x,sample.camera.y-sample.renderPose.position.y,sample.camera.z-sample.renderPose.position.z);
   expect(distance(orbited)).toBeCloseTo(distance(before),6);
   await page.screenshot({path:`test-results/orbit-${label.startsWith('Flight')?'regional':'combat'}.png`,fullPage:true});

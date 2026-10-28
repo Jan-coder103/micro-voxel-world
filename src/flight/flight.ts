@@ -1,3 +1,5 @@
+import { sweepAircraft,type FlightGeometry } from './collision.ts';
+import { HELICOPTER_HULL,LAB_FIXED_HULL } from './aircraft-hulls.ts';
 import { aircraftId, type AircraftId } from './aircraft.ts';
 export interface FlightInput { pitch: number; bank: number; throttle: number }
 export interface Point { x:number; y:number; z:number }
@@ -10,7 +12,7 @@ export class Flight {
   reason=''; assisted=true; dropped=0;
   private accumulator=0;
   private previousPose:FlightPose|undefined;
-  constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing') { this.kind=aircraftId(kind);this.reset(); }
+  constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing',private readonly geometry:FlightGeometry={}) { this.kind=aircraftId(kind);this.reset(); }
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
   reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
@@ -65,11 +67,10 @@ export class Flight {
     const direction=length>0?{x:(next.x-old.x)/length,y:(next.y-old.y)/length,z:(next.z-old.z)/length}:{x:0,y:1,z:0};
     const obstacle=this.obstacle?.(old,direction,length);
     if(obstacle!==undefined){this.position={x:old.x+direction.x*obstacle,y:old.y+direction.y*obstacle,z:old.z+direction.z*obstacle};this.state='crashed';this.reason='Obstacle collision';this.accumulator=0;return;}
-    const count=Math.max(1,Math.ceil(length/.25));
-    for(let i=1;i<=count;i++) {
-      const t=i/count, x=old.x+(next.x-old.x)*t,y=old.y+(next.y-old.y)*t,z=old.z+(next.z-old.z)*t;
-      if(Math.abs(x)>130850||Math.abs(z)>130850||y<=this.ground(x,z)+(this.kind==='helicopter'?8:3)) { this.position={x,y,z}; this.state='crashed'; this.reason=Math.abs(x)>130850||Math.abs(z)>130850?'World boundary':'Terrain collision';this.accumulator=0;return; }
-    }
-    next.y=Math.min(250,next.y);this.position=next;this.ticks++;
+    next.y=Math.min(250,next.y);
+    const to:FlightPose={position:next,heading:this.heading,pitch:this.pitch,bank:this.bank};
+    const hit=sweepAircraft(this.previousPose!,to,this.kind==='helicopter'?HELICOPTER_HULL:this.geometry.fixedWing??LAB_FIXED_HULL,this.ground,this.geometry);
+    if(hit){this.position=hit.pose.position;this.heading=hit.pose.heading;this.pitch=hit.pose.pitch;this.bank=hit.pose.bank;this.state='crashed';this.reason=hit.reason;this.accumulator=0;return;}
+    this.position=next;this.ticks++;
   }
 }

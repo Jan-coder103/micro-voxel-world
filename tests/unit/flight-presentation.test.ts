@@ -46,11 +46,16 @@ describe('flight presentation',()=>{
     const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);
     chase.move(200,100);expect(chase.yaw).toBe(0);chase.toggle();
     chase.move(Math.PI*2/.006,0);expect(chase.yaw).toBeCloseTo(0,10); // A full revolution normalizes back to zero.
-    chase.move(200,10000);expect(chase.elevation).toBe(1.35);
+    chase.move(200,-10000);expect(chase.elevation).toBe(1.35);
     for(let i=0;i<60;i++)chase.update(camera,p,1/60);
     expect(Math.abs(camera.position.x-p.position.x)).toBeGreaterThan(1);expect(camera.position.y-p.position.y).toBeGreaterThan(30);
     chase.toggle();expect(chase.unlocked).toBe(false);chase.update(camera,p,0);
     expect(camera.position.x).toBeCloseTo(p.position.x,3);expect(camera.position.z-p.position.z).toBeCloseTo(32,3);expect(chase.update(camera,p,1/60).moving).toBe(false);
+  });
+  it('moves the orbit with the corrected mouse direction on both axes',()=>{
+    const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);chase.toggle();const base=chase.elevation;
+    chase.move(100,50);expect(chase.yaw).toBeGreaterThan(0);expect(chase.elevation).toBeLessThan(base);
+    chase.move(-200,-100);expect(chase.yaw).toBeLessThan(0);expect(chase.elevation).toBeGreaterThan(base);
   });
   it('keeps orbit distance constant when the mouse quickly crosses to the opposite side',()=>{
     const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);

@@ -662,3 +662,52 @@ and player menu behavior. Agent inspected the combat orbit capture after keyup.
 Prior legacy overall-sortie timeout remains open and was not rerun for this
 input-only change. No thresholds were relaxed. No assets/dependencies/saves changed;
 Playwright stopped its preview server and user 5173 remained untouched.
+
+## Orbit direction and fitted aircraft contact — 28 October 2026
+
+Status: implemented; unit/build and requested feature browser checks passed;
+full browser regression stopped after Jan reported CPU heat. Jan reported
+reversed orbit movement and premature collisions.
+
+- Reversed both orbit axes while keeping the C toggle/reset and repeat protection.
+- Confirmed main terrain used centre clearances of 9/14 m and inflated depots by
+  9 m on all axes; labs used 3/8 m terrain and 6/8 m building margins. Replaced
+  these with fitted, attitude-aware swept hulls. Main aircraft derives 204 disjoint
+  solid boxes from all 30,262 source voxels, at the rendered y=-2.4 pivot. Lab plane
+  matches its five boxes; helicopter body/skids/tail/mast and thin rotor disk match
+  physical dimensions. Rotor strips bound radial excess to <0.25 m.
+- Translation and rotation are sampled at <=0.1 m maximum hull-point travel;
+  contact intervals bisect eight times and retain contact attitude. Buildings use
+  15-axis OBB/AABB tests; terrain/water samples hull surfaces at <=0.5 m spacing.
+  Static depots/structures remain authoritative before streaming, including
+  neighbouring cells. Removed padding; weapons/mission/save logic unchanged.
+- Generator-proven ceilings skip high-altitude terrain work safely (legacy 11.5 m,
+  depots 14.5 m, regional 190 m). Regional generator fields/seed/save versions are
+  unchanged. CPU-only fixed-wing low-pass probe: p95 1.42 ms / 100 warmed 1 m
+  sweeps at 5 m AGL. No GPU/FPS claim. See decision 0023 for method/limitations.
+- Added exact hull occupancy/regeneration and renderer-transform checks, roof/
+  wing/post, forward/reverse/hover, rotation-only, ridge, low clearance, unloaded
+  neighbour-depot, water and world-boundary coverage. Earlier tests expecting the
+  old clearance now test actual underside/water contact. All 233 unit tests pass
+  serially; lint/types/build pass. Early concurrent CLI cases exceeded their
+  unchanged five-second budgets. Serial run exposed excessive high-altitude
+  sampling; the proven regional ceiling fixes that cost without relaxing tests.
+- New combat/regional browser descent checks both pass on the final full-run
+  build: below the old buffer, pause clear, then actual skid contact (~1.6–1.8 m
+  centre AGL). The initial new combat fixture paused too late on software rendering;
+  it now stops below the old 14 m limit earlier, then tests contact separately.
+  Agent inspected both contact captures. Full browser run was stopped after Jan
+  reported CPU spikes/heat: 36 passed, the known legacy 90-second sortie-budget
+  failure recurred after mission/reload/collision recovery, one benchmark was
+  interrupted and 50 cases did not run (16.8 min). Not a full-suite pass.
+- No original asset, dependency, renderer resource/residency cap or save changed.
+  Terrain contact remains sampled; regional building/foundation bounds still
+  approximate decorative recesses/curved kits. Landing is not introduced. Keep
+  prior hardware/feel gates and legacy 90-second sortie-budget issue open.
+
+- Heat response: immediately sent SIGINT to the owned browser suite and confirmed
+  no test Chromium/Playwright/4173 preview processes remained. No other heavy
+  tests were started. Reverted an unverified scalar micro-optimization to the
+  tested version. Do not restart heavy browser/load checks without Jan's agreement.
+  The user's 5173 server was untouched. Prior legacy timeout and hardware/player
+  verification remain open; no full-regression success is claimed.

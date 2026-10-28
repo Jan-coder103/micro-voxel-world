@@ -20,9 +20,9 @@ export class FlightCamera {
   reset() { this.unlocked=false;this.yaw=0;this.elevation=Math.atan2(this.height,this.distance);this.resetPending=true; }
   move(dx:number,dy:number) {
     if(!this.unlocked)return;
-    const yaw=this.yaw-dx*.006;
+    const yaw=this.yaw+dx*.006;
     this.yaw=Math.atan2(Math.sin(yaw),Math.cos(yaw));
-    this.elevation=Math.max(-.25,Math.min(1.35,this.elevation+dy*.006));
+    this.elevation=Math.max(-.25,Math.min(1.35,this.elevation-dy*.006));
   }
   update(camera:PerspectiveCamera,pose:FlightPose,dt:number,snap=false) {
     snap ||= this.resetPending;this.resetPending=false;

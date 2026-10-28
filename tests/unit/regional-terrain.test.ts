@@ -1,3 +1,4 @@
+import { REGIONAL_HEIGHT_CEILING } from '../../src/world/regional-terrain';
 import { expect, it } from 'vitest';
 import { generateTerrain, heightAt, signature } from '../../src/streaming/terrain-data';
 import { regionalSample, regionLayout, regionTrees, settlementSite, regionalLandmarks } from '../../src/world/regional-terrain';
@@ -55,15 +56,15 @@ it('supports fixed-step aircraft travel and authoritative terrain/water collisio
   const {Flight}=await import('../../src/flight/flight');
   for(const seed of seeds){
     const ground=(x:number,z:number)=>{const s=regionalSample(seed,x,z);return Math.max(s.height,s.water??-Infinity);};
-    const flight=new Flight(ground);flight.position.y=220;flight.start();
+    const flight=new Flight(ground,undefined,'fixed-wing',{maxGroundHeight:REGIONAL_HEIGHT_CEILING});flight.position.y=220;flight.start();
     for(let i=0;i<600;i++)flight.advance(1/60,{pitch:0,bank:0,throttle:1});
     expect(flight.state).toBe('running');expect(flight.position.z).toBeLessThan(-750);
-    const lake=regionalLandmarks(seed).Lake;flight.position={...lake,y:ground(lake.x,lake.z)+2};flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('crashed');
+    const lake=regionalLandmarks(seed).Lake;flight.position={...lake,y:ground(lake.x,lake.z)+2};flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('running');flight.position={...lake,y:ground(lake.x,lake.z)+.4};flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('crashed');
   }
 });
 
 it('keeps the entire finite world below the aircraft ceiling with room to traverse',()=>{
-  for(const seed of seeds)for(const x of [-130900,-32000,0,32000,130900])for(const z of [-130900,-32000,0,32000,130900]){const s=regionalSample(seed,x,z);expect(Math.max(s.height,s.water??-Infinity)).toBeLessThan(210);}
+  for(const seed of seeds)for(const x of [-130900,-32000,0,32000,130900])for(const z of [-130900,-32000,0,32000,130900]){const s=regionalSample(seed,x,z);expect(Math.max(s.height,s.water??-Infinity)).toBeLessThanOrEqual(REGIONAL_HEIGHT_CEILING);}
 });
 it('rejects a late v1 worker reply when the same chunk switches to v2',async()=>{
   const {ChunkStream}=await import('../../src/streaming/chunk-stream');

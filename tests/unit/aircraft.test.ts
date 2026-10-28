@@ -22,7 +22,7 @@ it('helicopter fixed ticks agree at 30/144 Hz and sweep vertical, reverse and st
   const a=run(30),b=run(144);expect(a.position.x).toBeCloseTo(b.position.x,8);expect(a.position.y).toBeCloseTo(b.position.y,8);expect(a.ticks).toBe(180);
   const obstacle=vi.fn((_origin:unknown,_direction:unknown,range:number)=>range>0?.05:undefined),f=new Flight(()=>0,obstacle,'helicopter');f.start();tick(f,1);expect(obstacle).toHaveBeenLastCalledWith({x:16,y:40,z:16},{x:0,y:1,z:0},0);f.advance(1/60,{...neutral,throttle:1});expect(f.reason).toBe('Obstacle collision');expect(f.position.y).toBeCloseTo(40.05);
   const overlapping=new Flight(()=>0,()=>0,'helicopter');overlapping.start();overlapping.advance(1/60,neutral);expect(overlapping.reason).toBe('Obstacle collision');expect(overlapping.position).toEqual({x:16,y:40,z:16});
-  const low=new Flight(()=>0,undefined,'helicopter');low.position.y=8.05;low.start();tick(low,1,{...neutral,throttle:-1});expect(low.reason).toBe('Terrain collision');
+  const low=new Flight(()=>0,undefined,'helicopter');low.position.y=1.65;low.start();tick(low,1,{...neutral,throttle:-1});expect(low.reason).toBe('Terrain collision');
   const reverse=new Flight((_,z)=>z>16.1?100:0,undefined,'helicopter');reverse.start();tick(reverse,2,{...neutral,pitch:1});expect(reverse.reason).toBe('Terrain collision');
 });
 it('configuration validates atomically and rotates side/nose muzzle positions exactly with the airframe',()=>{

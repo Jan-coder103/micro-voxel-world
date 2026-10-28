@@ -56,11 +56,11 @@ it('assigns one render owner across chunks and LODs, and clips roads at shared e
   // All road vertices (identified by their upward normals and asphalt colors) are clipped.
   for(let i=0;i<terrain.positions.length;i+=3)if(terrain.colors[i]<.16&&terrain.normals[i+1]===1){expect(terrain.positions[i]).toBeGreaterThanOrEqual(0);expect(terrain.positions[i]).toBeLessThanOrEqual(32);expect(terrain.positions[i+2]).toBeGreaterThanOrEqual(0);expect(terrain.positions[i+2]).toBeLessThanOrEqual(32);}
 });
-it('resolves padded swept aircraft collisions and ground navigation without loaded render chunks',()=>{
+it('resolves fitted swept aircraft collisions and ground navigation without loaded render chunks',()=>{
   const world=new SettlementWorld(103),b=world.landmarks().city!.buildings[0];
   const origin={x:b.minX-20,y:b.y+b.height/2,z:b.z};expect(world.ray(origin,{x:1,y:0,z:0},30)).toBeCloseTo(20);expect(world.ray(origin,{x:1,y:0,z:0},30,6)).toBeCloseTo(14);
   expect(world.ray({x:b.x,y:b.y+1,z:b.z},{x:0,y:1,z:0},10)).toBe(0);
-  const flight=new Flight((x,z)=>regionalSample(103,x,z).height,(o,d,r)=>world.ray(o,d,r,6));flight.position={x:b.x,y:b.y+4,z:b.maxZ+15};flight.start();for(let i=0;i<30;i++)flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('crashed');expect(flight.reason).toBe('Obstacle collision');
+  const flight=new Flight((x,z)=>regionalSample(103,x,z).height,undefined,'fixed-wing',{obstacles:bounds=>world.buildings(bounds).map(b=>({...b,minY:b.bottom,maxY:b.y+b.height}))});flight.position={x:b.x,y:b.y+4,z:b.maxZ+15};flight.start();for(let i=0;i<30;i++)flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('crashed');expect(flight.reason).toBe('Obstacle collision');
   flight.reset();flight.position={x:b.x,y:Math.max(...world.landmarks().city!.buildings.map(b=>b.y+b.height))+10,z:b.maxZ+15};flight.start();for(let i=0;i<30;i++)flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('running');
   const runway=world.landmarks().airport!.roads.find(r=>r.kind==='runway')!;expect(world.walkable((runway.minX+runway.maxX)/2,(runway.minZ+runway.maxZ)/2)).toBe(true);
 });

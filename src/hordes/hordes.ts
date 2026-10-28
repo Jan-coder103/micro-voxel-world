@@ -1,3 +1,4 @@
+import type { Bounds } from '../flight/collision.ts';
 import type { Point } from '../flight/flight.ts';
 import type { Target,TargetQuery } from '../combat/weapons.ts';
 import { groupId,HordeStore,MEMBERS,HEALTH,patrol,REGION_LIMIT,type GroupState } from './state.ts';
@@ -57,6 +58,17 @@ export class Hordes implements TargetQuery {
       for(const t of targets){this.lastQueryMembers++;const p=t.position;if(t.health>0&&p.x+.65>=min.x&&p.x-.65<=max.x&&p.y+.65>=min.y&&p.y-.65<=max.y&&p.z+.65>=min.z&&p.z-.65<=max.z)result.add(t);}
     }return result;
   }
+  /** Static depot bounds are independent of resident hordes/streamed geometry. */
+  obstacles=(bounds:Bounds):Bounds[]=>{
+    const result:Bounds[]=[];
+    for(let z=Math.max(-REGION_LIMIT,Math.floor(bounds.minZ/32)-1);z<=Math.min(REGION_LIMIT,Math.floor(bounds.maxZ/32)+1);z++)for(let x=Math.max(-REGION_LIMIT,Math.floor(bounds.minX/32)-1);x<=Math.min(REGION_LIMIT,Math.floor(bounds.maxX/32)+1);x++){
+      const minX=x*32+14,maxX=x*32+18,minZ=z*32+10,maxZ=z*32+22;
+      if(minX>bounds.maxX||maxX<bounds.minX||minZ>bounds.maxZ||maxZ<bounds.minZ)continue;
+      const y=this.ground(x*32+16,z*32+16);if(y>bounds.maxY||y+3<bounds.minY)continue;
+      result.push({minX,maxX,minZ,maxZ,minY:y,maxY:y+3});
+    }
+    return result;
+  };
   blocker=(origin:Point,direction:Point,range:number,margin=0):number|undefined=>{
     let nearest:number|undefined;const end={x:origin.x+direction.x*range,z:origin.z+direction.z*range};
     for(let z=Math.max(-REGION_LIMIT,Math.floor(Math.min(origin.z,end.z)/32));z<=Math.min(REGION_LIMIT,Math.floor(Math.max(origin.z,end.z)/32));z++)for(let x=Math.max(-REGION_LIMIT,Math.floor(Math.min(origin.x,end.x)/32));x<=Math.min(REGION_LIMIT,Math.floor(Math.max(origin.x,end.x)/32));x++){

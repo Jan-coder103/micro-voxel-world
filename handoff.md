@@ -1,5 +1,47 @@
 # Handoff — 28 October 2026
 
+## Latest: corrected orbit axes and fitted aircraft collision
+
+Jan reported wrong orbit direction and premature crashes. Both mouse axes are
+reversed; C still toggles unlock/lock-reset. The old main-game margins were 9 m
+centre AGL (plane) / 14 m (helicopter), plus 9 m building inflation. Fitted,
+attitude-aware swept hulls replace them. Player fixed wing uses 204 solid boxes
+covering every source voxel at the renderer's y=-2.4 pivot. Labs match their
+visible boxes; helicopter body/skids/tail/mast plus thin rotor disk are fitted
+(disk radial excess <0.25 m). Ground/water sampling <=0.5 m; sweep point travel
+<=0.1 m, eight contact refinements, full OBB/AABB building tests. Static collision
+is independent of streaming. Regenerate the derived hull with
+`node tools/assets/collision-hull.ts > src/flight/attack-aircraft-hull.ts`.
+
+All 233 unit tests passed serially; lint/types/build passed. New combat/regional
+browser checks passed: clear the old buffer, pause safely, then skid contact
+(~1.6–1.8 m centre AGL). Both corrected orbit-axis cases also passed. Agent
+inspected contact captures. The initial new combat fixture overshot its pause
+point under software rendering; it now pauses earlier below the old 14 m limit
+and tests final contact separately. No existing timeout/threshold was relaxed.
+A safe generator-proven regional 190 m ceiling removes needless high-altitude
+sampling; terrain generation itself is unchanged. CPU-only low-pass sweep p95
+1.42 ms is not GPU/FPS evidence. Decision 0023 has details and limitations.
+
+IMPORTANT: Jan reported CPU spikes/heat while the full software-rendered browser
+suite was running. Stopped it immediately with SIGINT; verified no test Chromium,
+Playwright CLI or 4173 preview server remained. Do not restart heavy browser/load
+checks without Jan's agreement. Full run stopped at 36 passing cases, one known
+legacy 90-second sortie-budget failure (after mission/reload/collision recovery),
+one benchmark interrupted and 50 not run (16.8 min). This is partial coverage,
+not a full-suite pass. The user's 5173 server was untouched. An unverified scalar
+micro-optimization was reverted to the exact version that passed the above checks;
+no further CPU-heavy validation was started after the heat report.
+
+Changed: flight/collision.ts, aircraft-hulls.ts, generated attack-aircraft-hull.ts,
+assets/collision-hull.ts and its CLI; Flight/Sortie/lab/Hordes bindings; regional
+ceiling metadata; orbit axes; relevant old/new tests; README and decision 0023.
+No original source asset/dependency/save/renderer cap changed. Regional structures
+retain foundation/AABB approximations, terrain contact is sampled, weapon barrels
+are cosmetic and landing is not introduced. Prior hardware/player-feel gates and
+legacy overall-sortie timeout remain open. Ready for the required local commit;
+consult git log. No push/deployment.
+
 ## Latest: C toggles camera unlock and lock/reset
 
 Jan changed the camera control to a toggle. Press C once to unlock orbit, then

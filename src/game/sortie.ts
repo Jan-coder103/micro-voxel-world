@@ -1,3 +1,4 @@
+import { PLAYER_FIXED_HULL } from '../flight/aircraft-hulls.ts';
 import { Campaign } from './campaign.ts';
 import { MISSIONS, missionId, type MissionId } from './missions.ts';
 import { AircraftSetup } from '../flight/aircraft.ts';
@@ -32,7 +33,7 @@ export class Sortie {
     this.campaign=benchmark?undefined:campaign??new Campaign(storage);
     this.selected=missionId(initialMission);if(this.selected!=='clearpass'&&!this.campaign?.unlocked(this.selected))throw new Error('Mission locked');
     this.ground=(x,z)=>heightAt(seed,x,z);this.store=new HordeStore(seed,storage);this.hordes=new Hordes(this.store,this.ground);
-    this.flight=new Flight((x,z)=>this.ground(x,z)+6,(o,d,r)=>this.hordes.blocker(o,d,r,9));
+    this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,obstacles:this.hordes.obstacles,maxGroundHeight:11.5,maxObstacleHeight:14.5});
     this.combat=new Combat([],this.ground,128,{index:this.hordes,blocker:this.hordes.blocker,onDamage:t=>this.hordes.damaged(t)});this.recover();
   }
   selectMission(value:string){const id=missionId(value);if(!this.campaign?.unlocked(id))throw new Error('Mission locked: complete Operation Clearpass first');if(id===this.selected)return;this.abort();this.selected=id;this.recover();}

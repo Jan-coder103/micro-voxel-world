@@ -1,5 +1,7 @@
 # Phase 17 — Aircraft roles and session loadouts
 
+Collision-clearance policy below is historical; [decision 0023](0023-fitted-aircraft-collision.md) supersedes it with fitted hulls.
+
 Jan requested the next phase on 28 October 2026 after selecting Pixel 10a / 720p /
 60 FPS as the still-unverified Phase 16 target. Proceeding with Phase 17 does not
 close that hardware gate or the deferred Phase 12 player-feedback gate.

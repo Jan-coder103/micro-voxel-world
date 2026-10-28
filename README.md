@@ -21,7 +21,7 @@ Start / Resume focuses the scene. W/S or up/down pitch down/up; A/D or left/righ
 
 A crash fails the attempt. **Recover aircraft** returns to the approach, preserving wounds and kills; it resets the flyover requirement so recovery cannot teleport to victory. Reload keeps population but starts a fresh ready aircraft/attempt. Already-cleared sectors still require a flyover and return. Load another seed in Settings for a separate population. First mission completions now award service stars and unlock Relief Watch; see Phase 18 below.
 
-A coarse reusable terrain underlay covers late streamed detail and the horizon; authoritative terrain/wall collision remains available independently of workers. A two-chunk forward bias preloads the attack direction. Keep above 9 m AGL: the authored aircraft uses a conservative envelope at every attitude. The HUD shows clearance, flyover, speed, altitude, target lock and base/sector navigation. Audio starts muted. Settings includes 100% / 75% render scale, save status and measured diagnostics.
+A coarse reusable terrain underlay covers late streamed detail and the horizon; authoritative terrain/wall collision remains available independently of workers. A two-chunk forward bias preloads the attack direction. Collision follows the authored aircraft hull, including banked wings; the AGL readout measures the centre, so leave room for the airframe. The HUD shows clearance, flyover, speed, altitude, target lock and base/sector navigation. Audio starts muted. Settings includes 100% / 75% render scale, save status and measured diagnostics.
 
 Run isolated **Crowd benchmark** and **Sustained-fire benchmark** from Settings, or open `/play/?benchmark=crowd` and `/play/?benchmark=fire`. Add `&scale=0.75` for Low. They use fresh in-memory population and never read/write player saves; controls are disabled during the automated orbit. After 60 warmup + 180 measured frames, download the JSON report. `npm run combat:benchmark` runs two reproducible 60-second fixed-tick CPU scenarios without rendering. Browser rAF intervals, simulation/presentation CPU and rendering submission CPU are separate measurements, not GPU frame times. See [the prototype decision](docs/decisions/0012-combat-prototype.md) and [benchmark evidence](docs/benchmarks/phase-12-combat.md).
 
@@ -57,7 +57,7 @@ Tracers, muzzle flashes, impacts and wireframe blast volumes accompany authorita
 
 Open http://localhost:5173/tools/flight/ or follow **Flight lab** from Game. Start / Resume focuses the scene. W/S or up/down pitch down/up; A/D or left/right bank to turn; Q/E reduce/increase throttle (30–100 m/s). Assisted levels pitch/bank on release; Direct holds attitude. Pause, leaving scene focus, window blur or visibility changes pause flight. Resume explicitly. Recover / Reset returns above home in ready state after collision. The chase camera follows a voxel-style attack-aircraft silhouette; altitude is capped at 250 m.
 
-Collision samples authoritative seeded terrain even when streamed geometry is late, with conservative 3 m clearance. Diagnostics expose terrain loading gaps, resident/job counts, generation failures and discarded catchup time. This prototype has no weapons, realistic aerodynamics or streamed props. See [flight decisions](docs/decisions/0009-flight.md).
+Collision sweeps the fitted aircraft hull against authoritative terrain even when streamed geometry is late. Diagnostics expose terrain loading gaps, resident/job counts, generation failures and discarded catchup time. This prototype has no weapons, realistic aerodynamics or streamed props. See [flight decisions](docs/decisions/0009-flight.md).
 
 ## Streaming lab
 
@@ -180,8 +180,8 @@ reload restores default equipment and keeps saved casualties. Equipment is
 session-only; mission progression is described below. Clearpass return assist supports
 both aircraft. Isolated benchmarks keep their original fixed-wing configuration.
 
-Keep the helicopter above 8 m AGL in labs (14 m in Clearpass's conservative terrain
-envelope). Its original block silhouette is a code-native prototype, not a new
+Helicopter contact follows its body, skids, tail and rotor disk; the old 8/14 m
+centre-clearance buffers are removed. Its original block silhouette is a code-native prototype, not a new
 workshop source asset. See [aircraft decisions](docs/decisions/0018-aircraft-loadouts.md).
 Phase 16 Pixel 10a / 720p / 60 FPS validation and user handling/balance feedback
 remain outstanding. Touch controls are not implemented.
