@@ -856,6 +856,8 @@ Optimization starts earlier; this phase validates the integrated large-world sys
 
 **Exit:** A player can prepare, undertake, finish/fail, and repeat a sortie with meaningful progression and correct save/reward behavior. At least one mission type provides pressure appropriate to an aircraft fighting ground hordes.
 
+Selected implementation policy (28 October 2026): Clearpass unlocks Relief Watch supply-post defense; first-completion service stars/ranks are global to this browser/origin. Mid-sortie reload restarts a ready attempt while retaining casualties and earned stars. See [mission/progression decisions](docs/decisions/0019-missions-progression.md) for failure, rearm, reward durability and scope. User balance and hardware verification remain separate.
+
 ### Phase 19 — Visual effects, sound, UI, and game feel
 
 **Source scope:** Explosions, weapon effects, smoke, fog, camera shake, audio, UI, and overall polish.
@@ -901,8 +903,8 @@ Optimization starts earlier; this phase validates the integrated large-world sys
 | Measured crowd and performance targets | Reference scenarios and counts, not marketing promises | Phase 12, revalidate Phase 16 |
 | Finite versus expandable world | Large finite seeded region until expansion is justified | Phase 13 |
 | Interior furniture and loot | Decorative or deferred until connected to the air-combat loop | Phase 14 |
-| Mid-sortie save and failure persistence | Explicit consistent rules | Before persistent missions, Phase 18 at latest |
-| Rewards and customization economy | One understandable unlock/reward mechanism | Phases 17–18 |
+| Mid-sortie save and failure persistence | Reload restarts ready; casualties/stars durable, attempt state transient (decision 0019) | Selected Phase 18 |
+| Rewards and customization economy | First-completion stars unlock Relief Watch; no spending (decision 0019) | Selected Phase 18 |
 | Distribution, support policy, monetization | Undecided | Before Phase 20 release planning |
 
 These decisions do not block writing or using the plan. They block only the implementation choices that depend on them.

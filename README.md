@@ -19,7 +19,7 @@ Open http://localhost:5173/play/ or select **Play prototype** from Game. Operati
 
 Start / Resume focuses the scene. W/S or up/down pitch down/up; A/D or left/right bank to turn; Q/E adjust throttle; Space fires; 1/2/3 choose minigun/autocannon/explosive shell. Assisted aim is on by default and locks objective members within 70° of the aircraft nose and 240 m. Uncheck it for nose aiming. After clearance, steer toward the base marker or choose **Return assist**; it flies the same aircraft model and manual steering cancels it. Esc, focus loss, window blur and hidden tabs pause flight/firing.
 
-A crash fails the attempt. **Recover aircraft** returns to the approach, preserving wounds and kills; it resets the flyover requirement so recovery cannot teleport to victory. Reload keeps population but starts a fresh ready aircraft/attempt. Already-cleared sectors still require a flyover and return. Load another seed in Settings for a separate population. There are no mission rewards or unlocks yet.
+A crash fails the attempt. **Recover aircraft** returns to the approach, preserving wounds and kills; it resets the flyover requirement so recovery cannot teleport to victory. Reload keeps population but starts a fresh ready aircraft/attempt. Already-cleared sectors still require a flyover and return. Load another seed in Settings for a separate population. First mission completions now award service stars and unlock Relief Watch; see Phase 18 below.
 
 A coarse reusable terrain underlay covers late streamed detail and the horizon; authoritative terrain/wall collision remains available independently of workers. A two-chunk forward bias preloads the attack direction. Keep above 9 m AGL: the authored aircraft uses a conservative envelope at every attitude. The HUD shows clearance, flyover, speed, altitude, target lock and base/sector navigation. Audio starts muted. Settings includes 100% / 75% render scale, save status and measured diagnostics.
 
@@ -169,7 +169,7 @@ Loadout/mount changes keep position and cooldowns; aircraft changes reset the
 approach and flyover requirement while retaining casualties. Recover keeps
 selected equipment. World loading keeps equipment with a separate population;
 reload restores default equipment and keeps saved casualties. Equipment is
-session-only; there are no unlocks/rewards yet. Clearpass return assist supports
+session-only; mission progression is described below. Clearpass return assist supports
 both aircraft. Isolated benchmarks keep their original fixed-wing configuration.
 
 Keep the helicopter above 8 m AGL in labs (14 m in Clearpass's conservative terrain
@@ -177,3 +177,33 @@ envelope). Its original block silhouette is a code-native prototype, not a new
 workshop source asset. See [aircraft decisions](docs/decisions/0018-aircraft-loadouts.md).
 Phase 16 Pixel 10a / 720p / 60 FPS validation and user handling/balance feedback
 remain outstanding. Touch controls are not implemented.
+
+
+## Missions and progression (Phase 18)
+
+Open `/play/` and choose a mission on the board (the existing Clearpass generator-v1
+region; regional-v2 missions are not implemented). **Operation Clearpass** remains
+the introduction: clear its three hordes, fly over the sector and return to base.
+Its first completion awards one service star and unlocks **Relief Watch**.
+Relief Watch protects a supply post against three other hordes. Surviving marked
+members drain post integrity; clearing them stops the damage. With every member
+alive the post lasts about 75 simulation seconds. Pause/focus loss freezes pressure.
+Clear, fly over the post, and return for two more stars and the Flight lead rank.
+
+Debriefs show outcome, kills, shots, flight time and stars. **Prepare next sortie /
+rearm** returns ready at base and resets weapons, counters, post integrity and the
+flyover requirement. Ammunition remains unlimited. Recovery, changing aircraft or
+switching missions abandons an unfinished attempt without rewards. Casualties
+remain cleared. A helicopter hover attack followed by a flyover is an alternative
+to fixed-wing passes; Return assist supports both aircraft after clearance/flyover.
+
+Stars and unlocks save once per mission across all seeds in this browser/origin.
+Replays earn no additional stars. Population saves retain their existing seed
+scopes; the new campaign record is separate. Reload starts a fresh Clearpass
+attempt on default seed 12012 with default equipment, retaining casualties/stars. Mid-flight position,
+post integrity, selected mission and last debrief are session-only. Loading another
+seed keeps equipment/stars and clears the prior debrief. Storage or
+population-save errors preserve existing bytes and report session-only rewards.
+There is no cloud sync or cross-tab transaction support. Isolated benchmarks never
+access campaign records. See [mission decisions](docs/decisions/0019-missions-progression.md).
+Player balance/pressure feedback and Pixel 10a performance verification remain open.

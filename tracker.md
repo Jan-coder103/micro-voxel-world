@@ -411,3 +411,51 @@ Pixel 10a / 720p / 60 FPS acceptance remains open, not passed.
   route skipped. Visual inspection completed for both helicopter routes. Test
   servers stopped. Phase 17 ready for its required local commit; no user handling,
   touch usability or Pixel performance acceptance claimed.
+
+## Phase 18 — Missions, gameplay loop and progression
+
+Status: implemented; automated checks passed; agent visual inspection completed;
+awaiting user mission-pressure/balance verification. Jan requested Phase 18 on 28 October 2026;
+Phase 16 Pixel 10a / 720p / 60 FPS and earlier feedback gates remain open.
+
+- Added mission definitions and board: default Clearpass awards one first-completion
+  star and unlocks Relief Watch's three different hordes/supply post. Living marked
+  members drain integrity over ~75 simulation seconds at full population; kills
+  reduce pressure, clearance stops it, pause freezes it. Post loss fails/pauses.
+- Mission HUD, markers, lock targets and navigation follow selection. Debriefs show
+  outcome/kills/shots/ticks/stars; physical return commits success. Prepare next
+  sortie/rearm resets attempt/cooldowns/effects/integrity/flyover, retaining kills.
+  Recovery, mission/aircraft changes abandon active attempts with zero reward.
+- New bounded campaign key stores unique known completion IDs, with stars/rank
+  derived. First-time rewards are global across seeds, not farmable by replay.
+  One atomic campaign write follows casualty flush; population storage failure
+  blocks durable rewards. Corrupt/denied/quota failures preserve bytes and provide
+  session-only progression; fresh reads merge prior claims. No cross-tab atomicity.
+- Reload restarts ready on Clearpass with defaults and fresh integrity, retaining
+  casualties and stars; last results/mission/position are session-only. Isolated
+  benchmarks instantiate/access no campaign. Existing population formats unchanged.
+- Eleven new unit cases cover unlock/one-time rewards, schema limits/corruption,
+  quota/denial/casualty failure, stale claims, abort/crash, pressure/pause, physical
+  returns, replay and mid-sortie reload. All 204 unit tests, lint, 22 asset validations
+  and strict types/build passed. Browser pressure/pause/corruption/isolation passed;
+  first unlock flow passed Clearpass, but Relief's naive straight-line test missed
+  one horde. Test now uses normal helicopter hover attack plus flyover/return.
+- All three new mission browser scenarios passed in 1.2 minutes: real Clearpass
+  return/unlock, helicopter Relief attack/flyover/return/rank/reload, pressure
+  pause/abandon/corrupt-byte protection, and isolated campaign access checks.
+  Agent inspected Relief result and pressure screens: readable board/HUD/debrief,
+  visible post integrity/aircraft/terrain/groups, no layout overlap. Full earlier
+  browser suite is running with one worker. No player/balance/hardware claim.
+
+- Final verification: all 70 prior browser scenarios passed with one worker in
+  13.6 minutes; optional sustained route skipped. Fixed stale debrief text on world
+  changes, then all 3 mission scenarios passed again on the final build (1.1 min),
+  including new-world casualty scope/global-star retention and debrief clearing.
+  Lint/types/build passed afterward; no model changes since 204 unit passes.
+  Combined Phase 18 browser coverage: 73 passing scenarios. Visual inspection
+  confirmed Clearpass/Relief completion and post-pressure screens are readable,
+  with visible controls/HUD/aircraft/groups and no overlap. Preview servers stopped.
+- Mission loop currently targets generator-v1 Clearpass; regional-v2 missions remain
+  unimplemented. No dependencies, source assets or population format changed.
+  User balance/phone/touch verification remains open. Ready for the required local
+  commit; Phase 19 not started.
