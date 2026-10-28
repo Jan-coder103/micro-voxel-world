@@ -67,3 +67,9 @@ Each asset is a connected grounded voxel shape within the existing budgets. The 
 5. Export GLB from the workshop or run `npm run assets:export`. Local derivatives are `assets/generated/<source-id>.glb`; keep JSON as the editing authority.
 
 See `docs/asset-authoring/format.md` and `docs/asset-authoring/mvw-voxel-assets/SKILL.md`. Run `npm run assets:validate` and `npm run check` before committing source changes. Generated GLBs remain ignored and are regenerated after switching machines. These assets do not establish final art quality, crowd performance or an aircraft flight model.
+## Clearpass presentation asset
+
+`clearpass-depot.voxel.json` is an original editable 4×3×12 m utility depot with
+roof ribs, cladding, windows and roller doors. It replaces the obstacle presentation
+in the combat game, within the same collision envelope. Regenerate its source with
+`node tools/art/create-depot.ts`; validate/export through the usual asset commands.

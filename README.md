@@ -87,6 +87,14 @@ Twenty original editable reference sources are available in [assets/source](asse
 
 ## Commands
 
+The main game now presents Clearpass as an autumn valley with a sunlit sky,
+terraced distant scenery, woodland, detailed depots and ground materials.
+Settings → Scenery offers Automatic / High / Low. Automatic uses Low on software
+renderers; select High for the full woodland and shadows. Soft shadows disables the 1024² sunlight shadow map independently
+of fog and combat effects. The distant ridges are scenic background; mission
+terrain, blockers, casualties and save scopes retain their existing behavior.
+See [the visual decision](docs/decisions/0021-autumn-valley.md).
+
 - `npm run dev` — local development server.
 - `npm run typecheck` — strict TypeScript checks.
 - `npm run lint` — ESLint.

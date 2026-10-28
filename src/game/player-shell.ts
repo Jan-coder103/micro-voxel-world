@@ -3,6 +3,10 @@ export function mountPlayerShell(app: HTMLElement): () => void {
   if (location.pathname !== '/') return () => {};
   document.body.classList.add('player-game');
   const host = app.querySelector<HTMLElement>('.sortie-scene')!;
+  const compass = document.createElement('div');
+  compass.className = 'compass-hud'; compass.setAttribute('aria-hidden', 'true');
+  compass.innerHTML = '<span>HDG</span><i></i><b id="heading-readout">000°</b><i></i><span>MAG</span>';
+  host.append(compass);
   const header = app.querySelector<HTMLElement>('header')!;
   header.innerHTML = '<a class="brand" href="/">MICRO VOXEL WORLD</a><button id="open-menu">Esc · Menu</button>';
   const menu = document.createElement('dialog');
@@ -51,5 +55,5 @@ export function mountPlayerShell(app: HTMLElement): () => void {
   window.addEventListener('keydown', escape, true);
   menu.addEventListener('cancel', event => { event.preventDefault(); menu.close(); host.focus(); });
   open();
-  return () => { window.removeEventListener('keydown', escape, true); menu.remove(); document.body.classList.remove('player-game'); };
+  return () => { window.removeEventListener('keydown', escape, true); compass.remove(); menu.remove(); document.body.classList.remove('player-game'); };
 }

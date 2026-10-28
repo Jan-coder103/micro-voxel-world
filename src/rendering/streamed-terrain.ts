@@ -7,7 +7,7 @@ export function attachTerrain(spec:ChunkSpec,data:TerrainData,material:Material,
   geometry.setAttribute('position',new BufferAttribute(data.positions,3));
   geometry.setAttribute('normal',new BufferAttribute(data.normals,3));
   geometry.setAttribute('color',new BufferAttribute(data.colors,3)); geometry.computeBoundingSphere();
-  const mesh=new Mesh(geometry,material); group.add(mesh);
+  const mesh=new Mesh(geometry,material); mesh.receiveShadow=true; group.add(mesh);
   const marker=new Mesh(markerGeometry,markerMaterial); marker.visible=!cleared; group.add(marker);
   let disposed=false;
   return {group,marker,dispose() { if (disposed) return; disposed=true; geometry.dispose(); group.removeFromParent(); group.clear(); }};

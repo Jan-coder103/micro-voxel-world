@@ -1,76 +1,59 @@
 # Handoff — 28 October 2026
 
-Phase 19 feedback/audio/comfort pass is implemented; automated checks passed and
-agent visual inspection completed.
-Player effects/sound/comfort feedback remains unverified. Phase 16 Pixel 10a /
-Google Tensor / 720p / 60 FPS acceptance and touch controls remain open. No release,
-deployment or Phase 20 work has started.
+Jan requested a reference-directed visual improvement to the main game. The autumn
+valley presentation is implemented in root and `/play/`; the full browser suite passed (81 cases, one optional route skipped).
+The final narrow-header CSS fix and four affected browser checks also passed. Do not claim human visual or physical-GPU acceptance. No release or
+Phase 20 work has started. Read docs/decisions/0021-autumn-valley.md for scope.
 
-Clearpass `/play/` has hit/kill confirmation from combat counters, high-contrast
-HUD plates, low-altitude/post-critical text, integrity meter, collapsed help and
-narrow-screen controls. It uses ACES tone mapping / exposure 1.05 and optional fog.
-Optional recoil is deterministic and bounded to 0.18 m X / 0.108 m Y, defaults off,
-is zero while paused and never biases chase tracking or changes flight/aim.
+Main changes: sunlit gradient sky, stepped clouds, terraced scenic hills, seeded
+instanced autumn/pine woodland, world-space grass/fields/service lanes/contact
+shading, original editable depot, detailed zombie silhouettes, real sunlight
+shadows and cleaner full-window HUD/menu/heading instruments. The terrain seed,
+heights, flight/combat rules, obstacle envelope and saves are unchanged. Distant
+hills/clouds follow the camera as scenery; this does not integrate regional-v2
+terrain into missions. Trees avoid encounters/base and remain beneath the existing
+conservative flight envelope. Labs retain diagnostic proxies.
 
-Comfort controls: Full/Reduced/Off, flashes, smoke, recoil, contrast, fog, volume.
-Startup reduced-motion preference selects Reduced/no flash/smoke/shake. Defaults
-otherwise Full, contrast/fog on, 65% volume, shake off; sound always starts muted.
-Settings last for the page session and pause/clear input/audio on change. Reduced
-hides bright flashes/smoke/flinch and uses thin traces/outline blasts; Off hides
-cosmetics while retaining authoritative damage, targets and text confirmation.
+Settings offer Automatic / High / Low scenery. Automatic selects Low only for
+identified software renderers, High otherwise. Low draws 55% of trees, uses coarser
+foliage beyond 100 m and starts with shadows off. High uses foliage LOD at 220 m
+and tree shadows within 180 m. The separate shadow checkbox overrides the preset.
+Reports identify actual quality, software rendering, tree count and shadow-map
+size. High SwiftShader flight initially failed old wall-clock limits; that is why
+software defaults are lighter. High static rendering is tested, not hardware FPS.
+The 1024² PCF map spans 210 m. Paused shadow maps are reused, and settled ready/
+paused scenes stop GL submission until controls, resizing or terrain invalidate.
 
-Shared combat view uses sphere blasts and sixteen reusable 1.2-second smoke puffs
-beside existing 128 combat slots. Two owned shared geometries; no per-shot assets,
-extra rendering passes, lights or shadows. Smoke/feedback age in simulation ticks,
-freeze on pause and clear on reset. Cues (hit/clear/warning/mission + weapons) share
-an eight-voice cap. Volume zero stops/prevents voices; optional audio failures do
-not break play. Completion cues can finish after automatic pause. Positive shot
-counter deltas prevent ghost audio after recovery; plain volume readout avoids an
-extra implicit live status role. No gameplay/save/schema/dependency/source-asset
-changes. Labs use default bounded visuals; comfort/tone/cue wiring is in Clearpass.
+New modules: src/rendering/battlefield-view.ts and battlefield-surface.ts.
+Integration: src/game/main.ts, player-shell.ts, prototype.css, horde-view.ts,
+streamed-terrain.ts and terrain-fallback.ts. Editable source:
+assets/source/clearpass-depot.voxel.json; reproduce with tools/art/create-depot.ts.
+The 4×3×12 m source exactly matches legacy collision. Exported GLB is ignored.
+Geometry budget is bounded at 66; the eight new scenic/depot geometries replace
+one old obstacle box. Existing resident/job/effect/voice budgets are unchanged.
 
-Decision: docs/decisions/0020-feedback-comfort.md. Load evidence:
-docs/benchmarks/phase-19-feedback.json (software-rendered Full crowd/minigun runs;
-no smoke/audio saturation or physical-GPU claim). Core code: src/game/feedback.ts,
-main.ts/prototype.css, src/rendering/combat-view.ts/horde-view.ts, src/combat/audio.ts.
-Coverage: tests/unit/feedback.test.ts, weapon-audio.test.ts, browser/comfort.spec.ts.
+Verification so far: 214 unit tests passed; four art tests passed again after
+quality/idle changes. Lint/types/build passed and 23 sources validated; depot GLB
+export passed. Five targeted browser cases passed (plus temporary diagnostic
+profile): quality/shader/fog/shadows, pause idle, seed reload bounds, desktop/narrow
+HUD, workshop perspective/front/top, aircraft/loadout behavior. Complete final
+browser regression passed: 81 cases in 16.8 minutes, one optional route skipped.
+The final CSS-only narrow-header alignment fix and stronger overlap/resource
+assertions passed all four targeted browser cases on the final build (1.1 minutes).
+Agent inspected the final desktop, corrected narrow HUD and depot workshop views.
+All 23 source validations and the production build passed; existing bundle-size
+warnings remain. Reports: docs/benchmarks/autumn-valley.json (SwiftShader Low,
+p95 rAF ~333–350 ms; no physical GPU/FPS claim).
+Initial sandbox subprocess checks needed outside-sandbox execution; no failure
+was hidden. One browser worker on this software-rendered host.
 
-Passed: 210 unit tests (one worker), 22 assets, lint/types/build. Four new comfort
-scenarios passed. The earlier 73-case run passed 70 and found three duplicate-status
-failures (plus one optional route skipped). Final fixes rebuilt/typechecked/linted,
-then all seven selected cases passed in 1.7 minutes: four comfort cases including
-unmuted recovery with no extra oscillator, and the three previously failed legacy
-cases. Combined browser coverage is 77 passing scenarios, across split runs. Agent inspected desktop post/danger/feedback
-and 390 px captures. Fixed a narrow-screen selector overflow; page-width/HUD
-separation checks passed. The duplicate output status role and
-positive-shot audio rebasing fixes are verified. Core feedback/audio/view functions
-are unchanged since the 210-unit pass; final changes were main UI/audio dispatch
-and stronger browser assertions.
-Existing bundle warnings remain. No human listening/comfort or phone acceptance.
+Keep open: Pixel 10a / Google Tensor / 720p / 60 FPS, touch controls, human effects/
+sound/comfort/balance feedback, physical-GPU High performance, regional-v2 missions.
+No deployment. Root is the player game; `/play/` is the combat diagnostics lab;
+`/tools/outdoor/` preserves the old environment lab. Dev tools are opt-in in Settings.
 
-Test preview servers stopped; no listener remains on port 4173. This handoff
-belongs to its local Phase 19 commit; consult git log for hash. Phase 20 release
-scope/validation follows only when requested; phone/hardware, touch, regional-v2
-mission integration and earlier user-feedback gates remain outstanding.
-
-Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22.
-CLI subprocess/local-server checks may need reviewed outside-sandbox access. Use
-one browser worker on this software-rendered host; tell Jan before sustained load.
-Stop test servers/processes afterward. No deployment.
-
-## New player-facing entry
-
-Jan identified the old environment landing page as inappropriate for the game.
-Root now loads combat with a full-window scene and a mission/equipment modal.
-Esc opens the paused menu; Settings holds comfort/sound/render scale and the
-persistent optional developer-tools toggle. /play/ retains the developer combat
-UI; /tools/outdoor/ preserves the former root. Developer tools remain directly
-addressable, not access-controlled. Saves and combat rules are unchanged.
-Typecheck, lint and production build passed; targeted browser checks underway.
-No deployment, phone acceptance or claim of a finished game.
-
-Verification: 8 targeted browser scenarios passed (player entry/menu, legacy
-engine lifecycle/cleanup, outdoor rendering, entry points/navigation and WebGL
-fallback). Final header-height correction is CSS-only; final player test repeated.
-Existing build-size warnings remain. No full gameplay regression rerun for this
-UI-only slice; combat simulation and persistence code were not modified.
+Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin (shell default is Node22).
+The agent's Vite inspection server on 5174 has been stopped;
+an existing user server on 5173 was left alone. Preview test server on 4173 was managed and stopped by Playwright. No owned
+inspection tab remains. The work is ready for its required local commit; consult
+git log for the resulting commit. No push or deployment.

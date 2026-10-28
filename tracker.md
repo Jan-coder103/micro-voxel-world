@@ -517,3 +517,50 @@ This is a player-interface slice, not completion of release or hardware gates.
 
 Validation: lint/types/build passed; 8 targeted browser checks passed, including
 player launch, Escape pause, developer links, narrow layout and preserved labs.
+
+## Reference-directed autumn valley presentation — 28 October 2026
+
+Status: implemented; automated checks passed; user visual/hardware
+acceptance remains open. Jan requested a visual improvement from the two attached
+images. This extends the main game's presentation, without starting release work.
+
+- Added an analytic sun/gradient sky, voxel cloud banks, terraced horizon scenery,
+  warm directional/hemisphere lighting and a bounded 1024² PCF shadow map. The
+  camera exposes more landscape; compact HUD plates, heading readout and a quieter
+  menu overlay the root's full-window scene.
+- Seeded autumn/pine woodland uses cullable 96 m patches and shared 0.4/1 m LODs
+  derived from original editable tree sources. The forest avoids encounters/home
+  approach, stays below the conservative flight envelope, and owns no colliders.
+  Hills/clouds are camera-relative scenery, not new explorable regional terrain.
+- World-space grass/field grain, painted service lanes, concrete pads and contact
+  shading refine the existing terrain without changing heights or save scopes.
+  Broad-color fallback avoids narrow-road sampling artifacts at distance.
+- Added an original editable 4×3×12 m depot (18,448 cells), matching the old blocker
+  exactly, with cladding, roof ribs, framed windows and doors. Source generation,
+  validation and GLB export use the existing asset pipeline. Main combat renders
+  detailed zombie silhouettes at all visual tiers; simulation LOD stays intact.
+- Initial High-quality SwiftShader runs were too slow for the existing aircraft
+  test. Measured work drove forest patch/LOD changes, bounded shadow coverage and
+  paused-frame reuse. Automatic now transparently selects Low on software renderers;
+  High remains selectable, with an independent shadow toggle. Reports state actual
+  quality/renderer/shadow settings. Low keeps a deterministic 55% tree subset.
+  Ready/paused scenes stop GL submissions after the camera settles; controls,
+  resizes and arriving terrain redraw. No test timing thresholds were increased.
+- All 214 unit tests passed before the last presentation wiring; the four art unit
+  cases passed again afterward. Typecheck/lint/build and all 23 source validations
+  passed. Depot GLB export passed. Five targeted browser scenarios passed, plus a
+  temporary diagnostic flight profile; profile removed after investigation.
+  Those checks cover High/Low, real shader compilation, fog/shadow toggles,
+  idle rendering, reload resource bounds, aircraft behavior and workshop views.
+  The complete browser suite passed: 81 cases in 16.8 minutes, one optional
+  sustained route skipped. Final narrow-header CSS alignment and stronger overlap/
+  resource assertions passed all four selected browser cases in 1.1 minutes.
+  Agent inspected the final High desktop, corrected 390 px HUD and depot views.
+  Final lint/types/build passed; owned inspection/test servers were stopped.
+  Ready for the required local commit; no push or deployment.
+  Software Low reports are saved in docs/benchmarks/autumn-valley.json; p95
+  rAF ~333–350 ms is not physical-GPU or target-phone performance evidence.
+- Decision: docs/decisions/0021-autumn-valley.md. Pixel 10a / 720p / 60 FPS,
+  physical-GPU High performance, visual/comfort feedback and regional-v2 mission
+  integration remain outstanding. No dependency, combat rule, population schema,
+  deployment or release change.
