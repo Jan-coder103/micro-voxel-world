@@ -459,3 +459,48 @@ Phase 16 Pixel 10a / 720p / 60 FPS and earlier feedback gates remain open.
   unimplemented. No dependencies, source assets or population format changed.
   User balance/phone/touch verification remains open. Ready for the required local
   commit; Phase 19 not started.
+
+## Phase 19 — Feedback, sound, UI and comfort
+
+Status: implemented; automated checks passed; agent visual inspection completed;
+awaiting player comfort/sound/feel feedback. Phase 16 Pixel hardware and earlier feedback gates stay open.
+
+- Clearpass now has authoritative hit/kill confirmation, readable HUD plates,
+  low-altitude/post-critical text warnings, integrity meter, collapsed rules and
+  narrow-screen controls. Tone mapping/fog refine atmosphere without extra passes.
+- Full/Reduced/Off effects, flash/smoke toggles, opt-in bounded camera recoil,
+  contrast, fog and master volume are session-only. Reduced-motion startup picks
+  Reduced/no flash/smoke/shake; sound starts muted. Controls cannot change damage,
+  saves or rewards. Camera recoil does not accumulate into chase tracking.
+- Shared combat view adds low-poly sphere explosions and sixteen reusable smoke
+  puffs beside the 128 combat slots, retaining only two owned geometries. Pause
+  freezes puffs, reset clears them, overflow drops cosmetics only. Flash suppression
+  also removes zombie hurt color/flinch. All resources have bounded disposal.
+- Added synthesized hit/clear/warning/mission sounds under the same eight-voice cap,
+  volume/zero-volume behavior and optional playback-error handling. Completion cues
+  can finish while paused; focus/pause input stops voices.
+- Six new unit cases cover feedback/reset/rebase, offset bounds, reduced defaults,
+  saturated smoke/reuse/disposal, full/reduced/off damage/save equivalence and audio
+  volume/cue/failure/cap behavior. All 210 unit tests, 22 asset validations, lint and
+  strict types/build passed. Four new browser cases passed (three comfort cases plus
+  low-altitude warning). A test-only negative-zero edge was normalized; a hidden-text
+  warning assertion was corrected to require visibility. No timing limits loosened.
+- Agent visual inspection caught a narrow-screen mission selector overflow; fixed
+  control widths and verified scrollWidth<=390 and separated HUD panels. Captures
+  show readable desktop post/danger HUD and narrow-screen UI without overlap.
+  Full earlier browser suite now runs with one worker. No user/aural/hardware claim.
+
+- Earlier browser regression: 70 passed, 3 failed on an unintended implicit status
+  role from the volume output, 1 optional route skipped. Replaced it with a plain
+  readout and slider aria-valuetext. Also fixed positive-shot rebasing so recovery
+  cannot synthesize a ghost shot. Final lint/types/build passed; all 7 selected
+  cases passed (1.7 min): four new comfort cases and all three affected legacy
+  cases. Unmuted recovery is instrumented to assert zero new oscillator creation.
+- Combined coverage: 210 unit tests and 77 unique browser scenarios passing across
+  the runs; no loosened timing/resource thresholds. Agent visually inspected
+  desktop feedback/post/danger and corrected 390 px captures. Preview servers
+  stopped. Recorded preliminary Full crowd/fire resource snapshots in
+  docs/benchmarks/phase-19-feedback.json, with software-rendering/smoke/audio limits
+  stated. No Pixel FPS, listening quality or user-comfort acceptance claimed.
+- No source assets, dependencies, gameplay authority or save formats changed.
+  Phase 19 is ready for its required local commit. Phase 20 not started.

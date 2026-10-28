@@ -207,3 +207,26 @@ population-save errors preserve existing bytes and report session-only rewards.
 There is no cloud sync or cross-tab transaction support. Isolated benchmarks never
 access campaign records. See [mission decisions](docs/decisions/0019-missions-progression.md).
 Player balance/pressure feedback and Pixel 10a performance verification remain open.
+
+
+## Combat feedback and comfort (Phase 19)
+
+In `/play/`, **Comfort and sound** controls effects (Full / Reduced / Off), flashes,
+smoke, optional camera shake, HUD contrast, fog and master volume. Reduced/Off
+suppress smoke and flashes regardless of their checkboxes. Reduced retains thin
+tracers/outline blasts; Off retains enemies and hit/kill text while hiding cosmetic
+effects. Damage, casualties, mission rules and rewards are identical in every mode.
+Your browser's reduced-motion preference selects gentler initial defaults. Shake
+always starts off; sound starts muted. Settings last for this page session.
+
+Hit/kill confirmation, low-altitude/post-critical warnings and the post integrity
+meter supplement the mission HUD. High-contrast plates help against sky/terrain;
+controls and HUD fit a narrow viewport, with the longer rules in a disclosure.
+Synthesized weapon/hit/clear/warning/mission cues share eight voices; zero volume
+stops them. Smoke has a separate 16-puff presentation cap beside the existing
+128 combat-effect slots. [Recorded load checks](docs/benchmarks/phase-19-feedback.json)
+are software-rendered, not Pixel FPS evidence. Pausing freezes visuals and stops sound; recovery clears
+temporary feedback. See [feedback decisions](docs/decisions/0020-feedback-comfort.md).
+
+Effects/audio quality and comfort need player feedback. Narrow-screen checks are
+not touch controls or Pixel 10a performance validation; those remain outstanding.

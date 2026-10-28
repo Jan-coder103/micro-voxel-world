@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-28",
+  "snapshot": "Phase 19 verification before final volume-readout accessibility and recovery-audio counter correction",
+  "limits": "SwiftShader software rendering, 60 warmup + 180 measured frames. rAF intervals are not GPU time or Pixel FPS. Fire scenarios use minigun, so these do not stress blast smoke; sound is muted, so no audio-voice load. Smoke saturation and active voice caps have separate unit coverage; real shell/feedback behavior has browser coverage. No before/after speedup or hardware acceptance claim.",
+  "reports": [
+    {
+      "scenario": "crowd-100",
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 1,
+        "backbuffer": [
+          1216,
+          475
+        ]
+      },
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "measuredFrames": 180,
+      "frameIntervalMs": {
+        "median": 100,
+        "p95": 116.70000000000073,
+        "max": 133.3000000000029
+      },
+      "peaks": {
+        "residents": 31,
+        "hordes": 42,
+        "individuals": 864,
+        "effects": 0,
+        "voices": 0,
+        "geometries": 36,
+        "jobsAndResults": 2,
+        "calls": 31,
+        "triangles": 90522
+      },
+      "final": {
+        "shots": 0,
+        "killed": 0,
+        "failures": 0,
+        "flightState": "paused",
+        "dropped": 0.3832766666666667
+      }
+    },
+    {
+      "scenario": "fire-100",
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 1,
+        "backbuffer": [
+          1216,
+          475
+        ]
+      },
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "measuredFrames": 180,
+      "frameIntervalMs": {
+        "median": 100,
+        "p95": 116.70000000000073,
+        "max": 249.90000000000146
+      },
+      "peaks": {
+        "residents": 40,
+        "hordes": 42,
+        "individuals": 862,
+        "effects": 7,
+        "voices": 0,
+        "geometries": 43,
+        "jobsAndResults": 2,
+        "calls": 48,
+        "triangles": 90570
+      },
+      "final": {
+        "shots": 470,
+        "killed": 37,
+        "failures": 0,
+        "flightState": "paused",
+        "dropped": 0.4665106666666691
+      }
+    },
+    {
+      "scenario": "fire-75",
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 0.75,
+        "backbuffer": [
+          912,
+          356
+        ]
+      },
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "measuredFrames": 180,
+      "frameIntervalMs": {
+        "median": 83.30000000000018,
+        "p95": 100,
+        "max": 116.70000000000073
+      },
+      "peaks": {
+        "residents": 35,
+        "hordes": 42,
+        "individuals": 863,
+        "effects": 7,
+        "voices": 0,
+        "geometries": 41,
+        "jobsAndResults": 2,
+        "calls": 44,
+        "triangles": 88006
+      },
+      "final": {
+        "shots": 386,
+        "killed": 28,
+        "failures": 0,
+        "flightState": "paused",
+        "dropped": 0.31664266666666663
+      }
+    }
+  ]
+}
