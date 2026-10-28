@@ -266,3 +266,42 @@ Five repeated kit timings are provided without a statistical acceptance claim.
 No gameplay behavior changed. Integrated maximum-speed travel/dense combat,
 large-save scaling, queue latency/upload spikes, long-travel memory and reference
 hardware targets remain outstanding. Phase 16 remains in progress.
+
+## Fourth slice — integrated streaming telemetry
+
+Flight diagnostics now include cumulative `streamTimings`, draw calls and triangles.
+The shared stream retains nine scalar timing/count fields, not sample histories:
+`loads` counts resolved payloads (including stale replies, excluding rejected jobs),
+`loadTotalMs`/`loadMaxMs` measure submission to promise reply, and
+`integrations` counts attempted attachments including failures.
+`readyTotalMs`/`readyMaxMs` measure reply to attachment start for integrated payloads;
+`attachTotalMs`/`attachMaxMs` measure synchronous attachment and old-resource disposal,
+excluding payload release and deferred GPU uploads. Totals/maxima include startup
+and are lifetime values; subtract totals/counts between checkpoints for a segment.
+Maxima cannot be subtracted. This does not measure time waiting for an unsubmitted
+request, worker generation alone, GPU time or full frame CPU. Resource limits and
+scheduling are unchanged. Unit coverage injects a clock to check exact intervals
+and verifies stale results are counted as loads without attachment.
+
+The regional performance browser workload uses ordinary controls: 12 wall-clock
+seconds of throttle-up flight, recovery to home, then a two-second shell attack.
+It records per-second diagnostics and checks terrain/payload caps, a >95 m/s
+sample, restored geometry counts, valid timing counters and no browser errors.
+Recovery is a teleport, so this is not a continuous out-and-back memory test.
+The attack does not establish dense-combat performance. Reports are generated at
+`test-results/regional-travel-measurement.json`. Reproduce after `npm run build`:
+`npx playwright test tests/browser/regional-performance.spec.ts --workers=1`.
+
+The [recorded SwiftShader run](2026-10-28-regional-travel.json) reached 100 m/s,
+with 26–42 residents during travel, a visible current chunk at each one-second
+sample, zero generation failures and zero discarded simulation time. Sampling
+cannot exclude gaps between samples. Travel added 494 resolved payloads, 439
+integrations and 55 stale replies after the settled starting checkpoint. The
+lifetime maximum load round trip was 467.4 ms (including startup); attachment
+maximum rose from 1.9 to 4.4 ms; integrated-ready wait maximum rose from 10.6 to
+17.3 ms. These are CPU/round-trip measurements, not GPU upload duration or FPS.
+Renderer geometry counts returned to 43 after recovery/settling. This single
+short recovery does not prove stable long-travel heap/GPU memory.
+The attack fired two shells/one blast with zero hits, damage or kills, so it only
+exercises firing and effects, not dense combat or damage-save cost. No scheduling,
+look-ahead or integration budget was tuned based on this small baseline.

@@ -140,3 +140,10 @@ Flight also reuses its requested terrain plan until the look-ahead point crosses
 a chunk boundary. Worker replies continue to integrate while plans are unchanged.
 The [planning microbenchmark](docs/performance/2026-10-28-chunk-plan.json) measures
 this CPU work separately from integrated gameplay and hardware FPS.
+
+Phase 16 streaming diagnostics in Flight include cumulative worker round-trip,
+ready-result wait and synchronous attachment timings, plus draw calls/triangles.
+Run `npx playwright test tests/browser/regional-performance.spec.ts --workers=1`
+after building for the short travel/firing baseline. See the
+[measurement definitions and limitations](docs/performance/phase-16-notes.md).
+These CPU diagnostics do not measure GPU upload time or establish hardware FPS.

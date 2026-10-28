@@ -93,3 +93,14 @@ describe('seeded four-tier terrain', () => {
     expect(wantedChunks(1,4096*32,4096*32).length).toBeLessThan(49);
   });
 });
+
+
+it('measures worker round trips, ready wait and attach CPU without retaining samples',async()=>{
+  let now=0;const jobs:((n:number)=>void)[]=[];
+  const stream=new ChunkStream<number,{dispose():void}>(()=>new Promise(resolve=>jobs.push(resolve)),()=>{now+=3;return {dispose(){}};},undefined,undefined,()=>now);
+  stream.update([spec()]);now=12;jobs[0](1);await flush();now=20;stream.update([spec()]);
+  expect(stream.timings).toEqual({loads:1,loadTotalMs:12,loadMaxMs:12,integrations:1,attachTotalMs:3,attachMaxMs:3,readyTotalMs:8,readyMaxMs:8});
+  stream.update([spec(1)]);stream.update([]);now=30;jobs[1](2);await flush();
+  expect(stream.timings.loads).toBe(2);expect(stream.timings.integrations).toBe(1);expect(stream.stale).toBe(1);
+  stream.dispose();
+});

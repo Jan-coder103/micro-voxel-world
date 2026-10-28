@@ -32,3 +32,31 @@ test('sleeping regional flight wakes for resize, controls, streaming, resume and
   await page.getByRole('button',{name:'Recover / Reset',exact:true}).click();await settled(page);expect((await flight(page)).state).toBe('ready');expect((await flight(page)).ticks).toBe(0);
   await page.screenshot({path:'test-results/phase-16-regional-idle.png',fullPage:true});await page.evaluate(()=>{window.dispatchEvent(new Event('pagehide'));window.dispatchEvent(new Event('pagehide'));window.dispatchEvent(new Event('resize'));});await expect(page.locator('canvas')).toHaveCount(0);await page.waitForTimeout(100);expect(errors).toEqual([]);
 });
+
+// Short integrated diagnostic, not a hardware acceptance or long-travel stress gate.
+test('regional travel and attack report bounded streaming stage timings',async({page})=>{
+  test.setTimeout(120000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('/tools/flight/?terrain=regional');await settled(page);
+  const device=await page.evaluate(()=>{const gl=document.querySelector('canvas')!.getContext('webgl2')!,ext=gl.getExtension('WEBGL_debug_renderer_info');return {renderer:ext?String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)):'unavailable',width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,dpr:devicePixelRatio};});
+  const start=await flight(page),samples=[];
+  await page.getByRole('button',{name:'Start / Resume',exact:true}).click();
+  await page.keyboard.down('KeyE');
+  for(let i=0;i<12;i++){
+    await page.waitForTimeout(1000);const s=await flight(page);samples.push(s);
+    expect(s.state).toBe('running');expect(s.resident).toBeLessThanOrEqual(49);expect(s.pending+s.ready).toBeLessThanOrEqual(2);expect(s.failures).toBe(0);
+  }
+  await page.keyboard.up('KeyE');await page.getByRole('button',{name:'Pause',exact:true}).click();
+  expect(samples.at(-1)!.speed).toBeGreaterThan(95);expect(samples.at(-1)!.chunkPlanRebuilds).toBeGreaterThan(start.chunkPlanRebuilds);
+  await page.getByRole('button',{name:'Recover / Reset',exact:true}).click();await settled(page);const returned=await flight(page);
+  expect(returned.x).toBe(start.x);expect(returned.z).toBe(start.z);expect(returned.geometries).toBe(start.geometries);
+  await page.getByRole('button',{name:'Approach nearby horde',exact:true}).click();await settled(page);
+  await page.getByLabel('Weapon',{exact:true}).selectOption('shell');
+  await page.getByRole('button',{name:'Start / Resume',exact:true}).click();await page.keyboard.down('Space');await page.waitForTimeout(2000);await page.keyboard.up('Space');
+  await page.getByRole('button',{name:'Pause',exact:true}).click();
+  const attack=JSON.parse(await page.getByLabel('Combat diagnostics').getAttribute('data-sample')??'{}');
+  expect(attack.shots).toBeGreaterThan(0);expect(attack.effects).toBeLessThanOrEqual(128);
+  const final=await flight(page);expect(final.streamTimings.loads).toBeGreaterThan(0);expect(final.streamTimings.integrations).toBeGreaterThan(0);
+  for(const value of Object.values(final.streamTimings))expect(Number.isFinite(value)).toBe(true);
+  await mkdir('test-results',{recursive:true});await writeFile('test-results/regional-travel-measurement.json',JSON.stringify({device,limitations:'12 wall-clock seconds of throttle-up travel and 2 seconds of shell firing; recovery teleports home. Software rendering, not long-travel/dense-combat or hardware acceptance. Counters are cumulative since mount. Load includes round-trip scheduling/transfer; attach excludes deferred GPU upload.',start,samples,returned,attack,final},null,2));
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(page.locator('canvas')).toHaveCount(0);expect(errors).toEqual([]);
+});

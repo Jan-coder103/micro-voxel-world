@@ -6,14 +6,20 @@ export class ChunkStream<T, R extends OwnedChunk> {
   readonly resident = new Map<string, { spec: ChunkSpec; resource: R }>();
   private desired = new Map<string, ChunkSpec>();
   private jobs = new Set<Job>();
-  private ready: { spec: ChunkSpec; data: T }[] = [];
+  private ready: { spec: ChunkSpec; data: T; received: number }[] = [];
   private disposed = false;
   private failed = new Set<string>();
   stale = 0;
   failures = 0;
   lastError = '';
+  /** Constant-space CPU telemetry; load includes worker scheduling/transfer, not just generation. */
+  readonly timings = {
+    loads: 0, loadTotalMs: 0, loadMaxMs: 0,
+    integrations: 0, attachTotalMs: 0, attachMaxMs: 0,
+    readyTotalMs: 0, readyMaxMs: 0,
+  };
   /** wake lets demand-rendered owners pump replies without polling unfinished jobs. */
-  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}, private wake: () => void = () => {}) {}
+  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}, private wake: () => void = () => {}, private clock: () => number = () => performance.now()) {}
   get pending() { return this.jobs.size; }
   get completed() { return this.ready.length; }
   get wanted() { return this.desired.size; }
@@ -38,11 +44,17 @@ export class ChunkStream<T, R extends OwnedChunk> {
     // At most two GPU integrations and two total outstanding payloads, per frame.
     for (let i=0; i<2 && this.ready.length; i++) {
       const result=this.ready.shift()!;
+      const start=this.clock(),wait=start-result.received;
+      this.timings.readyTotalMs+=wait;this.timings.readyMaxMs=Math.max(this.timings.readyMaxMs,wait);
       try {
         const resource=this.attach(result.spec,result.data), key=chunkKey(result.spec.x,result.spec.z);
         this.resident.get(key)?.resource.dispose(); this.resident.set(key,{spec:result.spec,resource});
       } catch (error) { this.failures++; this.lastError=String(error); this.failed.add(signature(result.spec)); }
-      finally { this.release(result.data); }
+      finally {
+        const elapsed=this.clock()-start;
+        this.timings.integrations++;this.timings.attachTotalMs+=elapsed;this.timings.attachMaxMs=Math.max(this.timings.attachMaxMs,elapsed);
+        this.release(result.data);
+      }
     }
     for (const spec of this.desired.values()) {
       if (this.jobs.size+this.ready.length >= 2) break;
@@ -51,9 +63,12 @@ export class ChunkStream<T, R extends OwnedChunk> {
       if (active && signature(active.spec)===signature(spec)) continue;
       if ([...this.jobs].some((j) => !j.controller.signal.aborted && signature(j.spec)===signature(spec)) || this.ready.some((r) => signature(r.spec)===signature(spec))) continue;
       const job={spec,controller:new AbortController()}; this.jobs.add(job);
+      const started=this.clock();
       void this.load(spec,job.controller.signal).then((data) => {
+        const received=this.clock(),elapsed=received-started;
+        this.timings.loads++;this.timings.loadTotalMs+=elapsed;this.timings.loadMaxMs=Math.max(this.timings.loadMaxMs,elapsed);
         if (job.controller.signal.aborted || !this.current(spec)) { this.release(data); this.stale++; }
-        else this.ready.push({spec,data});
+        else this.ready.push({spec,data,received});
       }).catch((error: unknown) => { if (!job.controller.signal.aborted && !this.disposed) { this.failures++; this.lastError=String(error); this.failed.add(signature(spec)); } }).finally(() => { this.jobs.delete(job); if(!this.disposed)this.wake(); });
     }
   }

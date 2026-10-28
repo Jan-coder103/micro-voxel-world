@@ -313,3 +313,24 @@ Status: streaming plan reuse implemented; automated checks passed; agent visual 
   disappeared on reviewed outside-sandbox rerun. Browser checks were not rerun
   for this profiling-only slice; previous slice's 67-check result remains prior
   evidence. Phase 16 acceptance and Phase 17 remain outstanding.
+
+### Phase 16 fourth slice — integrated streaming telemetry
+
+- Added constant-space load round-trip, ready wait and synchronous attachment
+  totals/maxima/counts; Flight exposes these with draw calls and triangles.
+  Scheduling, collision, save scopes and ownership limits remain unchanged.
+- Deterministic clock unit coverage checks intervals and stale reply accounting.
+  New single-worker browser workload records ordinary throttle-up travel, home
+  recovery and shell firing; asserts caps, >95 m/s, geometry return and no errors.
+- SwiftShader baseline reached 100 m/s, with 55 stale travel replies, no generation
+  failures and a 4.4 ms lifetime max attachment interval. Home geometry count
+  returned to 43. Attack caused no damage; dense combat remains unverified.
+- Evidence: docs/performance/2026-10-28-regional-travel.json. Timings exclude GPU
+  upload/FPS; short recovery is not long-travel memory acceptance.
+- Final verification: lint, 185 unit tests, 22 asset validations, strict types/build,
+  3 focused browser checks and all 65 remaining browser checks passed (same build,
+  one worker; remaining suite 8.4 minutes). Initial unnecessary snapshot-ignore
+  launch was stopped, then the entire remaining set reran with normal assertions.
+  Agent visually inspected the regional population capture: readable controls and
+  diagnostics, visible aircraft/groups, no overlap. User/hardware checks remain
+  open. No dependency or save-format changes. Test preview servers stopped.
