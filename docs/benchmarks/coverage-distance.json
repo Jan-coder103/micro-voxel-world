@@ -1,0 +1,383 @@
+{
+  "date": "2026-10-28",
+  "scope": "Coverage/distant-city resource and save-isolation checks on SwiftShader. Captured before the final Low foliage budget adjustment; not physical-GPU or phone FPS acceptance.",
+  "capturedLowSettings": {
+    "treeFraction": 0.55,
+    "detailDistance": 100
+  },
+  "finalLowSettings": {
+    "treeFraction": 0.4,
+    "detailDistance": 80
+  },
+  "runs": [
+    {
+      "scenario": "crowd",
+      "seed": 12012,
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "environment": "autumn-valley",
+        "quality": "low",
+        "softwareRendering": true,
+        "depots": 81,
+        "groundExtent": 1536,
+        "trees": 2276,
+        "shadowMap": 0,
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 1,
+        "backbuffer": [
+          1216,
+          475
+        ]
+      },
+      "metrics": {
+        "frames": 180,
+        "warmup": 60,
+        "frameIntervalMs": {
+          "median": 366.59999999999854,
+          "p95": 450,
+          "max": 583.3000000000029
+        },
+        "simulationCpuMs": {
+          "median": 3.599999997764826,
+          "p95": 6.5,
+          "max": 9.100000001490116
+        },
+        "presentationCpuMs": {
+          "median": 1.0999999977648258,
+          "p95": 10.5,
+          "max": 16
+        },
+        "submissionCpuMs": {
+          "median": 1.0999999977648258,
+          "p95": 1.8999999985098839,
+          "max": 2.600000001490116
+        }
+      },
+      "peaks": {
+        "residents": 26,
+        "hordes": 42,
+        "individuals": 832,
+        "effects": 0,
+        "voices": 0,
+        "geometries": 36,
+        "jobsAndResults": 2,
+        "calls": 102,
+        "triangles": 528302
+      },
+      "final": {
+        "renderedFrames": 243,
+        "renderIdle": false,
+        "muzzle": {
+          "x": 3.823623300286254,
+          "y": 38.1,
+          "z": 70.22921698129514
+        },
+        "aircraft": "fixed-wing",
+        "loadout": "multirole",
+        "mount": "nose",
+        "weapon": "minigun",
+        "seed": 12012,
+        "state": "active",
+        "flightState": "paused",
+        "reason": "",
+        "mission": "clearpass",
+        "integrity": 100,
+        "stars": 0,
+        "x": 12.82236531206614,
+        "y": 38.1,
+        "z": 70.37969025276784,
+        "heading": 23.57866493333888,
+        "bank": 0.85,
+        "pitch": 0,
+        "speed": 40,
+        "altitude": 31.200000000000003,
+        "ticks": 1912,
+        "remaining": 96,
+        "visited": true,
+        "returnAssist": false,
+        "killed": 0,
+        "shots": 0,
+        "hits": 0,
+        "damage": 0,
+        "blasts": 0,
+        "effects": 0,
+        "voices": 0,
+        "residents": 26,
+        "hordes": 36,
+        "individuals": 768,
+        "jobs": 2,
+        "results": 0,
+        "stale": 90,
+        "failures": 0,
+        "settled": false,
+        "geometries": 36,
+        "calls": 102,
+        "triangles": 480972,
+        "dropped": 57.14645533333334,
+        "benchmark": "crowd",
+        "benchmarkDone": true
+      }
+    },
+    {
+      "scenario": "fire",
+      "seed": 12012,
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "environment": "autumn-valley",
+        "quality": "low",
+        "softwareRendering": true,
+        "depots": 81,
+        "groundExtent": 1536,
+        "trees": 2276,
+        "shadowMap": 0,
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 1,
+        "backbuffer": [
+          1216,
+          475
+        ]
+      },
+      "metrics": {
+        "frames": 180,
+        "warmup": 60,
+        "frameIntervalMs": {
+          "median": 350,
+          "p95": 383.3999999999942,
+          "max": 400.09999999999854
+        },
+        "simulationCpuMs": {
+          "median": 3.900000002235174,
+          "p95": 6.600000001490116,
+          "max": 10.599999997764826
+        },
+        "presentationCpuMs": {
+          "median": 1.0999999977648258,
+          "p95": 10.5,
+          "max": 19.199999999254942
+        },
+        "submissionCpuMs": {
+          "median": 1,
+          "p95": 1.800000000745058,
+          "max": 3
+        }
+      },
+      "peaks": {
+        "residents": 26,
+        "hordes": 42,
+        "individuals": 832,
+        "effects": 7,
+        "voices": 0,
+        "geometries": 37,
+        "jobsAndResults": 2,
+        "calls": 109,
+        "triangles": 525094
+      },
+      "final": {
+        "renderedFrames": 241,
+        "renderIdle": false,
+        "muzzle": {
+          "x": 3.823623300286254,
+          "y": 38.1,
+          "z": 70.22921698129514
+        },
+        "aircraft": "fixed-wing",
+        "loadout": "multirole",
+        "mount": "nose",
+        "weapon": "minigun",
+        "seed": 12012,
+        "state": "active",
+        "flightState": "paused",
+        "reason": "",
+        "mission": "clearpass",
+        "integrity": 100,
+        "stars": 0,
+        "x": 12.82236531206614,
+        "y": 38.1,
+        "z": 70.37969025276784,
+        "heading": 23.57866493333888,
+        "bank": 0.85,
+        "pitch": 0,
+        "speed": 40,
+        "altitude": 31.200000000000003,
+        "ticks": 1912,
+        "remaining": 96,
+        "visited": true,
+        "returnAssist": false,
+        "killed": 48,
+        "shots": 638,
+        "hits": 616,
+        "damage": 2464,
+        "blasts": 0,
+        "effects": 7,
+        "voices": 0,
+        "residents": 23,
+        "hordes": 36,
+        "individuals": 751,
+        "jobs": 2,
+        "results": 0,
+        "stale": 90,
+        "failures": 0,
+        "settled": false,
+        "geometries": 34,
+        "calls": 106,
+        "triangles": 474646,
+        "dropped": 54.1132333333333,
+        "benchmark": "fire",
+        "benchmarkDone": true
+      }
+    },
+    {
+      "scenario": "fire",
+      "seed": 12012,
+      "comfort": {
+        "effects": "full",
+        "smoke": true,
+        "flashes": true,
+        "shake": false,
+        "contrast": true,
+        "fog": true,
+        "volume": 0.65
+      },
+      "presentation": {
+        "environment": "autumn-valley",
+        "quality": "low",
+        "softwareRendering": true,
+        "depots": 81,
+        "groundExtent": 1536,
+        "trees": 2276,
+        "shadowMap": 0,
+        "smokeCapacity": 16,
+        "droppedSmoke": 0
+      },
+      "device": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "vendor": "Google Inc. (Google)",
+        "devicePixelRatio": 1,
+        "renderScale": 0.75,
+        "backbuffer": [
+          912,
+          356
+        ]
+      },
+      "metrics": {
+        "frames": 180,
+        "warmup": 60,
+        "frameIntervalMs": {
+          "median": 299.8999999999942,
+          "p95": 333.3000000000029,
+          "max": 383.3000000000029
+        },
+        "simulationCpuMs": {
+          "median": 3.899999998509884,
+          "p95": 6.599999997764826,
+          "max": 11
+        },
+        "presentationCpuMs": {
+          "median": 1,
+          "p95": 10.200000002980232,
+          "max": 11.600000001490116
+        },
+        "submissionCpuMs": {
+          "median": 1,
+          "p95": 1.7999999970197678,
+          "max": 4.099999997764826
+        }
+      },
+      "peaks": {
+        "residents": 26,
+        "hordes": 42,
+        "individuals": 832,
+        "effects": 7,
+        "voices": 0,
+        "geometries": 37,
+        "jobsAndResults": 2,
+        "calls": 109,
+        "triangles": 525094
+      },
+      "final": {
+        "renderedFrames": 243,
+        "renderIdle": false,
+        "muzzle": {
+          "x": 3.823623300286254,
+          "y": 38.1,
+          "z": 70.22921698129514
+        },
+        "aircraft": "fixed-wing",
+        "loadout": "multirole",
+        "mount": "nose",
+        "weapon": "minigun",
+        "seed": 12012,
+        "state": "active",
+        "flightState": "paused",
+        "reason": "",
+        "mission": "clearpass",
+        "integrity": 100,
+        "stars": 0,
+        "x": 12.82236531206614,
+        "y": 38.1,
+        "z": 70.37969025276784,
+        "heading": 23.57866493333888,
+        "bank": 0.85,
+        "pitch": 0,
+        "speed": 40,
+        "altitude": 31.200000000000003,
+        "ticks": 1912,
+        "remaining": 96,
+        "visited": true,
+        "returnAssist": false,
+        "killed": 48,
+        "shots": 638,
+        "hits": 616,
+        "damage": 2464,
+        "blasts": 0,
+        "effects": 7,
+        "voices": 0,
+        "residents": 26,
+        "hordes": 36,
+        "individuals": 751,
+        "jobs": 2,
+        "results": 0,
+        "stale": 90,
+        "failures": 0,
+        "settled": false,
+        "geometries": 37,
+        "calls": 109,
+        "triangles": 475116,
+        "dropped": 40.04703333333338,
+        "benchmark": "fire",
+        "benchmarkDone": true
+      }
+    }
+  ]
+}

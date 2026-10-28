@@ -564,3 +564,38 @@ images. This extends the main game's presentation, without starting release work
   physical-GPU High performance, visual/comfort feedback and regional-v2 mission
   integration remain outstanding. No dependency, combat rule, population schema,
   deployment or release change.
+
+## Ground seams and distant-city visibility — 28 October 2026
+
+Status: implemented; automated checks passed; awaiting user visual/hardware verification.
+Jan's marked screenshot showed bare city/forest transitions, holes beneath distant
+mountains and nearby building pop-in. All 81 existing static depots now render
+independently of the 49-cell horde ring, reaching ~330 m on the initial approach.
+Continuous overview ground extends 1536 m, with finer city/forest samples,
+consistent roads/pads, and a six-metre wooded verge. Mountain boundary skirts
+reach −64 m beneath the ground. Missions, collisions, seeds and save formats stay
+unchanged. No new scenery geometry/material count budget or worker residency is
+required; the far overview gets a lighter material without grass hashing/shadows.
+
+Three new unit cases cover every exposed mountain direction across seeds/movement,
+coverage/depot grounding/ownership, and static city visibility without loading more
+populations. Fixed an overly exact Float32 test assertion; all 217 then passed.
+Build/types/lint passed. A new browser case checks approach/travel/recovery and
+81-depot coverage. First browser run passed 24 cases, including new coverage,
+shader/quality checks and aircraft/comfort/streaming/editor checks, before being
+stopped to test the cheaper overview material on a fresh final build. No failure
+or timeout threshold was suppressed. Final full browser run is next/in progress.
+
+Final full browser run: 81 passed, one optional route skipped, one end-to-end
+sortie hit its unchanged 90-second overall budget while opening final settings
+after successful mission/save/recovery checks. Low foliage was then reduced to
+40% / 80 m detail distance to budget the larger city; High remains unchanged.
+Final build/types/lint and seven affected unit tests passed. All four targeted
+browser cases then passed in 2.9 minutes, including the timed-out sortie within
+its unchanged budget. Combined coverage: 82 browser cases passing across runs,
+one optional route skipped. All 217 unit tests passed, with affected 19- and
+7-case subsets repeated after final changes. Agent inspected the final screenshots.
+No test timing/resource threshold was increased. Preview servers stopped. Ready
+for the required local commit; no push or deployment. Pre-adjustment stress
+reports are retained in docs/benchmarks/coverage-distance.json with settings and
+software-renderer limits stated explicitly.

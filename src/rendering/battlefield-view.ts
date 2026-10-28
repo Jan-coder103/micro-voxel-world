@@ -45,14 +45,17 @@ export function createBattlefieldView(seed: number) {
   const quad=(vertices:number[][],tint:Color)=>{for(const index of [0,1,2,0,2,3]){positions.push(...vertices[index]);colors.push(...tint.toArray());}};
   const top=new Color('#697650'),earth=new Color('#8c8063');
   const step=32;
+  const included=(x:number,z:number)=>x>=-2144&&x<2144&&z>=-2144&&z<2144&&Math.hypot(x,z)>=960&&Math.hypot(x,z)<=2144;
+  // Seal both annulus edges below the coverage ground, including flat foothills.
+  const neighbour=(x:number,z:number)=>included(x,z)?height(x,z):-64;
   for(let x=-2144;x<2144;x+=step)for(let z=-2144;z<2144;z+=step){
-    const r=Math.hypot(x,z);if(r<960||r>2144)continue;
+    const r=Math.hypot(x,z);if(!included(x,z))continue;
     const y=height(x,z),x1=x+step,z1=z+step;
     const haze=Math.min(.75,Math.max(0,(r-1100)/1400));
     color.copy(top).lerp(new Color('#aab2b6'),haze).multiplyScalar(.92+sceneryRandom(seed,x,z)*.13);
     quad([[x,y,z],[x,y,z1],[x1,y,z1],[x1,y,z]],color);
     color.copy(earth).lerp(new Color('#aab2b6'),haze);
-    const left=height(x-step,z),right=height(x1,z),back=height(x,z-step),front=height(x,z1);
+    const left=neighbour(x-step,z),right=neighbour(x1,z),back=neighbour(x,z-step),front=neighbour(x,z1);
     if(left<y)quad([[x,left,z],[x,left,z1],[x,y,z1],[x,y,z]],color);
     if(right<y)quad([[x1,right,z1],[x1,right,z],[x1,y,z],[x1,y,z1]],color);
     if(back<y)quad([[x1,back,z],[x,back,z],[x,y,z],[x1,y,z]],color);
@@ -93,8 +96,8 @@ export function createBattlefieldView(seed: number) {
   }
   clouds.computeBoundingSphere();group.add(clouds);
   let disposed=false,low=false;
-  return {group,fog,sun,get quality(){return low?'low':'high';},get treeCount(){return batches.reduce((n,b)=>n+b.count,0);},setQuality(reduced:boolean){if(disposed)return;low=reduced;for(const b of batches)b.count=low?Math.ceil(b.instanceMatrix.count*.55):b.instanceMatrix.count;},update(position:Vector3){
-    if(disposed)return;for(const batch of batches){const d=Math.hypot(batch.userData.centre.x-position.x,batch.userData.centre.z-position.z);batch.geometry=d>(low?100:220)?batch.userData.farGeometry:batch.userData.nearGeometry;batch.castShadow=!low&&d<180;}sky.position.copy(position);ridge.position.set(position.x,0,position.z);clouds.position.set(position.x,0,position.z);
+  return {group,fog,sun,get quality(){return low?'low':'high';},get treeCount(){return batches.reduce((n,b)=>n+b.count,0);},setQuality(reduced:boolean){if(disposed)return;low=reduced;for(const b of batches)b.count=low?Math.ceil(b.instanceMatrix.count*.4):b.instanceMatrix.count;},update(position:Vector3){
+    if(disposed)return;for(const batch of batches){const d=Math.hypot(batch.userData.centre.x-position.x,batch.userData.centre.z-position.z);batch.geometry=d>(low?80:220)?batch.userData.farGeometry:batch.userData.nearGeometry;batch.castShadow=!low&&d<180;}sky.position.copy(position);ridge.position.set(position.x,0,position.z);clouds.position.set(position.x,0,position.z);
     sun.target.position.set(Math.round(position.x/16)*16,0,Math.round(position.z/16)*16);sun.position.copy(sun.target.position).addScaledVector(direction,400);
   },dispose(){if(disposed)return;disposed=true;group.removeFromParent();for(const b of batches)b.dispose();clouds.dispose();tree.dispose();pine.dispose();farTree.dispose();farPine.dispose();skyGeometry.dispose();skyMaterial.dispose();ridgeGeometry.dispose();ridgeMaterial.dispose();cloudGeometry.dispose();cloudMaterial.dispose();sun.dispose();group.clear();}};
 }

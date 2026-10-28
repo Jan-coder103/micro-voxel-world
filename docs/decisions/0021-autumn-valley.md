@@ -57,3 +57,38 @@ Validation and measured results belong in tracker.md and handoff.md. Pixel 10a /
 720p / 60 FPS, human visual/comfort acceptance, and a full regional landscape in
 the mission game remain open. Software-rendered automated checks cannot establish
 physical-GPU performance.
+
+## Coverage and distant-city correction
+
+Jan identified bare strips around the city, holes below the mountain base and
+buildings appearing too close to the aircraft. The original presentation tied
+depots to the 49-cell horde simulation ring; on the initial approach only 28 of
+81 existing blockers were rendered. Detailed combat now instances all 81 static
+depots once, independently of simulation residency. The far side is visible from
+about 330 m on approach. Buildings, mission/base coordinates, colliders and saves
+are unchanged; no distant populations are instantiated for presentation.
+
+City/forest coverage now extends 1536 m per axis around its snapped anchor, with
+16 m samples within 768 m and 96 m outer samples (12,769 vertices / 25,088
+triangles, one reused mesh). City depots sit on sampled heights, with only a
+0.12 m coverage offset. World-space roads/pads also render on this overview; the
+nearby 49 streamed terrain chunks retain their finer geometry and grass/shadows.
+The overview uses its own scene-owned material, broad vertex grass colors and no
+shadow reception or subpixel grass hash. Both material programs share seed/palette
+and have distinct shader cache keys. Resource ownership and the geometry cap are
+unchanged. This avoids spending detailed ground-shader work across the expanded
+coverage. The wooded verge is six metres outside the city after placement jitter,
+retaining clear encounters and the home approach.
+
+The mountain annulus now seals all exposed inner/outer edges down to −64 m. This
+overlaps continuous ground even as the coverage anchor snaps while the backdrop
+tracks the aircraft. Tests cast rays around the full mountain base for multiple
+seeds/positions, verify coverage overlap and all depot heights across anchor
+changes, and check constant 81-depot visibility without expanding simulation or
+population records. Numerical Float32 instance heights use a small tolerance.
+
+The expanded city adds fixed visual work. Low scenery now draws a deterministic
+40% tree subset and selects coarse foliage beyond 80 m, reserving its budget for
+the longer urban view. High stays at full density / 220 m detail distance. An
+end-to-end SwiftShader sortie exceeded the unchanged 90-second test budget with
+the previous Low settings; final checks cover the lighter Low preset explicitly.

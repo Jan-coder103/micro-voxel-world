@@ -10,6 +10,7 @@ test('autumn scene renders without shader errors, quality/fog preserve play and 
   await expect.poll(async()=>(await read()).renderIdle).toBe(true);const idle=(await read()).renderedFrames;await page.waitForTimeout(200);expect((await read()).renderedFrames).toBe(idle);
   const first=await read();await page.getByLabel('Scenery quality',{exact:true}).selectOption('high');await expect.poll(async()=>(await report()).presentation.quality).toBe('high');const presentation=(await report()).presentation;
   expect(presentation.environment).toBe('autumn-valley');expect(presentation.trees).toBeGreaterThan(1000);expect(presentation.shadowMap).toBe(1024);
+  expect(presentation.depots).toBe(81);expect(presentation.groundExtent).toBe(1536);
   // Eight fixed scenic/depot geometries replace the original obstacle box: <=66 total.
   expect(first.geometries).toBeLessThanOrEqual(66);
   expect((await read()).geometries).toBeLessThanOrEqual(66);
@@ -26,6 +27,20 @@ test('autumn scene renders without shader errors, quality/fog preserve play and 
     expect((await read()).geometries).toBeLessThanOrEqual(66);expect((await read()).failures).toBe(0);
   }
   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(page.locator('canvas')).toHaveCount(0);expect(errors).toEqual([]);
+});
+
+test('distant city is present on approach and stays present while the simulation ring moves',async({page})=>{
+  test.setTimeout(60000);await page.goto('/play/');
+  const read=async()=>JSON.parse(await page.getByLabel('Prototype diagnostics').getAttribute('data-sample')??'{}');
+  const presentation=async()=>JSON.parse(await page.getByLabel('Benchmark measurements').getAttribute('data-report')??'{}').presentation;
+  await expect.poll(async()=>(await read()).settled,{timeout:30000}).toBe(true);
+  expect((await presentation()).depots).toBe(81);expect((await read()).hordes).toBeLessThan(81);
+  await page.getByRole('button',{name:'Start / Resume',exact:true}).click();
+  await expect.poll(async()=>(await read()).z,{timeout:15000}).toBeLessThan(128);
+  await page.getByRole('button',{name:'Pause',exact:true}).click();expect((await presentation()).depots).toBe(81);
+  expect((await read()).residents).toBeLessThanOrEqual(49);expect((await read()).remaining).toBe(96);
+  await page.getByRole('button',{name:'Recover aircraft',exact:true}).click();await expect.poll(async()=>(await read()).state).toBe('ready');
+  expect((await presentation()).depots).toBe(81);await page.screenshot({path:'test-results/city-distance-coverage.png',fullPage:true});
 });
 
 test('player landscape and instruments remain visible at desktop and narrow widths',async({page})=>{

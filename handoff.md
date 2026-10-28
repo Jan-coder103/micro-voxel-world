@@ -1,5 +1,36 @@
 # Handoff — 28 October 2026
 
+## Latest: continuous ground and distant city
+
+Jan requested fixes for the marked empty strips, mountain-foot gaps and nearby
+urban pop-in. Render all 81 existing depots independently of horde residency;
+continuous city/forest ground now reaches 1536 m with 16 m central samples, roads
+and pads, and a 0.12 m offset. It uses an inexpensive overview material (no grass
+hash/shadow reception), while nearby streamed terrain keeps detailed shading.
+Mountain annulus edges have skirts down to −64 m; forest verges are six metres
+outside the city after jitter. Base/mission coordinates, collision, seeds, saves,
+49 terrain/horde residency and 66-geometry cap are unchanged.
+
+Changed: battlefield-surface.ts, battlefield-view.ts, battlefield-material.ts,
+terrain-fallback.ts, horde-view.ts, game/main.ts, art unit/browser cases. Decision
+0021 has full rationale. All 217 unit tests passed; build/types/lint passed.
+First 24 browser cases passed before stopping to validate the lighter overview.
+The subsequent full run passed 81 cases, skipped the optional route, and hit the
+90-second overall limit in the end-to-end sortie after its mission/save checks.
+Low now keeps 40% foliage and selects coarse trees beyond 80 m; High is unchanged.
+The final build/types/lint and seven affected unit tests passed. All four focused
+browser cases then passed in 2.9 minutes, including the full sortie within its
+unchanged limit. Combined browser coverage is 82 passing cases across the full
+run and focused final rerun; one optional route was skipped. All 217 unit tests
+passed, with 19 affected tests and the final seven-case art subset rerun afterward.
+Agent inspected the corrected final city/forest and mountain coverage screenshots.
+The work is ready for its required local commit; consult git log for the commit.
+Preview servers were stopped by Playwright. No inspection server was created. No physical-device performance claim; earlier hardware,
+comfort and regional-v2 mission gates remain open. No new server on 5173 was
+started or stopped. Browser test server 4173 is owned by Playwright.
+
+## Previous visual pass
+
 Jan requested a reference-directed visual improvement to the main game. The autumn
 valley presentation is implemented in root and `/play/`; the full browser suite passed (81 cases, one optional route skipped).
 The final narrow-header CSS fix and four affected browser checks also passed. Do not claim human visual or physical-GPU acceptance. No release or

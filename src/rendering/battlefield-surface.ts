@@ -1,4 +1,13 @@
-import { Color } from 'three';
+import { Color, type MeshStandardMaterial } from 'three';
+import { heightAt } from '../streaming/terrain-data';
+import { createTerrainFallback } from './terrain-fallback';
+
+export const BATTLEFIELD_GROUND_EXTENT=1536;
+/** Continuous city/forest ground overlaps the scenic mountains even between anchor updates. */
+export function createBattlefieldGround(seed:number,material:MeshStandardMaterial){
+  const coverage=createTerrainFallback(seed,(x,z)=>({height:heightAt(seed,x,z),color:battlefieldColor(seed,x,z,false)}),BATTLEFIELD_GROUND_EXTENT/16,{innerExtent:768,innerSpacing:16,drop:.12,material});
+  coverage.mesh.name='battlefield-ground';coverage.mesh.receiveShadow=false;return coverage;
+}
 
 const grass = new Color('#858958'), dry = new Color('#a39564'), soil = new Color('#817457');
 const road = new Color('#535957'), concrete = new Color('#949789');
@@ -28,12 +37,14 @@ export interface WoodlandTree { x: number; z: number; pine: boolean; yaw: number
 export function woodland(seed: number): WoodlandTree[] {
   const trees: WoodlandTree[] = [];
   for (let z = -480; z <= 480; z += 9) for (let x = -480; x <= 480; x += 9) {
-    if (x > -144 && x < 176 && z > -144 && z < 176) continue;
-    if (Math.abs(x - 16) < 22 && z > 160 && z < 280) continue; // Home approach.
+    const px=x+sceneryRandom(seed+2,x,z)*8,pz=z+sceneryRandom(seed+1,x,z)*8;
+    // Six-metre verge measured after jitter keeps canopies clear of the city.
+    if (px > -134 && px < 166 && pz > -134 && pz < 166) continue;
+    if (Math.abs(px - 16) < 22 && pz > 160 && pz < 280) continue; // Home approach.
     const r = sceneryRandom(seed, x, z);
     const density = .5 + .28 * Math.sin(x / 73) * Math.cos(z / 67);
     if (r > density || Math.hypot(x, z) > 490) continue;
-    trees.push({ x: x + sceneryRandom(seed + 2, x, z) * 8, z: z + sceneryRandom(seed + 1, x, z) * 8, pine: r < .16, yaw: r * Math.PI * 2, tint: .8 + r * .4 });
+    trees.push({ x:px, z:pz, pine: r < .16, yaw: r * Math.PI * 2, tint: .8 + r * .4 });
   }
   return trees;
 }
