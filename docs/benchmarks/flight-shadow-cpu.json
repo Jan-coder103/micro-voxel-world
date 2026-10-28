@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-28",
+  "runtime": "Node 24.22.1",
+  "scenario": "Terrain-conforming aircraft shadow update CPU only",
+  "method": "createAircraftShadow; regionalSample seed 103; ground=max(height,water); start (16,65,16), heading 0; move z by -1 each update; performance.now around update only",
+  "warmup": 100,
+  "samples": 200,
+  "p50Ms": 0.115652,
+  "p95Ms": 0.282266,
+  "maxMs": 0.347116,
+  "triangles": 512,
+  "limitations": "Single run on this execution host; no rendering, GPU upload, draw submission, integrated frame time or physical-device FPS measurement. Does not explain every dropped browser frame. Unchanged-position updates are cached."
+}

@@ -11,9 +11,9 @@ test('autumn scene renders without shader errors, quality/fog preserve play and 
   const first=await read();await page.getByLabel('Scenery quality',{exact:true}).selectOption('high');await expect.poll(async()=>(await report()).presentation.quality).toBe('high');const presentation=(await report()).presentation;
   expect(presentation.environment).toBe('autumn-valley');expect(presentation.trees).toBeGreaterThan(1000);expect(presentation.shadowMap).toBe(1024);
   expect(presentation.depots).toBe(81);expect(presentation.groundExtent).toBe(1536);
-  // Eight fixed scenic/depot geometries replace the original obstacle box: <=66 total.
-  expect(first.geometries).toBeLessThanOrEqual(66);
-  expect((await read()).geometries).toBeLessThanOrEqual(66);
+  // Scenic/depot geometry plus one reusable ground-shadow grid: <=67 total.
+  expect(first.geometries).toBeLessThanOrEqual(67);
+  expect((await read()).geometries).toBeLessThanOrEqual(67);
   const high=await page.locator('canvas').screenshot();
   await page.getByLabel('Soft shadows',{exact:true}).uncheck();await page.getByLabel('Distance fog',{exact:true}).uncheck();
   await expect.poll(async()=>(await report()).presentation.shadowMap).toBe(0);
@@ -24,7 +24,7 @@ test('autumn scene renders without shader errors, quality/fog preserve play and 
   for(const seed of ['12013','12012']){
     await page.getByLabel('World seed').fill(seed);await page.getByRole('button',{name:'Load world',exact:true}).click();
     await expect.poll(async()=>(await read()).settled,{timeout:30000}).toBe(true);
-    expect((await read()).geometries).toBeLessThanOrEqual(66);expect((await read()).failures).toBe(0);
+    expect((await read()).geometries).toBeLessThanOrEqual(67);expect((await read()).failures).toBe(0);
   }
   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(page.locator('canvas')).toHaveCount(0);expect(errors).toEqual([]);
 });

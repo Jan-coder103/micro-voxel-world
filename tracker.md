@@ -599,3 +599,49 @@ No test timing/resource threshold was increased. Preview servers stopped. Ready
 for the required local commit; no push or deployment. Pre-adjustment stress
 reports are retained in docs/benchmarks/coverage-distance.json with settings and
 software-renderer limits stated explicitly.
+
+## Flight handling and camera follow-up — 28 October 2026
+
+Status: implemented; requested features pass automated and agent visual checks;
+awaiting Jan's handling/visual verification. One legacy end-to-end wall-clock
+budget remains failing on this software-rendered host (details below).
+
+- Hold C + move the mouse over the focused viewport to orbit. Release/focus loss
+  eases back to chase by the shortest route. Angular smoothing keeps the camera
+  at a constant radius during fast half-turns. Shared across root/combat, flight,
+  regional and weapons; disabled in isolated benchmarks. C does not steer/fire.
+- Found a reproducible presentation jitter source: discrete 60 Hz aircraft pose
+  versus separately smoothed camera translation/current-tick look. Render pose
+  interpolation and camera offsets relative to that pose remove tick stepping and
+  straight-flight relative bobbing without changing simulation/collision/weapons.
+- Added a terrain-conforming soft oval directly below the displayed aircraft,
+  independent of sunlight shadows and altitude fading. One reusable grid/texture
+  with unchanged-position caching and idempotent disposal. Explicit geometry
+  budgets increase by one: combat 67, flight 57, weapons 59. Residency stays fixed.
+  CPU-only regional update probe: p95 0.28 ms / 200 warmed samples, 512 triangles;
+  docs/benchmarks/flight-shadow-cpu.json explains method and excludes GPU/FPS claims.
+- Settings → Flying mode selects Assisted auto-level / Direct hold-attitude,
+  separately from aim/return assistance. Choice survives recover, aircraft/mission/
+  world changes during the session. Labs retain Flight assistance.
+- Final checks: all 223 unit tests, lint/types/build and 23 source validations
+  passed. Four existing CLI tests initially lost subprocess output in the sandbox;
+  the full unit suite passed outside it with no test changes. Full browser run:
+  83 passed, two timing failures, one optional route skipped (19.5 min).
+- Final camera review added shortest-route return and constant-radius angular
+  smoothing. All six presentation unit cases and the full 223-unit suite passed.
+  All seven focused browser cases passed on the rebuilt final code (2.4 min):
+  scenery/shader/idle/resources, mode behavior/retention/narrow settings, combat and
+  regional orbit/release/blur/shadow/disposal, ordinary flight, regional resume
+  and weapons. Agent inspected combat/regional orbit and 390 px settings captures.
+- The regional resume timing failure (0.10 s discarded catch-up versus expected 0)
+  passed unchanged in the final focused run. The legacy 90-second complete-sortie
+  case timed out twice, in full-suite and isolated final-build runs, during final
+  seed/settings validation after mission completion/rewards, saved-clearance
+  reload, recovery and collision checks passed. It is still failing; no timeout,
+  test step or failure was hidden/relaxed. Combined: 84 unique browser cases pass,
+  one legacy overall-timeout failure, one optional route skipped. Earlier handoff
+  documents a similar budget failure. Keep this open for software-renderer work.
+- Decision: docs/decisions/0022-flight-camera-and-presentation.md. No dependencies,
+  source assets, save formats, deployment or release changes. Pixel hardware/FPS
+  and player-feel/visual acceptance remain outstanding. Preview servers were
+  managed/stopped by Playwright; the user's existing 5173 server was untouched.

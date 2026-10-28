@@ -1,8 +1,11 @@
+import { FlightCamera, bindFlightOrbit } from '../../src/rendering/flight-camera';
+import { createAircraftShadow } from '../../src/rendering/aircraft-shadow';
+import type { FlightPose } from '../../src/flight/flight';
 import { AircraftSetup } from '../../src/flight/aircraft';
 import { AIRCRAFT_SELECTORS, AIRCRAFT_CONTROLS } from '../../src/ui/aircraft-controls';
 import { createRotorcraft, createWeaponMount } from '../../src/rendering/rotorcraft';
 import { ChunkPlan } from '../../src/streaming/chunk-plan';
-import { BoxGeometry, Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { BoxGeometry, Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { demandFrames } from '../../src/rendering/demand-frames';
 import { RegionalPopulation } from '../../src/hordes/regional-population';
 import { createRegionalPopulationView } from '../../src/rendering/regional-population-view';
@@ -35,7 +38,7 @@ function mount() {
   let wake=()=>{};
   const scene=new Scene(); scene.background=new Color('#aebec0'); scene.fog=new Fog('#aebec0',80,180);
   const sun=new DirectionalLight('#ffdfb2',2.6); sun.position.set(-30,60,20); scene.add(sun,new HemisphereLight('#d9ebf2','#687052',2));
-  const camera=new PerspectiveCamera(65,1,.2,regional?1400:350);
+  const camera=new PerspectiveCamera(65,1,.2,regional?1400:350),chase=new FlightCamera(21,8,20),groundShadow=createAircraftShadow();scene.add(groundShadow.mesh);
   const fallback=regional?createTerrainFallback(seed,(x,z)=>{const s=regionalSample(seed,x,z);return {height:Math.max(s.height,s.water??-Infinity),color:[...s.color]};}):undefined;
   if(fallback){scene.add(fallback.mesh);scene.fog=new Fog('#aebec0',300,1000);}
   const terrainMaterial=new MeshStandardMaterial({vertexColors:true,roughness:1}), markerGeometry=new BoxGeometry(1,1,1), markerMaterial=new MeshStandardMaterial();
@@ -63,7 +66,8 @@ function mount() {
   const audio=combat?new WeaponAudio():undefined;
   let weapon:WeaponId='minigun',heardShots=0;
   const weaponSelect=app.querySelector<HTMLSelectElement>('#weapon');
-  const clear=()=>{keys.clear();audio?.stop();};
+  releases.push(bindFlightOrbit(host,chase,()=>wake()));
+  const clear=()=>{keys.clear();chase.held=false;host.style.cursor='';audio?.stop();};
   const supported=['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE',...(combatEnabled?['Space','Digit1','Digit2','Digit3']:[])];
   listen(host,'keydown',e=>{const k=e as KeyboardEvent;if(supported.includes(k.code)){k.preventDefault();keys.add(k.code);if(weaponSelect&&['Digit1','Digit2','Digit3'].includes(k.code)){const candidate=(['minigun','autocannon','shell'] as WeaponId[])[Number(k.code.slice(-1))-1];if(setup.allows(candidate)){weapon=candidate;weaponSelect.value=weapon;}}}});
   listen(host,'keyup',e=>keys.delete((e as KeyboardEvent).code));
@@ -93,7 +97,7 @@ function mount() {
   const resize=()=>{renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(Math.max(1,host.clientWidth),Math.max(1,host.clientHeight));camera.aspect=host.clientWidth/Math.max(1,host.clientHeight);camera.updateProjectionMatrix();wake();};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
   let disposed=false,previous:number|undefined,lastReport=0,renderedFrames=0;
-  const desired=new Vector3(), target=new Vector3(),cameraBefore=new Vector3();
+  const pose:FlightPose={position:{x:0,y:0,z:0},heading:0,pitch:0,bank:0};
   const held=(...codes:string[])=>Number(codes.some(c=>keys.has(c)));
   const animate=(now:number)=>{
     if(disposed)return false;
@@ -107,17 +111,15 @@ function mount() {
     combatView?.update();
     if(combat&&audio&&combat.shots!==heardShots){heardShots=combat.shots;audio.play(WEAPONS[combat.lastWeapon].sound);}
     if(flight.state!=='running')audio?.stop();
-    const p=flight.position;stream?.update(chunkPlan.at(p.x+(regional?Math.sin(flight.heading)*64:0),p.z-(regional?Math.cos(flight.heading)*64:0)));fallback?.update(p.x,p.z);cityView?.update();airframe.position.set(p.x,p.y,p.z);airframe.rotation.set(flight.pitch,-flight.heading,-flight.bank,'YXZ');rotorcraft.update(flight.ticks);
-    cameraBefore.copy(camera.position);
-    desired.set(p.x-Math.sin(flight.heading)*21,p.y+8,p.z+Math.cos(flight.heading)*21);
-    camera.position.lerp(desired,snap?1:1-Math.exp(-Math.min(dt,.1)*6));snap=false;
+    const p=flight.position;stream?.update(chunkPlan.at(p.x+(regional?Math.sin(flight.heading)*64:0),p.z-(regional?Math.cos(flight.heading)*64:0)));fallback?.update(p.x,p.z);cityView?.update();flight.samplePose(pose);airframe.position.set(pose.position.x,pose.position.y,pose.position.z);airframe.rotation.set(pose.pitch,-pose.heading,-pose.bank,'YXZ');groundShadow.update(pose,ground,flight.aircraft==='helicopter');rotorcraft.update(flight.ticks);
+    const tracking=chase.update(camera,pose,dt,snap);snap=false;
     camera.position.y=Math.max(camera.position.y,ground(camera.position.x,camera.position.z)+4);
     if(world)for(const b of world.buildings({minX:camera.position.x-.1,maxX:camera.position.x+.1,minZ:camera.position.z-.1,maxZ:camera.position.z+.1}))camera.position.y=Math.max(camera.position.y,b.y+b.height+4);
-    target.set(p.x+Math.sin(flight.heading)*20,p.y+Math.sin(flight.pitch)*20,p.z-Math.cos(flight.heading)*20);camera.lookAt(target);renderer.render(scene,camera);renderedFrames++;
-    const cameraSettling=regional&&flight.state!=='running'&&(cameraBefore.distanceToSquared(camera.position)>1e-8||dt===0&&camera.position.distanceToSquared(desired)>1e-4);
+    camera.lookAt(tracking.target);renderer.render(scene,camera);renderedFrames++;
+    const cameraSettling=regional&&tracking.moving;
     const keepAnimating=!regional||flight.state==='running'||cameraSettling||(stream?.completed??0)>0;
     if(now-lastReport>100||!keepAnimating){lastReport=now;const current=stream?.resident.has(chunkKey(Math.floor(p.x/32),Math.floor(p.z/32)))??false;
-      const sample={...p,muzzle:setup.muzzle(p,flight.heading,flight.pitch,flight.bank),aircraft:flight.aircraft,loadout:setup.loadout,mount:setup.mount,streamTimings:stream?{...stream.timings}:null,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,renderedFrames,chunkPlanRebuilds:chunkPlan.rebuilds,populationRebuilds:populationView?.rebuilds??0,idle:!keepAnimating,settled:stream?.settled??false,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
+      const sample={assisted:flight.assisted,orbit:chase.held,camera:{x:camera.position.x,y:camera.position.y,z:camera.position.z},renderPose:pose,groundShadow:{x:groundShadow.mesh.position.x,y:groundShadow.mesh.position.y,z:groundShadow.mesh.position.z},...p,muzzle:setup.muzzle(p,flight.heading,flight.pitch,flight.bank),aircraft:flight.aircraft,loadout:setup.loadout,mount:setup.mount,streamTimings:stream?{...stream.timings}:null,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,renderedFrames,chunkPlanRebuilds:chunkPlan.rebuilds,populationRebuilds:populationView?.rebuilds??0,idle:!keepAnimating,settled:stream?.settled??false,state:flight.state,speed:flight.speed,altitude:p.y-ground(p.x,p.z),generator:regional?2:1,seed,structures:cityView?.count??0,pitch:flight.pitch,bank:flight.bank,heading:flight.heading,ticks:flight.ticks,dropped:flight.dropped,resident:stream?.resident.size??0,pending:stream?.pending??0,ready:stream?.completed??0,stale:stream?.stale??0,failures:stream?.failures??0,current,geometries:renderer.info.memory.geometries};stats.dataset.sample=JSON.stringify(sample);
       if(population){const c=population.counts,panel=app.querySelector<HTMLElement>('#population-stats')!;const local=population.resident.get(`rp1:${Math.floor(p.x/128)},${Math.floor(p.z/128)}`);const chosen=selectedEncounter?population.resident.get(selectedEncounter):local;const encounter=chosen?.encounter.id??null,remaining=chosen?.targets.filter(t=>t.health>0).length??0;panel.dataset.sample=JSON.stringify({...c,encounter,remaining,error:population.error});panel.textContent=`Regional population · ${c.alive} nearby · ${c.killed} killed · ${c.cleared} encounters cleared · local ${encounter??'outside coverage'}: ${remaining} remaining${population.error?' · '+population.error:''}`;}
       if(combat){const combatSample={shots:combat.shots,hits:combat.hits,damage:combat.damage,kills:combat.kills,blasts:combat.blasts,weapon,effects:combat.effects.filter(e=>e.active).length,capacity:combat.effects.length,droppedEffects:combat.droppedEffects,voices:audio?.activeVoices??0,targets:combat.targets.map(t=>({id:t.id,health:t.health}))};const panel=app.querySelector<HTMLElement>('#combat-stats')!;panel.dataset.sample=JSON.stringify(combatSample);panel.textContent=`${WEAPONS[weapon].name} · ${combat.shots} shots · ${combat.hits} damaging hits · ${combat.damage.toFixed(0)} damage · ${combat.kills}${population?' regional kills':'/'+combat.targets.length+' targets cleared'} · ${combat.blasts} blasts · effects ${combatSample.effects}/128 · dropped cosmetics ${combat.droppedEffects}`;app.querySelector('#audio-status')!.textContent=audio?.state??'Muted';}
       stats.textContent=`${flight.state} · ${flight.speed.toFixed(1)} m/s · altitude ${sample.altitude.toFixed(1)} m AGL · throttle ${(flight.throttle*100).toFixed(0)}% · chunk ${current?'visible':'loading gap'} · residents ${sample.resident}/49 · jobs ${sample.pending} · results ${sample.ready} · stale ${sample.stale} · failures ${sample.failures} · dropped ${flight.dropped.toFixed(2)} s`;
@@ -126,7 +128,7 @@ function mount() {
     return keepAnimating;
   };
   const frames=demandFrames(animate);wake=()=>{lastReport=-Infinity;frames.invalidate();};wake();
-  return ()=>{if(disposed)return;disposed=true;frames.dispose();observer.disconnect();releases.forEach(r=>r());clear();population?.checkpoint();populationView?.dispose();audio?.dispose();combatView?.dispose();stream?.dispose();workers?.dispose();fallback?.dispose();cityView?.dispose();rotorcraft.dispose();gunMount.dispose();parts.forEach(g=>g.dispose());bodyMaterial.dispose();cockpitMaterial.dispose();terrainMaterial.dispose();markerGeometry.dispose();markerMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
+  return ()=>{if(disposed)return;disposed=true;frames.dispose();observer.disconnect();releases.forEach(r=>r());clear();population?.checkpoint();populationView?.dispose();audio?.dispose();combatView?.dispose();stream?.dispose();workers?.dispose();fallback?.dispose();cityView?.dispose();groundShadow.dispose();rotorcraft.dispose();gunMount.dispose();parts.forEach(g=>g.dispose());bodyMaterial.dispose();cockpitMaterial.dispose();terrainMaterial.dispose();markerGeometry.dispose();markerMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
 }
 const release=mount();
 const dispose=()=>{window.removeEventListener('pagehide',onHide);release();};

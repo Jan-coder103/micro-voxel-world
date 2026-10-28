@@ -1,6 +1,7 @@
 import { aircraftId, type AircraftId } from './aircraft.ts';
 export interface FlightInput { pitch: number; bank: number; throttle: number }
 export interface Point { x:number; y:number; z:number }
+export interface FlightPose { position:Point; heading:number; pitch:number; bank:number }
 const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
 export class Flight {
   position:Point={x:16,y:45,z:16};
@@ -8,11 +9,12 @@ export class Flight {
   state:'ready'|'running'|'paused'|'crashed'='ready';
   reason=''; assisted=true; dropped=0;
   private accumulator=0;
+  private previousPose:FlightPose|undefined;
   constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing') { this.kind=aircraftId(kind);this.reset(); }
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
   reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
-  start() { if(this.state==='ready'||this.state==='paused') this.state='running'; }
+  start() { if(this.state==='ready'||this.state==='paused') { this.previousPose=undefined; this.state='running'; } }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
   advance(dt:number,input:FlightInput,onStep?:()=>void) {
     if(!Number.isFinite(dt)||dt<0) throw new Error('Invalid flight elapsed time');
@@ -22,6 +24,9 @@ export class Flight {
     while(this.accumulator+1e-10>=1/60 && this.state==='running') { this.accumulator-=1/60; this.step(input); if(this.state==='running')onStep?.(); }
   }
   private step(input:FlightInput) {
+    this.previousPose ??= {position:{x:0,y:0,z:0},heading:0,pitch:0,bank:0};
+    Object.assign(this.previousPose.position,this.position);
+    this.previousPose.heading=this.heading;this.previousPose.pitch=this.pitch;this.previousPose.bank=this.bank;
     const dt=1/60;
     if(this.kind==='helicopter'){this.rotorStep(input);return;}
     this.throttle=clamp(this.throttle+clamp(input.throttle,-1,1)*dt*.35,0,1);
@@ -33,6 +38,14 @@ export class Flight {
     const old=this.position;
     const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pitch)*this.speed*dt,y:old.y+Math.sin(this.pitch)*this.speed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pitch)*this.speed*dt};
     this.move(next);
+  }
+  /** One tick of presentation latency keeps render rates independent of the 60 Hz simulation. */
+  samplePose(out:FlightPose):FlightPose {
+    const previous=this.state==='running'?this.previousPose:undefined;
+    const alpha=previous?clamp(this.accumulator*60,0,1):1;
+    for(const axis of ['x','y','z'] as const)out.position[axis]=previous?previous.position[axis]+(this.position[axis]-previous.position[axis])*alpha:this.position[axis];
+    for(const axis of ['heading','pitch','bank'] as const)out[axis]=previous?previous[axis]+(this[axis]-previous[axis])*alpha:this[axis];
+    return out;
   }
   private rotorStep(input:FlightInput){
     const dt=1/60;

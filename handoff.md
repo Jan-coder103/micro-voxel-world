@@ -1,5 +1,46 @@
 # Handoff — 28 October 2026
 
+## Latest: flight orbit, altitude shadow and smooth presentation
+
+Jan requested hold-key camera orbit, a shadow straight below the plane, jitter
+investigation and Assisted/Direct selection in Settings. Implemented in the main
+player/combat and shared flight/regional/weapons views. Hold C and move the mouse
+over the focused scene; release or blur restores chase by the shortest route.
+Fast half-orbits maintain radius. Settings → Flying mode retains its session
+choice through recovery/aircraft/mission/world changes; reload defaults Assisted.
+
+The 60 Hz aircraft was rendered without interpolation alongside a camera that
+smoothed world translation but looked at the latest tick. Interpolated render
+poses and relative camera offsets fix that source of stepping/relative bobbing.
+Collision, combat, objectives and saves keep authoritative poses. A soft blob
+conforms to ground/water directly under the displayed aircraft at every altitude,
+including Low/soft-shadows-off. It owns one cached grid/small generated texture;
+geometry budgets explicitly increase by one (combat 67, flight 57, weapons 59).
+
+Changed: flight.ts, new rendering/flight-camera.ts and aircraft-shadow.ts, main.ts,
+lab.ts, aircraft-controls.ts, presentation unit/browser tests, resource assertions,
+README, decision 0022 and CPU-only shadow probe. Final lint/types/build, all 223
+unit tests and 23 source validations passed. Initial sandbox CLI capture failed
+four old tests; the full unit suite passed outside the sandbox without changes.
+Full browser run: 83 pass, two timing failures, one optional route skipped.
+Final angular refinement was rebuilt; all seven affected browser checks passed
+(2.4 min), including narrow settings, orbit/radius, idle/shader/resources, flight,
+weapons and regional resume. Agent inspected combat/regional orbit and 390 px
+settings captures. Software shadow update CPU p95 0.28 ms is not GPU/FPS evidence.
+
+Known remaining failure: the legacy complete-sortie case still exceeds its
+unchanged 90-second total budget during final seed/settings checks, both in the
+full run and isolated final-build retry. Mission completion/rewards, saved reload,
+recovery and collision checks passed before timeout. No failure/step/timeout was
+hidden or relaxed. The other timing failure (regional resume dropped 0.10 s) passed
+unchanged in the final focused run. Combined coverage: 84 unique browser cases
+passing, one overall-budget failure, one optional route skipped. Keep that legacy
+software-renderer budget issue open; a similar timeout is in the previous slice.
+
+Ready for the required local commit; consult git log. No push/deployment.
+Playwright stopped its preview servers; user 5173 was untouched. Hardware/FPS,
+player feel/visual acceptance and prior regional-v2 mission gates remain open.
+
 ## Latest: continuous ground and distant city
 
 Jan requested fixes for the marked empty strips, mountain-foot gaps and nearby
