@@ -2,8 +2,11 @@
 
 Phase 16 fifth slice adds continuous regional return profiling. Phase 16 remains
 IN PROGRESS; Phase 17 has not started. Phase 12 player feedback and physical-GPU
-acceptance remain deferred, not passed. Reference hardware/target question was
-sent to Jan; acceptance criteria remain unresolved without that input.
+acceptance remain deferred, not passed. Jan selected Pixel 10a with a Google
+Tensor chip at 720p render resolution / 60 FPS as the Phase 16 reference target
+on 28 October 2026. No on-device result exists. Record browser/version, actual
+drawing-buffer dimensions, quality and thermal/run conditions when testing.
+Mobile controls and the exact measurement protocol remain to be established.
 
 New opt-in test: tests/browser/regional-route.spec.ts. With Node 24 and an existing
 production build:
@@ -32,7 +35,7 @@ This handoff belongs to its local commit; consult git log for hash.
 Next: attribute stale work to LOD/turn cancellations before changing scheduling;
 profile damage-heavy regional combat and large saves. Longer continuous runs,
 heap retainer snapshots and worker/GPU memory measurements remain outstanding.
-Use agreed reference hardware/targets before accepting Phase 16. Existing
+Validate the selected Pixel target before accepting Phase 16. Existing
 telemetry definitions, startup evidence and decisions 0016/0017 remain current.
 
 Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22.

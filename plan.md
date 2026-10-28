@@ -838,6 +838,8 @@ The original phase order is retained. Work within a phase may overlap with prere
 
 Optimization starts earlier; this phase validates the integrated large-world system rather than introducing the first performance work.
 
+**Reference target selected by Jan, 28 October 2026:** Pixel 10a with a Google Tensor chip, 720p render resolution at 60 FPS. This is an acceptance target, not a measured result. Validate maximum-speed regional travel, dense combat and sustained return/resource behavior on the actual phone. Record browser/version, actual drawing-buffer dimensions, quality settings and thermal/run conditions with results. Phone controls and the measurement protocol still need to be established; current desktop keyboard/mouse tests do not establish mobile usability.
+
 ### Phase 17 — Aircraft variety and customization
 
 **Source scope:** Additional aircraft and customization.

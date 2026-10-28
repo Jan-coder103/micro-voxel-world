@@ -338,3 +338,21 @@ flight justify inspecting which tier transitions/turns cancel work before tuning
 LOD hysteresis or worker caching. No scheduler/runtime change is made here.
 No combat occurs on this route; damage-heavy combat and large-save costs remain
 separate outstanding measurements. Hardware FPS acceptance remains outstanding.
+
+
+## Selected reference target — 28 October 2026
+
+Jan selected **Pixel 10a with a Google Tensor chip, 720p render resolution at
+60 FPS**. Device/chip wording is user supplied; no exact Tensor generation or
+hardware specification is assumed here. This target is not an achieved result.
+The existing SwiftShader/Node measurements remain CPU/correctness evidence and
+cannot establish performance on this phone.
+
+On-device acceptance must cover maximum-speed regional travel, dense combat and
+sustained return/resource behavior. Capture browser/version, actual WebGL drawing
+buffer dimensions, quality settings and thermal/run conditions with the report.
+720p refers to rendering, not a claim about the phone's display resolution.
+The measurement protocol (including sustained duration and frame pacing criteria)
+and mobile controls still need to be established. Current desktop keyboard/mouse
+coverage does not verify phone usability. No device access or on-device testing
+has occurred in this session.

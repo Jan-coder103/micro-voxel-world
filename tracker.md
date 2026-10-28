@@ -353,3 +353,13 @@ Status: streaming plan reuse implemented; automated checks passed; agent visual 
   passed. Prior 68 browser checks, assets and build remain prior evidence for
   unchanged runtime/build; not repeated for this profiling-only addition.
   No runtime/assets/dependency/save changes; benchmark is skipped by default.
+
+
+### Phase 16 reference target selected — 28 October 2026
+
+- Jan selected Pixel 10a with a Google Tensor chip, 720p rendering at 60 FPS.
+- Updated plan, performance notes and handoff. This is an unverified acceptance
+  target; existing software-rendered evidence does not establish phone performance.
+- On-device travel/combat/sustained resource tests, measurement protocol and mobile
+  controls remain outstanding. No runtime changes or tests needed for this
+  documentation update; checked diff formatting.
