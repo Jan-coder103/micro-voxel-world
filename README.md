@@ -147,3 +147,8 @@ Run `npx playwright test tests/browser/regional-performance.spec.ts --workers=1`
 after building for the short travel/firing baseline. See the
 [measurement definitions and limitations](docs/performance/phase-16-notes.md).
 These CPU diagnostics do not measure GPU upload time or establish hardware FPS.
+
+For the longer continuous regional return profile, build and run
+`MVW_ROUTE_PROFILE=1 npx playwright test tests/browser/regional-route.spec.ts --workers=1`
+(Node 24, POSIX shell). It is skipped by default. The report includes Chromium
+post-GC heap and renderer geometry checkpoints; see the Phase 16 notes for limits.

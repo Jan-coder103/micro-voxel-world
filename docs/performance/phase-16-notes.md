@@ -305,3 +305,36 @@ short recovery does not prove stable long-travel heap/GPU memory.
 The attack fired two shells/one blast with zero hits, damage or kills, so it only
 exercises firing and effects, not dense combat or damage-save cost. No scheduling,
 look-ahead or integration budget was tuned based on this small baseline.
+
+## Fifth slice — continuous return route
+
+Run after building with Node 24:
+`MVW_ROUTE_PROFILE=1 npx playwright test tests/browser/regional-route.spec.ts --workers=1`.
+The test is skipped by default to avoid sustained software rendering in routine
+smoke checks. It uses normal direct-flight bank/throttle controls, with 150 ms
+feedback polling toward an outbound waypoint 800 m north and back within 80 m of
+home, twice. It never invokes recovery/teleports. Pause/settle checkpoints capture
+renderer geometries and Chromium Runtime.getHeapUsage after explicit forced GC.
+This CDP heap probe is Chromium-specific. Route timing/positions vary with load;
+it is reproducible workload guidance, not deterministic frame replay.
+
+The [SwiftShader report](2026-10-28-regional-route.json) covers 45.4 seconds including
+settled checkpoints: 100 m/s maximum speed, zero generation failures and no missing
+current chunk in 37 approximately one-second travel samples. Per-poll assertions
+check running state and 49-resident/two-payload caps; sampled visibility cannot
+exclude intermediate gaps. Population residency/cache remain bounded to 49/64.
+Settled renderer geometry counts were 43 at start and 53 after each return.
+Return positions/heading and the heading-biased terrain window differ from start,
+so exact baseline equality is not expected. These counts are not GPU bytes.
+
+Retained JS heap was 26,555,996 → 28,016,280 → 28,423,816 bytes after forced GC.
+The second pass still added 407,536 bytes: this does NOT demonstrate a plateau or
+prove a leak. Backing storage was 8,652,143 → 8,621,534 → 8,605,982 bytes. Longer runs,
+heap snapshots/retainer analysis and worker/GPU accounting remain necessary.
+Resolved payloads/stale replies per pass were 716/81 and 814/80 (11.3% and 9.8%).
+Lifetime max synchronous attach was 4.7 ms and max reply round trip 509.5 ms,
+including startup. Similar stale fractions on this route and the earlier straight
+flight justify inspecting which tier transitions/turns cancel work before tuning
+LOD hysteresis or worker caching. No scheduler/runtime change is made here.
+No combat occurs on this route; damage-heavy combat and large-save costs remain
+separate outstanding measurements. Hardware FPS acceptance remains outstanding.

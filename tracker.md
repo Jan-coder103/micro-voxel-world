@@ -334,3 +334,22 @@ Status: streaming plan reuse implemented; automated checks passed; agent visual 
   Agent visually inspected the regional population capture: readable controls and
   diagnostics, visible aircraft/groups, no overlap. User/hardware checks remain
   open. No dependency or save-format changes. Test preview servers stopped.
+
+### Phase 16 fifth slice — continuous return profiling
+
+- Added opt-in two-pass regional outbound/return browser guidance using ordinary
+  flight controls, no recovery/teleports. Per-poll assertions check running state,
+  no failures and streaming caps; settled checkpoints check population/cache caps.
+- SwiftShader route profile passed in 50 seconds (45.4 s recorded workload),
+  reaching 100 m/s. Geometry counts: 43 initially, 53 at both returns. Post-GC JS
+  heap: 26.56 → 28.02 → 28.42 MB, not a demonstrated plateau or leak diagnosis.
+- Stale resolved replies per pass: 81/716 and 80/814. No runtime scheduling changes
+  are justified yet; document transition/cancellation analysis as the next step.
+- Raw evidence: docs/performance/2026-10-28-regional-route.json. Added Chromium heap
+  checkpoints explicitly distinguish JS/backing storage from GPU memory.
+- Agent inspected return capture: readable controls/diagnostics, visible aircraft
+  and terrain, no layout overlap. User/hardware acceptance remains outstanding.
+- Verification: opt-in browser route, lint, strict types and all 185 unit tests
+  passed. Prior 68 browser checks, assets and build remain prior evidence for
+  unchanged runtime/build; not repeated for this profiling-only addition.
+  No runtime/assets/dependency/save changes; benchmark is skipped by default.

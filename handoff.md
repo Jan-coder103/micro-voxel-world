@@ -1,45 +1,41 @@
 # Handoff — 28 October 2026
 
-Phase 16 fourth slice adds bounded streaming telemetry and a short integrated
-regional browser workload. Phase 16 remains IN PROGRESS; Phase 17 has not started.
-Phase 12 player feedback and physical-GPU acceptance remain deferred, not passed.
+Phase 16 fifth slice adds continuous regional return profiling. Phase 16 remains
+IN PROGRESS; Phase 17 has not started. Phase 12 player feedback and physical-GPU
+acceptance remain deferred, not passed. Reference hardware/target question was
+sent to Jan; acceptance criteria remain unresolved without that input.
 
-Flight diagnostics expose cumulative streamTimings plus draw calls/triangles.
-The shared stream measures resolved load round trips (including stale replies),
-integrated-ready wait and synchronous attach/replacement CPU. Nine scalar counters
-retain no history. Scheduling, caps, collision, saves and visual behavior are
-unchanged. Tests inject a clock for exact timing and stale-result accounting.
-Definitions/exclusions: docs/performance/phase-16-notes.md, fourth slice.
+New opt-in test: tests/browser/regional-route.spec.ts. With Node 24 and an existing
+production build:
+`MVW_ROUTE_PROFILE=1 npx playwright test tests/browser/regional-route.spec.ts --workers=1`.
+It is skipped by default. Two ~800 m outbound/return passes use ordinary direct
+bank/throttle controls with wall-clock feedback guidance, never recovery/teleport.
+Return is within 80 m, not identical frame replay. Chromium CDP forces GC only at
+paused/settled checkpoints before reading retained JS/backing storage heap.
 
-New workload: 12 wall-clock seconds of throttle-up flight, home recovery, two
-seconds of shell fire. Evidence: docs/performance/2026-10-28-regional-travel.json.
-SwiftShader reached 100 m/s, 55 stale travel replies, zero generation failures,
-4.4 ms lifetime max attachment interval; home geometry count returned to 43.
-All sampled current chunks were visible; between-sample gaps are not excluded.
-Shell fire caused no hits/damage, so dense combat/save costs remain unmeasured.
-Recovery teleports; this is not long-travel memory or physical-GPU acceptance.
+Evidence: docs/performance/2026-10-28-regional-route.json. Interpretation and
+exclusions: docs/performance/phase-16-notes.md, fifth slice. SwiftShader reached
+100 m/s with no failures or sampled missing current chunks; per-poll resident/
+payload caps and settled population/cache caps passed. Initial/return geometry
+counts: 43/53/53; heading-biased windows differ. Post-GC JS heap:
+26.56/28.02/28.42 MB. No memory plateau, GPU-byte result or leak diagnosis claimed.
+Stale/loaded replies per pass: 81/716 and 80/814. No combat on this workload.
 
-Passed: lint, 185 unit tests, 22 asset validations, strict types/build and all
-68 browser checks (3 focused plus 65 remaining with one worker, same runtime/build).
-The remaining run took 8.4 minutes. An initial remaining-suite launch was
-intentionally stopped after noticing an unnecessary ignore-snapshots flag; the
-normal run restarted from its beginning and passed with normal assertions.
-Agent inspected the regional population screenshot: controls/diagnostics readable,
-aircraft/groups visible, no layout overlap. This is not Jan playtesting.
-Preview servers stopped after tests; no listeners remain on port 4173.
-Existing bundle-size warnings remain. This handoff belongs to the local commit;
-consult git log for its hash.
+Passed: opt-in route profile (50 s), lint, strict types and all 185 unit tests.
+No runtime, asset, dependency, save format or visual changes in this slice.
+Prior slice's all-68-browser, asset-validation and build results apply to unchanged
+runtime/build; those checks were not repeated for this benchmark-only change.
+Agent inspected return screenshot: readable controls/diagnostics, aircraft/terrain
+visible, no overlaps. This is not Jan playtesting. Test servers stopped afterward.
+This handoff belongs to its local commit; consult git log for hash.
 
-Next: investigate stale work using a repeatable continuous out-and-back/turn route,
-profile damage-heavy regional combat and long-travel heap/GPU memory; measure
-browser cold startup and large saves. Agree reference hardware and targets with
-Jan before accepting Phase 16. No optimization benefit is claimed for telemetry.
-
-Earlier startup CPU evidence and demand rendering/streaming-plan reuse remain in
-performance notes and decisions 0016/0017. Source mesh reuse and settlement-backed
-encounter generation remain candidates, not implemented changes.
+Next: attribute stale work to LOD/turn cancellations before changing scheduling;
+profile damage-heavy regional combat and large saves. Longer continuous runs,
+heap retainer snapshots and worker/GPU memory measurements remain outstanding.
+Use agreed reference hardware/targets before accepting Phase 16. Existing
+telemetry definitions, startup evidence and decisions 0016/0017 remain current.
 
 Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22.
 CLI subprocess/local-server checks may need reviewed outside-sandbox access. Use
-one browser worker on this software-rendered host and tell Jan before sustained
-CPU-heavy work. Stop test servers/processes afterward. No deployment.
+one browser worker on this software-rendered host; tell Jan before sustained load.
+Stop test servers/processes afterward. No deployment.
