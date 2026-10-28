@@ -1,9 +1,9 @@
 import type { Point } from '../flight/flight';
 import type { Target, TargetQuery } from '../combat/weapons';
 import type { StorageLike } from '../persistence/chunk-deltas';
-import { regionalHash, regionalSample } from '../world/regional-terrain';
-import { SettlementWorld } from '../world/settlements';
-import { hordeTier, type HordeTier } from './hordes';
+import { regionalHash, regionalSample } from '../world/regional-terrain.ts';
+import { SettlementWorld } from '../world/settlements.ts';
+import { hordeTier, type HordeTier } from './hordes.ts';
 
 export const POPULATION_SIZE=128, POPULATION_LIMIT=32, REGIONAL_HEALTH=40;
 export interface Encounter { id:string; x:number; z:number; habitat:string; members:Point[] }

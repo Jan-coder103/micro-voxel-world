@@ -296,3 +296,20 @@ Status: streaming plan reuse implemented; automated checks passed; agent visual 
 - No visual design, asset sources, dependencies, simulation, persistence schema or gameplay settings changed. No new user/hardware verification claimed. Phase 16 remains in progress; Phase 17 aircraft variety has not started.
 
 - Final verification: all 67 browser checks passed across two single-worker runs with unchanged runtime/build (46 before process termination, exit 143; remaining 21 passed in 2.4 minutes). The leftover preview server was explicitly stopped before resumption. Agent inspected the regional recovery capture: readable controls, aircraft/terrain/groups visible, no overlaps. Browser checks use software rendering; user and physical-GPU acceptance remain outstanding. Changes are ready for the required local commit.
+
+### Phase 16 third slice — startup CPU profiling
+
+- Added reproducible regional startup CPU benchmark and raw timing report for seven
+  settlement kits and two population seeds, with/without structures.
+- Built-in assertions check deterministic descriptors after travel/return, one-kill
+  reload durability, stable mesh statistics and bounded residents/cache.
+- First kit meshing calls measured 24–96 ms each; structure-backed initial
+  population residency measured 29–67 ms. These are Node CPU stages, excluding
+  browser/GPU/integrated gameplay; no runtime optimization or acceptance claim.
+- Regional population runtime imports now use explicit TypeScript extensions so
+  the Node 24 benchmark can execute the same implementation as the browser.
+- Verification passed: benchmark assertions, lint, 184 unit tests, 22 source
+  validations and strict types/production build. CLI-output sandbox failures
+  disappeared on reviewed outside-sandbox rerun. Browser checks were not rerun
+  for this profiling-only slice; previous slice's 67-check result remains prior
+  evidence. Phase 16 acceptance and Phase 17 remain outstanding.

@@ -243,3 +243,26 @@ Second-slice verification passed lint, 184 unit tests, 22 asset validations, typ
 build and all 67 browser checks across split single-worker runs (46 before signal
 143 termination, 21 on resumption; unchanged runtime/build). Agent inspected the
 regional recovery capture. User and hardware verification remain outstanding.
+
+## Third slice — startup CPU profiling, 28 October 2026
+
+Run `node --experimental-transform-types tools/benchmarks/regional-startup.ts`
+with Node 24. The checked-in report is
+[regional startup CPU evidence](2026-10-28-regional-startup.json).
+Seven settlement source kits took 24–96 ms each on their first meshing call in
+this process. Initial 49-encounter residency took 29–67 ms with structures and
+2.7–2.9 ms without them across seeds 103/12012. One-record reload took 10–14 ms
+with structures. These observations justify examining source mesh reuse and
+settlement-backed encounter generation next; they do not establish browser long
+tasks or predict the benefit of either change.
+
+The runner separates construction, initial/unchanged population update, one
+kill/checkpoint, one-record reload, and a 1024 m jump/return. Assertions verify
+meshing statistics, deterministic returned descriptors, durable kill reload and
+49/64 resident/cache bounds. Storage is an in-memory adapter, so checkpoint time
+excludes browser localStorage latency. Meshing excludes source parsing and Three.js
+buffer/material assembly; first calls share a process and are not cold page loads.
+Five repeated kit timings are provided without a statistical acceptance claim.
+No gameplay behavior changed. Integrated maximum-speed travel/dense combat,
+large-save scaling, queue latency/upload spikes, long-travel memory and reference
+hardware targets remain outstanding. Phase 16 remains in progress.

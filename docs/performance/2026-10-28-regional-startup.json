@@ -1,0 +1,227 @@
+{
+  "runtime": "v24.22.1",
+  "platform": "linux",
+  "architecture": "x64",
+  "scenario": "Seven settlement source kits; regional population at origin, one kill/reload, 1024 m jump and return; two seeds with/without structures",
+  "limitations": "First calls are process-local, not cold browser startup. Source parsing/import time, render geometry assembly, workers, uploads, integrated travel/combat, large saves, peak memory and GPU FPS are excluded. Repeated meshing samples are diagnostic, not a statistical performance gate.",
+  "meshing": [
+    {
+      "kit": "farmhouse",
+      "firstMs": 96.02630999999997,
+      "repeatedMs": [
+        59.61981099999997,
+        57.14862099999999,
+        77.02284299999997,
+        64.37110900000005,
+        158.35494799999992
+      ],
+      "stats": {
+        "voxels": 18878,
+        "naiveTriangles": 226536,
+        "visibleFaces": 36902,
+        "culledTriangles": 73804,
+        "quads": 369,
+        "triangles": 738,
+        "vertices": 1476
+      }
+    },
+    {
+      "kit": "utility-building",
+      "firstMs": 72.05157399999996,
+      "repeatedMs": [
+        67.52585499999998,
+        77.05397399999993,
+        52.422583999999915,
+        61.98702799999978,
+        50.70841500000006
+      ],
+      "stats": {
+        "voxels": 20550,
+        "naiveTriangles": 246600,
+        "visibleFaces": 40334,
+        "culledTriangles": 80668,
+        "quads": 143,
+        "triangles": 286,
+        "vertices": 572
+      }
+    },
+    {
+      "kit": "small-warehouse",
+      "firstMs": 90.82842299999993,
+      "repeatedMs": [
+        85.93103899999983,
+        78.98291200000017,
+        90.47588399999995,
+        87.87050799999997,
+        80.62693000000013
+      ],
+      "stats": {
+        "voxels": 31446,
+        "naiveTriangles": 377352,
+        "visibleFaces": 62900,
+        "culledTriangles": 125800,
+        "quads": 331,
+        "triangles": 662,
+        "vertices": 1324
+      }
+    },
+    {
+      "kit": "fuel-tank",
+      "firstMs": 39.98777600000017,
+      "repeatedMs": [
+        35.19576699999993,
+        33.91294300000004,
+        43.01753500000018,
+        33.854155999999875,
+        33.73966799999994
+      ],
+      "stats": {
+        "voxels": 14996,
+        "naiveTriangles": 179952,
+        "visibleFaces": 20532,
+        "culledTriangles": 41064,
+        "quads": 866,
+        "triangles": 1732,
+        "vertices": 3464
+      }
+    },
+    {
+      "kit": "watchtower",
+      "firstMs": 33.312527000000046,
+      "repeatedMs": [
+        30.53646600000002,
+        29.83489200000008,
+        29.599733000000015,
+        49.86290699999972,
+        48.39006100000006
+      ],
+      "stats": {
+        "voxels": 12751,
+        "naiveTriangles": 153012,
+        "visibleFaces": 17718,
+        "culledTriangles": 35436,
+        "quads": 812,
+        "triangles": 1624,
+        "vertices": 3248
+      }
+    },
+    {
+      "kit": "shipping-container",
+      "firstMs": 24.240897000000132,
+      "repeatedMs": [
+        22.175440999999864,
+        30.82381899999973,
+        25.8427700000002,
+        20.03866999999991,
+        19.857474999999795
+      ],
+      "stats": {
+        "voxels": 8236,
+        "naiveTriangles": 98832,
+        "visibleFaces": 15176,
+        "culledTriangles": 30352,
+        "quads": 247,
+        "triangles": 494,
+        "vertices": 988
+      }
+    },
+    {
+      "kit": "wooden-bridge",
+      "firstMs": 29.54791400000022,
+      "repeatedMs": [
+        34.963614000000234,
+        29.41892599999983,
+        29.243423999999777,
+        29.011633999999958,
+        34.705363000000034
+      ],
+      "stats": {
+        "voxels": 13644,
+        "naiveTriangles": 163728,
+        "visibleFaces": 14792,
+        "culledTriangles": 29584,
+        "quads": 364,
+        "triangles": 728,
+        "vertices": 1456
+      }
+    }
+  ],
+  "population": [
+    {
+      "seed": 103,
+      "structures": true,
+      "constructionMs": 0.3232749999997395,
+      "initialResidencyMs": 67.087176,
+      "unchangedUpdateMs": 0.05907699999988836,
+      "singleKillAndCheckpointMs": 0.43109699999968143,
+      "oneRecordReloadMs": 10.497836000000007,
+      "travelAndReturnMs": 28.191491000000042,
+      "saveBytes": 186,
+      "counts": {
+        "resident": 49,
+        "alive": 619,
+        "cleared": 0,
+        "killed": 1,
+        "changed": 1,
+        "cache": 64
+      }
+    },
+    {
+      "seed": 103,
+      "structures": false,
+      "constructionMs": 0.010412000000087573,
+      "initialResidencyMs": 2.8974859999998444,
+      "unchangedUpdateMs": 0.0193120000003546,
+      "singleKillAndCheckpointMs": 0.11833500000011554,
+      "oneRecordReloadMs": 0.12017199999991135,
+      "travelAndReturnMs": 4.925621999999748,
+      "saveBytes": 115,
+      "counts": {
+        "resident": 49,
+        "alive": 338,
+        "cleared": 0,
+        "killed": 1,
+        "changed": 1,
+        "cache": 64
+      }
+    },
+    {
+      "seed": 12012,
+      "structures": true,
+      "constructionMs": 0.011477000000013504,
+      "initialResidencyMs": 28.54798800000026,
+      "unchangedUpdateMs": 0.020714999999654538,
+      "singleKillAndCheckpointMs": 0.09526099999993676,
+      "oneRecordReloadMs": 13.588205000000016,
+      "travelAndReturnMs": 22.09426799999983,
+      "saveBytes": 164,
+      "counts": {
+        "resident": 49,
+        "alive": 641,
+        "cleared": 0,
+        "killed": 1,
+        "changed": 1,
+        "cache": 64
+      }
+    },
+    {
+      "seed": 12012,
+      "structures": false,
+      "constructionMs": 0.013045000000147411,
+      "initialResidencyMs": 2.661631999999827,
+      "unchangedUpdateMs": 0.021404999999958818,
+      "singleKillAndCheckpointMs": 0.0575130000001991,
+      "oneRecordReloadMs": 0.10824800000000323,
+      "travelAndReturnMs": 4.731584000000112,
+      "saveBytes": 129,
+      "counts": {
+        "resident": 49,
+        "alive": 406,
+        "cleared": 0,
+        "killed": 1,
+        "changed": 1,
+        "cache": 64
+      }
+    }
+  ]
+}
