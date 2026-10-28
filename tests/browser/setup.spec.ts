@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const [path, title] of [['/', 'Micro Voxel World'], ['/tools/voxel-editor/', 'Voxel workshop']]) {
+for (const [path, title] of [['/tools/outdoor/', 'Micro Voxel World'], ['/tools/voxel-editor/', 'Voxel workshop']]) {
   test(`${title} renders its production entry point`, async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
@@ -16,11 +16,11 @@ for (const [path, title] of [['/', 'Micro Voxel World'], ['/tools/voxel-editor/'
 }
 
 test('workspace navigation connects game and tool', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/tools/outdoor/');
   await page.getByRole('link', { name: 'Voxel workshop' }).click();
   await expect(page).toHaveURL(/\/tools\/voxel-editor\/$/);
   await page.getByRole('link', { name: 'Game', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Micro Voxel World', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Game menu' })).toBeVisible();
 });
 
 test('unavailable WebGL reports an actionable fallback', async ({ browser }) => {
@@ -29,7 +29,7 @@ test('unavailable WebGL reports an actionable fallback', async ({ browser }) => 
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext;
   });
-  await page.goto('/');
+  await page.goto('/tools/outdoor/');
   await expect(page.locator('.viewport')).toHaveAttribute('data-state', 'unsupported');
   await expect(page.getByRole('status')).toContainText('WebGL 2 unavailable');
   await context.close();

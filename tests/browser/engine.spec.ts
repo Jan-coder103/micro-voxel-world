@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 test('engine lifecycle, focused input and reset remain repeatable', async ({ page }) => {
   test.setTimeout(90000);
-  await page.goto('/');
+  await page.goto('/tools/outdoor/');
   // Lifecycle coverage uses Low; outdoor.spec measures both presets separately.
   await page.getByLabel('Render quality').selectOption('low');
   const scene = page.locator('.viewport');
@@ -40,7 +40,7 @@ test('engine lifecycle, focused input and reset remain repeatable', async ({ pag
 test('page teardown cancels animation, detaches controls and tolerates repeated cleanup', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/tools/outdoor/');
   await page.getByRole('button', { name: 'Start', exact: true }).click();
   await page.evaluate(() => { window.dispatchEvent(new Event('pagehide')); window.dispatchEvent(new Event('pagehide')); });
   await expect(page.locator('canvas')).toHaveCount(0);

@@ -1,3 +1,4 @@
+import { mountPlayerShell } from './player-shell';
 import { CombatFeedback, comfortDefaults } from './feedback';
 import { MISSIONS } from './missions';
 import { AIRCRAFT_SELECTORS, AIRCRAFT_CONTROLS } from '../ui/aircraft-controls';
@@ -140,4 +141,4 @@ ${2592-model.store.killed}/2592 survivors · ${metrics.summary.frames}/180 sampl
   };frame=requestAnimationFrame(animate);
   return ()=>{if(disposed)return;disposed=true;pause();cancelAnimationFrame(frame);resizeObserver.disconnect();releases.forEach(r=>r());if(downloadUrl)URL.revokeObjectURL(downloadUrl);audio.dispose();hordeView.dispose();effects.dispose();fallback.dispose();stream.dispose();workers.dispose();aircraft.dispose();rotorcraft.dispose();gunMount.dispose();ringGeometry.dispose();ringGold.dispose();ringGreen.dispose();terrainMaterial.dispose();markerGeometry.dispose();markerMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
 }
-const release=mount();const dispose=()=>{window.removeEventListener('pagehide',onHide);release();};const onHide=(event:PageTransitionEvent)=>{if(!event.persisted)dispose();};window.addEventListener('pagehide',onHide);if(import.meta.hot)import.meta.hot.dispose(dispose);
+const release=mount();const releaseShell=mountPlayerShell(app);const dispose=()=>{releaseShell();window.removeEventListener('pagehide',onHide);release();};const onHide=(event:PageTransitionEvent)=>{if(!event.persisted)dispose();};window.addEventListener('pagehide',onHide);if(import.meta.hot)import.meta.hot.dispose(dispose);

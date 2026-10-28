@@ -504,3 +504,16 @@ awaiting player comfort/sound/feel feedback. Phase 16 Pixel hardware and earlier
   stated. No Pixel FPS, listening quality or user-comfort acceptance claimed.
 - No source assets, dependencies, gameplay authority or save formats changed.
   Phase 19 is ready for its required local commit. Phase 20 not started.
+
+## Player entry and developer-tool separation — 28 October 2026
+
+Jan requested a player-facing game entry instead of the environment/lab dashboard.
+Root now mounts the existing combat game in a full-window scene with a mission /
+equipment dialog. Esc pauses and opens the menu; Settings contains comfort,
+sound, render scale and an opt-in developer-tools toggle (stored locally when
+available). Lab links are hidden by default. The former root environment scene
+is preserved at /tools/outdoor/; /play/ remains the combat diagnostics lab.
+This is a player-interface slice, not completion of release or hardware gates.
+
+Validation: lint/types/build passed; 8 targeted browser checks passed, including
+player launch, Escape pause, developer links, narrow layout and preserved labs.

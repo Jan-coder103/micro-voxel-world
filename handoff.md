@@ -57,3 +57,20 @@ Use Node24: /home/user/.nvm/versions/node/v24.22.1/bin. Default shell Node is 22
 CLI subprocess/local-server checks may need reviewed outside-sandbox access. Use
 one browser worker on this software-rendered host; tell Jan before sustained load.
 Stop test servers/processes afterward. No deployment.
+
+## New player-facing entry
+
+Jan identified the old environment landing page as inappropriate for the game.
+Root now loads combat with a full-window scene and a mission/equipment modal.
+Esc opens the paused menu; Settings holds comfort/sound/render scale and the
+persistent optional developer-tools toggle. /play/ retains the developer combat
+UI; /tools/outdoor/ preserves the former root. Developer tools remain directly
+addressable, not access-controlled. Saves and combat rules are unchanged.
+Typecheck, lint and production build passed; targeted browser checks underway.
+No deployment, phone acceptance or claim of a finished game.
+
+Verification: 8 targeted browser scenarios passed (player entry/menu, legacy
+engine lifecycle/cleanup, outdoor rendering, entry points/navigation and WebGL
+fallback). Final header-height correction is CSS-only; final player test repeated.
+Existing build-size warnings remain. No full gameplay regression rerun for this
+UI-only slice; combat simulation and persistence code were not modified.

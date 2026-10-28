@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 test('outdoor quality comparison, collision overlays and stable rendering baseline', async ({ page, browser }, testInfo) => {
   test.setTimeout(120000);
   const errors: string[] = []; page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/tools/outdoor/');
   const measurements = page.getByLabel('Rendering measurements');
   await expect(page.locator('.viewport')).toHaveAttribute('data-state','ready');
   const samples: Record<string, unknown>[] = [];
