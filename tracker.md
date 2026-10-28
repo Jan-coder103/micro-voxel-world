@@ -363,3 +363,51 @@ Status: streaming plan reuse implemented; automated checks passed; agent visual 
 - On-device travel/combat/sustained resource tests, measurement protocol and mobile
   controls remain outstanding. No runtime changes or tests needed for this
   documentation update; checked diff formatting.
+
+## Phase 17 — Aircraft variety and customization
+
+Status: implemented; automated checks passed; agent visual inspection completed;
+awaiting user handling/balance verification. Jan requested the next phase on 28 October 2026. Phase 16
+Pixel 10a / 720p / 60 FPS acceptance remains open, not passed.
+
+- Added Kestrel helicopter beside existing fixed-wing default in Clearpass and all
+  Flight/Weapons lab routes. Helicopter offers stationary hover, yaw, reverse and
+  up to ±55 m/s tilt-driven translation with independent ±12 m/s lift. Shared 60 Hz
+  stepping, collision, pause, damage and saves remain authoritative. Zero-length,
+  vertical and reverse movements have explicit collision coverage.
+- Added Multirole, Precision and Siege loadouts with nose/port/starboard mounts.
+  Muzzle transforms match rendered YXZ attitude; visible barrels follow the mount.
+  Equipped sets gate both UI hotkeys and Clearpass firing authority. Loadout/mount
+  changes pause without resetting cooldowns or progress; aircraft changes reset the
+  approach/flyover requirement and retain casualties. Session-only configuration;
+  recovery and world changes retain equipment, reload uses defaults.
+- Added original code-native helicopter silhouette/rotor, reused geometries and
+  idempotent disposal. No source asset/dependency/save-schema changes. Helicopter
+  return assist steers physically back to base. Benchmarks keep fixed-wing defaults.
+- Eight new unit cases cover hover, translation, fixed-step equivalence, collision,
+  configuration validation, mount orientation, saves/cooldowns, return assist,
+  shared damage and resource disposal. All 193 unit tests passed, with lint,
+  22 source validations and strict types/production build. Two new browser cases
+  passed for Clearpass and regional switching/controls/persistence/seed isolation.
+- Early checks found a test-only TS narrowing error, missing exact selector labels
+  and unsupported option-disabled matcher behavior. Corrected before passing runs.
+  Remaining prior browser suite is running with one worker. Existing bundle-size
+  warnings remain. User playtesting, finished helicopter source art, touch controls
+  and Pixel hardware performance remain unverified/outstanding.
+
+- All 68 prior browser checks passed with one worker in 10.3 minutes; opt-in
+  sustained route skipped. New aircraft cases passed again (42.1 s), and agent
+  inspected both Clearpass/regional captures: readable UI/HUD, visible helicopter
+  and scenery, no overlaps. Final review found and fixed stationary hover skipping
+  structure queries; now uses a normalized zero-range overlap ray, with unit
+  coverage. Final focused browser verification follows. All 193 unit tests passed
+  again with one worker; a parallel CLI export timeout disappeared without changing
+  its timing threshold. Footer/clearance text corrected for the helicopter.
+
+- Final overlap correction verified: all 193 unit tests, lint/types/build and both
+  aircraft browser cases passed afterward (42.3 s). The prior 68-browser regression
+  run preceded that helicopter-only fix; no further legacy runtime behavior was
+  changed. Combined Phase 17 browser coverage: 70 passing scenarios, one opt-in
+  route skipped. Visual inspection completed for both helicopter routes. Test
+  servers stopped. Phase 17 ready for its required local commit; no user handling,
+  touch usability or Pixel performance acceptance claimed.

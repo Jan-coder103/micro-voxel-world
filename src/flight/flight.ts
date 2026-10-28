@@ -1,3 +1,4 @@
+import { aircraftId, type AircraftId } from './aircraft.ts';
 export interface FlightInput { pitch: number; bank: number; throttle: number }
 export interface Point { x:number; y:number; z:number }
 const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
@@ -7,8 +8,10 @@ export class Flight {
   state:'ready'|'running'|'paused'|'crashed'='ready';
   reason=''; assisted=true; dropped=0;
   private accumulator=0;
-  constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined) { this.reset(); }
-  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason=''; }
+  constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing') { this.kind=aircraftId(kind);this.reset(); }
+  get aircraft(){return this.kind;}
+  setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
+  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
   start() { if(this.state==='ready'||this.state==='paused') this.state='running'; }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
   advance(dt:number,input:FlightInput,onStep?:()=>void) {
@@ -20,6 +23,7 @@ export class Flight {
   }
   private step(input:FlightInput) {
     const dt=1/60;
+    if(this.kind==='helicopter'){this.rotorStep(input);return;}
     this.throttle=clamp(this.throttle+clamp(input.throttle,-1,1)*dt*.35,0,1);
     this.speed+=(30+70*this.throttle-this.speed)*dt*1.5;
     this.pitch=clamp(this.pitch+clamp(input.pitch,-1,1)*dt*.55,-.65,.65);
@@ -28,14 +32,31 @@ export class Flight {
     this.heading+=Math.tan(this.bank)*.65*dt;
     const old=this.position;
     const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pitch)*this.speed*dt,y:old.y+Math.sin(this.pitch)*this.speed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pitch)*this.speed*dt};
-    const length=Math.hypot(next.x-old.x,next.y-old.y,next.z-old.z),direction={x:(next.x-old.x)/length,y:(next.y-old.y)/length,z:(next.z-old.z)/length};
+    this.move(next);
+  }
+  private rotorStep(input:FlightInput){
+    const dt=1/60;
+    this.throttle=.5+clamp(input.throttle,-1,1)*.5;
+    this.pitch=clamp(this.pitch+clamp(input.pitch,-1,1)*dt*.65,-.55,.55);
+    if(this.assisted&&!input.pitch)this.pitch*=Math.exp(-dt*2.8);
+    this.bank+=(clamp(input.bank,-1,1)*.22-this.bank)*dt*8;
+    this.heading+=clamp(input.bank,-1,1)*dt*1.05;
+    // Nose-down gives forward thrust; drag produces a deliberate hover/attack role.
+    this.speed+=(-this.pitch/.55*55-this.speed)*dt*2.5;
+    const p=this.position;
+    this.move({x:p.x+Math.sin(this.heading)*this.speed*dt,y:Math.min(250,p.y+clamp(input.throttle,-1,1)*12*dt),z:p.z-Math.cos(this.heading)*this.speed*dt});
+  }
+  private move(next:Point){
+    const old=this.position;
+    const length=Math.hypot(next.x-old.x,next.y-old.y,next.z-old.z);
+    const direction=length>0?{x:(next.x-old.x)/length,y:(next.y-old.y)/length,z:(next.z-old.z)/length}:{x:0,y:1,z:0};
     const obstacle=this.obstacle?.(old,direction,length);
     if(obstacle!==undefined){this.position={x:old.x+direction.x*obstacle,y:old.y+direction.y*obstacle,z:old.z+direction.z*obstacle};this.state='crashed';this.reason='Obstacle collision';this.accumulator=0;return;}
-    const count=Math.max(1,Math.ceil(this.speed*dt/.25));
+    const count=Math.max(1,Math.ceil(length/.25));
     for(let i=1;i<=count;i++) {
       const t=i/count, x=old.x+(next.x-old.x)*t,y=old.y+(next.y-old.y)*t,z=old.z+(next.z-old.z)*t;
-      if(Math.abs(x)>130850||Math.abs(z)>130850||y<=this.ground(x,z)+3) { this.position={x,y,z}; this.state='crashed'; this.reason=Math.abs(x)>130850||Math.abs(z)>130850?'World boundary':'Terrain collision'; this.accumulator=0; return; }
+      if(Math.abs(x)>130850||Math.abs(z)>130850||y<=this.ground(x,z)+(this.kind==='helicopter'?8:3)) { this.position={x,y,z}; this.state='crashed'; this.reason=Math.abs(x)>130850||Math.abs(z)>130850?'World boundary':'Terrain collision';this.accumulator=0;return; }
     }
-    next.y=Math.min(250,next.y); this.position=next; this.ticks++;
+    next.y=Math.min(250,next.y);this.position=next;this.ticks++;
   }
 }

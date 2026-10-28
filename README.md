@@ -152,3 +152,28 @@ For the longer continuous regional return profile, build and run
 `MVW_ROUTE_PROFILE=1 npx playwright test tests/browser/regional-route.spec.ts --workers=1`
 (Node 24, POSIX shell). It is skipped by default. The report includes Chromium
 post-GC heap and renderer geometry checkpoints; see the Phase 16 notes for limits.
+
+## Aircraft and loadouts (Phase 17)
+
+Clearpass (`/play/`), Flight lab, Weapons lab and regional Flight now offer
+**Clearpass · fixed wing** and **Kestrel · helicopter**. Fixed wing retains its
+30–100 m/s attack passes. Kestrel can hover, reverse and fly at up to 55 m/s:
+W/S tilt forward/back, A/D yaw, Q/E descend/climb; release Q/E to hold altitude.
+Assisted levels tilt and brakes toward hover; Direct holds tilt. Arrow keys mirror
+W/S and A/D. It is an arcade helicopter, without landing or rotor aerodynamics.
+
+Choose Multirole (all weapons), Precision (minigun/autocannon) or Siege
+(autocannon/shell), then a nose, port or starboard mount. Keys 1/2/3 retain their
+weapon meanings and ignore unequipped weapons. Equipment changes pause flight.
+Loadout/mount changes keep position and cooldowns; aircraft changes reset the
+approach and flyover requirement while retaining casualties. Recover keeps
+selected equipment. World loading keeps equipment with a separate population;
+reload restores default equipment and keeps saved casualties. Equipment is
+session-only; there are no unlocks/rewards yet. Clearpass return assist supports
+both aircraft. Isolated benchmarks keep their original fixed-wing configuration.
+
+Keep the helicopter above 8 m AGL in labs (14 m in Clearpass's conservative terrain
+envelope). Its original block silhouette is a code-native prototype, not a new
+workshop source asset. See [aircraft decisions](docs/decisions/0018-aircraft-loadouts.md).
+Phase 16 Pixel 10a / 720p / 60 FPS validation and user handling/balance feedback
+remain outstanding. Touch controls are not implemented.
