@@ -1,12 +1,25 @@
-import { describe,expect,it } from 'vitest';
+import { describe,expect,it,vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
 import { Flight,type FlightPose } from '../../src/flight/flight';
-import { FlightCamera } from '../../src/rendering/flight-camera';
+import { FlightCamera,bindFlightOrbit } from '../../src/rendering/flight-camera';
 import { createAircraftShadow } from '../../src/rendering/aircraft-shadow';
 const neutral={pitch:0,bank:0,throttle:0};
 const pose=():FlightPose=>({position:{x:16,y:40,z:16},heading:0,pitch:0,bank:0});
 
 describe('flight presentation',()=>{
+  it('toggles once per C press, stays unlocked on keyup and locks on blur or disposal',()=>{
+    vi.stubGlobal('window',new EventTarget());
+    try {
+      const host=Object.assign(new EventTarget(),{style:{cursor:''}}) as unknown as HTMLElement;
+      const chase=new FlightCamera(),dispose=bindFlightOrbit(host,chase,()=>{});
+      const key=(type:string,repeat=false)=>host.dispatchEvent(Object.assign(new Event(type,{cancelable:true}),{code:'KeyC',repeat}));
+      key('keydown');key('keyup');expect(chase.unlocked).toBe(true);expect(host.style.cursor).toBe('move');
+      key('keydown',true);expect(chase.unlocked).toBe(true);
+      key('keydown');expect(chase.unlocked).toBe(false);expect(host.style.cursor).toBe('');
+      key('keyup');key('keydown');host.dispatchEvent(new Event('blur'));expect(chase.unlocked).toBe(false);
+      key('keydown');dispose();expect(chase.unlocked).toBe(false);key('keydown');expect(chase.unlocked).toBe(false);
+    } finally { vi.unstubAllGlobals(); }
+  });
   it('moves continuously at 144 Hz even on frames without a simulation tick',()=>{
     const flight=new Flight(()=>0),out=pose();flight.start();
     const positions:number[]=[];const tickCounts:number[]=[];
@@ -29,19 +42,19 @@ describe('flight presentation',()=>{
     const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);
     for(const dt of [1/144,1/60,1/30,1/144,.08]){p.position.z-=60*dt;chase.update(camera,p,dt);expect(camera.position.z-p.position.z).toBeCloseTo(32,10);expect(camera.position.y-p.position.y).toBeCloseTo(9,10);}
   });
-  it('orbits only while held, clamps elevation, returns to chase and settles',()=>{
+  it('toggles orbit, clamps elevation, then locks and resets chase immediately',()=>{
     const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);
-    chase.move(200,100);expect(chase.yaw).toBe(0);chase.held=true;
-    chase.move(Math.PI*2/.006,0);expect(chase.yaw).toBeCloseTo(0,10); // A full orbit returns by the shortest route.
+    chase.move(200,100);expect(chase.yaw).toBe(0);chase.toggle();
+    chase.move(Math.PI*2/.006,0);expect(chase.yaw).toBeCloseTo(0,10); // A full revolution normalizes back to zero.
     chase.move(200,10000);expect(chase.elevation).toBe(1.35);
     for(let i=0;i<60;i++)chase.update(camera,p,1/60);
     expect(Math.abs(camera.position.x-p.position.x)).toBeGreaterThan(1);expect(camera.position.y-p.position.y).toBeGreaterThan(30);
-    chase.held=false;for(let i=0;i<180;i++)chase.update(camera,p,1/60);
+    chase.toggle();expect(chase.unlocked).toBe(false);chase.update(camera,p,0);
     expect(camera.position.x).toBeCloseTo(p.position.x,3);expect(camera.position.z-p.position.z).toBeCloseTo(32,3);expect(chase.update(camera,p,1/60).moving).toBe(false);
   });
   it('keeps orbit distance constant when the mouse quickly crosses to the opposite side',()=>{
     const camera=new PerspectiveCamera(),chase=new FlightCamera(),p=pose();chase.update(camera,p,0,true);
-    chase.held=true;chase.move(Math.PI/.006,0);
+    chase.toggle();chase.move(Math.PI/.006,0);
     for(let i=0;i<20;i++){
       chase.update(camera,p,.0693);
       expect(Math.hypot(camera.position.x-p.position.x,camera.position.y-p.position.y,camera.position.z-p.position.z)).toBeCloseTo(Math.hypot(32,9),10);

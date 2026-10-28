@@ -2,10 +2,12 @@
 
 Requested by Jan as a handling/presentation follow-up, without advancing Phase 20.
 
-Hold C while the scene has focus and move the mouse over it to orbit the aircraft.
-The camera keeps world up, clamps elevation, and eases back behind the aircraft
-on release or focus loss. Angular smoothing preserves orbit distance during fast
-half-turns and returns by the shortest route after a full revolution. C has no flight/weapon action. Orbit also works while
+Press C while the scene has focus to unlock orbit; move the mouse over the scene.
+Press C again to lock and reset the camera immediately to chase view. Key release
+keeps orbit enabled; keyboard auto-repeat does not toggle again. Focus loss also
+locks and resets. The camera keeps world up and clamps elevation. Angular
+smoothing preserves orbit distance during fast half-turns.
+This toggle supersedes the original hold-C behavior at Jan's request. C has no flight/weapon action. Orbit also works while
 ready/paused; isolated benchmarks disable it. No mouse button is required.
 The same controller serves root, combat, flight, regional and weapons views.
 

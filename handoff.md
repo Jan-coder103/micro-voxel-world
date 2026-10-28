@@ -1,5 +1,26 @@
 # Handoff — 28 October 2026
 
+## Latest: C toggles camera unlock and lock/reset
+
+Jan changed the camera control to a toggle. Press C once to unlock orbit, then
+move the mouse over the focused scene; press C again to lock and immediately
+reset chase position and look direction. Keyup keeps orbit unlocked; auto-repeat
+is ignored. Blur/pause/recovery still lock/reset. This supersedes hold-C below.
+
+Changed the shared FlightCamera/binding, combat/lab state access, control text,
+README/decision 0022 and presentation tests. Lint/types/build passed. The full
+unit run passed 223 of 224; the unrelated GLB CLI check exceeded its unchanged
+five-second budget under parallel load. All five GLB cases passed unchanged in
+isolation, giving 224 unit cases passing across the runs. All three selected
+browser cases passed (49.4 s): combat/regional toggle, keyup persistence, repeat
+protection, reset, blur/cleanup, plus player menu behavior. Agent inspected the
+combat orbit capture with C released. No assets/dependencies/save formats changed.
+
+The prior legacy 90-second sortie timeout remains documented below and was not
+rerun for this input-only follow-up. Preview server stopped by Playwright; user
+5173 was untouched. Ready for the required local commit; consult git log.
+
+
 ## Latest: flight orbit, altitude shadow and smooth presentation
 
 Jan requested hold-key camera orbit, a shadow straight below the plane, jitter

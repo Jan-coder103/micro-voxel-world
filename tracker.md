@@ -645,3 +645,20 @@ budget remains failing on this software-rendered host (details below).
   source assets, save formats, deployment or release changes. Pixel hardware/FPS
   and player-feel/visual acceptance remain outstanding. Preview servers were
   managed/stopped by Playwright; the user's existing 5173 server was untouched.
+
+## Camera toggle follow-up — 28 October 2026
+
+Implemented Jan's revision: C unlocks orbit on one press and locks/resets chase
+position and look direction on the next. Releasing C preserves orbit; repeated
+keydown events are ignored. Focus loss/pause/recovery still lock and reset.
+Shared across player/combat and flight/regional/weapons; benchmark input stays
+blocked. Updated current control text, README, decision 0022 and meaningful tests.
+
+Lint/types/build passed. Full unit run: 223 pass, one unrelated five-second GLB
+CLI timeout under parallel load. All five GLB cases passed unchanged in isolation;
+224 unit cases pass across runs. Three selected browser cases passed (49.4 s):
+combat/regional toggle, keyup persistence, repeat protection, reset, blur/cleanup
+and player menu behavior. Agent inspected the combat orbit capture after keyup.
+Prior legacy overall-sortie timeout remains open and was not rerun for this
+input-only change. No thresholds were relaxed. No assets/dependencies/saves changed;
+Playwright stopped its preview server and user 5173 remained untouched.

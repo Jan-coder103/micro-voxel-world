@@ -25,20 +25,21 @@ test('player flying mode controls auto-level and survives recovery, aircraft and
   await expect.poll(async()=>(await read(page)).seed).toBe(12013);expect((await read(page)).assisted).toBe(false);
 });
 
-for(const [url,label,hostSelector] of [['/play/','Prototype diagnostics','.sortie-scene'],['/tools/flight/?terrain=regional','Flight diagnostics','.viewport']])test(`hold C orbit returns to chase and shadow follows displayed aircraft: ${url}`,async({page})=>{
+for(const [url,label,hostSelector] of [['/play/','Prototype diagnostics','.sortie-scene'],['/tools/flight/?terrain=regional','Flight diagnostics','.viewport']])test(`C toggles orbit and resets chase and shadow follows displayed aircraft: ${url}`,async({page})=>{
   test.setTimeout(60000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url);await expect.poll(async()=>(await read(page,label)).settled,{timeout:30000}).toBe(true);
   const host=page.locator(hostSelector);await host.focus();const before=await read(page,label),box=(await host.boundingBox())!;
-  await page.mouse.move(box.x+box.width*.4,box.y+box.height*.4);await page.keyboard.down('KeyC');await page.mouse.move(box.x+box.width*.75,box.y+box.height*.6,{steps:8});
+  await page.mouse.move(box.x+box.width*.4,box.y+box.height*.4);await page.keyboard.press('KeyC');await page.mouse.move(box.x+box.width*.75,box.y+box.height*.6,{steps:8});
   await expect.poll(async()=>Math.abs((await read(page,label)).camera.x-before.camera.x)).toBeGreaterThan(5);
+  await host.dispatchEvent('keydown',{code:'KeyC',repeat:true});
   const orbited=await read(page,label);
   expect(orbited.orbit).toBe(true);expect(orbited.ticks).toBe(0);
   const distance=(sample:typeof orbited)=>Math.hypot(sample.camera.x-sample.renderPose.position.x,sample.camera.y-sample.renderPose.position.y,sample.camera.z-sample.renderPose.position.z);
   expect(distance(orbited)).toBeCloseTo(distance(before),6);
   await page.screenshot({path:`test-results/orbit-${label.startsWith('Flight')?'regional':'combat'}.png`,fullPage:true});
-  await page.keyboard.up('KeyC');await expect.poll(async()=>Math.abs((await read(page,label)).camera.x-before.camera.x)).toBeLessThan(.05);
-  await page.keyboard.down('KeyC');await page.mouse.move(box.x+box.width*.5,box.y+box.height*.45);await page.getByRole('button',{name:'Start / Resume',exact:true}).focus();
-  await expect.poll(async()=>(await read(page,label)).orbit).toBe(false);await page.keyboard.up('KeyC');
+  await page.keyboard.press('KeyC');await expect.poll(async()=>Math.abs((await read(page,label)).camera.x-before.camera.x)).toBeLessThan(.05);
+  await page.keyboard.press('KeyC');await page.mouse.move(box.x+box.width*.5,box.y+box.height*.45);await page.getByRole('button',{name:'Start / Resume',exact:true}).focus();
+  await expect.poll(async()=>(await read(page,label)).orbit).toBe(false);
   await page.getByLabel('Aircraft',{exact:true}).selectOption('helicopter');await page.getByRole('button',{name:'Start / Resume',exact:true}).click();await page.keyboard.down('KeyE');
   await expect.poll(async()=>(await read(page,label)).y).toBeGreaterThan(before.y+1);await page.keyboard.up('KeyE');
   const flying=await read(page,label);expect(flying.groundShadow.x).toBeCloseTo(flying.renderPose.position.x);expect(flying.groundShadow.z).toBeCloseTo(flying.renderPose.position.z);expect(flying.groundShadow.y).toBeLessThan(flying.y-5);
