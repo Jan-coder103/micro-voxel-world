@@ -1,0 +1,510 @@
+{
+  "scope": "CPU-only 1 m sweeps. Exhaustive reference vs spatial hierarchy, including actual contact. Not hardware FPS.",
+  "hullPoints": 6050,
+  "rows": [
+    {
+      "name": "runway",
+      "agl": 2,
+      "hierarchy": false,
+      "samples": 2670,
+      "bounds": 0,
+      "ms": 10.250304999999997,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "runway",
+      "agl": 2,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 0.6412920000000213,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "runway",
+      "agl": 3,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 40.70095500000002,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 3,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 85,
+      "ms": 0.2530169999999998,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 5,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 33.68853599999997,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 5,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.09045900000000984,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 10,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 31.249764000000027,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 10,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.021148000000039247,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 20,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 30.256406000000027,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 20,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.0155430000000365,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 29,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 30.17551000000003,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 29,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.015898999999990338,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 30,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 30.089715000000012,
+      "contact": null
+    },
+    {
+      "name": "runway",
+      "agl": 30,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.016752999999994245,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 2,
+      "hierarchy": false,
+      "samples": 2670,
+      "bounds": 0,
+      "ms": 3.5225829999999974,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "plain",
+      "agl": 2,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 1.0538650000000302,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "plain",
+      "agl": 3,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 34.99521800000002,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 3,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 73,
+      "ms": 0.8185110000000009,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 5,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 26.684630000000027,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 5,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.05622299999998859,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 10,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 26.162637000000018,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 10,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.027284000000008746,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 20,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 26.546924999999987,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 20,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.03343000000000984,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 29,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 26.316771000000017,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 29,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.07117200000004686,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 30,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 26.31635300000005,
+      "contact": null
+    },
+    {
+      "name": "plain",
+      "agl": 30,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.027676000000042222,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 2,
+      "hierarchy": false,
+      "samples": 2670,
+      "bounds": 0,
+      "ms": 2.985748000000058,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "river",
+      "agl": 2,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 0.04256699999996272,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "river",
+      "agl": 3,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 34.80767900000001,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 3,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 85,
+      "ms": 0.22167300000000978,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 5,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 30.034626000000003,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 5,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.036235000000033324,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 10,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 29.989911000000006,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 10,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.013236000000006243,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 20,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 29.955061999999998,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 20,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.007610999999997148,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 29,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 30.392389999999978,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 29,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.007658999999989646,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 30,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 29.875953000000095,
+      "contact": null
+    },
+    {
+      "name": "river",
+      "agl": 30,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.007238000000029388,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 2,
+      "hierarchy": false,
+      "samples": 2,
+      "bounds": 0,
+      "ms": 0.012033000000087668,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 2,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 0.1708530000000792,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 3,
+      "hierarchy": false,
+      "samples": 2,
+      "bounds": 0,
+      "ms": 0.006838000000016109,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 3,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 0.14672800000005282,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 5,
+      "hierarchy": false,
+      "samples": 2,
+      "bounds": 0,
+      "ms": 0.0063209999999571664,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 5,
+      "hierarchy": true,
+      "samples": 2,
+      "bounds": 19,
+      "ms": 0.14645699999994122,
+      "contact": "Terrain collision"
+    },
+    {
+      "name": "mountain",
+      "agl": 10,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 27.982527000000005,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 10,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 73,
+      "ms": 0.6776059999999688,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 20,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 28.242900000000077,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 20,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.028336999999964974,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 29,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 27.931086999999934,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 29,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.027636000000029526,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 30,
+      "hierarchy": false,
+      "samples": 72600,
+      "bounds": 0,
+      "ms": 27.846685000000093,
+      "contact": null
+    },
+    {
+      "name": "mountain",
+      "agl": 30,
+      "hierarchy": true,
+      "samples": 0,
+      "bounds": 1,
+      "ms": 0.16222000000004755,
+      "contact": null
+    }
+  ]
+}

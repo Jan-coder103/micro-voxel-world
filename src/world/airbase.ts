@@ -16,7 +16,12 @@ export function airbaseSample(seed:number,x:number,z:number){
 
 /** Includes raised runway paint and the convex blend into the surrounding landscape. */
 export function airbaseHeightCeiling(seed:number,b:{minX:number;maxX:number;minZ:number;maxZ:number}){
-  return Math.max(regionalHeightCeiling(seed,b),airbaseHeight(seed)+.16);
+  if(b.minX>=-82&&b.maxX<=82&&b.minZ>=AIRBASE.minZ-50&&b.maxZ<=AIRBASE.maxZ+50)return airbaseHeight(seed)+.16;
+  if(b.minX>=178||b.maxX<=-178||b.maxZ<=AIRBASE.minZ-146||b.minZ>=AIRBASE.maxZ+146)return regionalHeightCeiling(seed,b);
+  const ceiling=regionalHeightCeiling(seed,b),distance=Math.max(0,Math.max(0,b.minX,-b.maxX)-82,AIRBASE.minZ-50-b.maxZ,b.minZ-AIRBASE.maxZ-50);
+  const t=Math.min(1,distance/96),w=t*t*(3-2*t);
+  const runway=b.minX<=AIRBASE.halfWidth&&b.maxX>=-AIRBASE.halfWidth&&b.minZ<=AIRBASE.maxZ&&b.maxZ>=AIRBASE.minZ;
+  return Math.max(ceiling,airbaseHeight(seed)*(1-w)+ceiling*w,runway?airbaseHeight(seed)+.16:-Infinity);
 }
 
 export function airbaseObstacles(seed:number){const y=airbaseHeight(seed);return [

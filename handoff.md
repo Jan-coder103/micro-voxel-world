@@ -1,5 +1,32 @@
 # Handoff — 30 October 2026
 
+## Latest: remaining near-ground collision cost
+
+Jan still reported stutter below ~30 m. The previous broad rejection was
+incomplete: clear 5 m passes still made 62k–72.6k terrain calls (~39–45 ms per
+movement). Added a spatial hierarchy over the full unchanged hull-point set;
+active near-ground checks now reject clear sections and sample only potential
+contact. Tightened actual river/lake carving/water and airfield blend bounds;
+added cheap obstacle AABB rejection before full SAT. No new AGL cutoff, hull
+thinning, sweep reduction, terrain-height or save change. Decision 0026 explains.
+
+Bounded diagnostic `tools/benchmarks/near-ground.ts` / JSON: clear 3/5 m runway
+passes use zero samples (~0.25/~0.09 ms); actual 2 m contact still detected with
+two exact samples (~0.64 ms). CPU-only, individual/JIT-sensitive sweeps, not
+verified physical-device FPS. Original 30 m evidence did not cover the active
+narrow phase and should not be treated as complete low-flight acceptance.
+
+Verification: all 256 unit cases passed serially outside sandbox; all 28 affected
+cases passed again after final interval refinements. New parity/work-budget tests
+cover 2/3/5/10/20/29 m, banks, ridges, water, base blends, lake corners and actual
+Frontier maximum catch-up frames at 5 m. Build/types/lint pass. Short mostly paused player browser smoke passes (two cases); the final mixed
+runway/core paint-bound guard was covered by the affected unit rerun and build. No heavy browser/load
+run under the retained heat restriction; physical FPS, long travel and human
+flight feedback remain open. User server untouched, preview managed by
+Playwright. Required local commit follows checks; consult git log. No push.
+
+# Handoff — 30 October 2026
+
 ## Latest: low-flight CPU cliff and terrain detail
 
 Jan reported ~3 FPS below ~140 m AGL and muddy ground. Fixed Frontier's

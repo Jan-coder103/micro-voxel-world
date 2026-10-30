@@ -28,6 +28,11 @@ function noiseRange(seed:number,b:TerrainRect,scale:number,salt:number):[number,
   }
   return [low,high];
 }
+function sineRange(low:number,high:number):[number,number] {
+  const a=Math.sin(low),b=Math.sin(high);
+  const contains=(phase:number)=>Math.ceil((low-phase)/(Math.PI*2))<=Math.floor((high-phase)/(Math.PI*2));
+  return [contains(-Math.PI/2)?-1:Math.min(a,b),contains(Math.PI/2)?1:Math.max(a,b)];
+}
 /** Interval upper bound, never a sampled estimate. River/lake carving only lowers land. */
 export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
   const coastNoise=noiseRange(seed,{...b,minX:0,maxX:0},700,8)[0];
@@ -36,13 +41,21 @@ export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
   const [rmin,rmax]=noiseRange(seed,b,240,5);
   const ridge=rmin<=.5&&rmax>=.5?1:1-Math.min(Math.abs(rmin*2-1),Math.abs(rmax*2-1));
   const mountain=smooth((b.maxZ-450)/550)*smooth((inland-1000)/650);
-  const height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*125;
-  const x=b.maxX,reach=x<layout.lakeX-210?layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast):x<=layout.lakeX+210?layout.lakeX:x-210;
-  const river=Math.max(0,Math.min(55,(reach-layout.coast)*.012));
+  let height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*125;
+  const riverLevel=(x:number)=>{const reach=x<layout.lakeX-210?layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast):x<=layout.lakeX+210?layout.lakeX:x-210;return Math.max(0,Math.min(55,(reach-layout.coast)*.012));};
+  const river=riverLevel(b.maxX),phase=regionalHash(seed,0,0,99)*6.28,offset=layout.coast+1400;
+  const [sinLow,sinHigh]=sineRange(b.minX/570+phase,b.maxX/570+phase);
+  const deltaLow=b.minZ-(offset+100*sinHigh),deltaHigh=b.maxZ-(offset+100*sinLow);
+  const nearRiver=deltaLow<=0&&deltaHigh>=0?0:Math.min(Math.abs(deltaLow),Math.abs(deltaHigh)),farRiver=Math.max(Math.abs(deltaLow),Math.abs(deltaHigh));
+  const valley=smooth((100-farRiver)/75),bed=river-3+Math.max(0,farRiver-12)*.18;
+  height-=valley*Math.max(0,height-bed);
   const lakeZ=layout.riverZ(layout.lakeX)+65;
-  const touchesLake=b.maxX>=layout.lakeX-155*1.3&&b.minX<=layout.lakeX+155*1.3&&b.maxZ>=lakeZ-110*1.3&&b.minZ<=lakeZ+110*1.3;
+  const nearLake=Math.hypot(Math.max(0,b.minX-layout.lakeX,layout.lakeX-b.maxX)/155,Math.max(0,b.minZ-lakeZ,lakeZ-b.maxZ)/110);
+  const farLake=Math.hypot(Math.max(Math.abs(b.minX-layout.lakeX),Math.abs(b.maxX-layout.lakeX))/155,Math.max(Math.abs(b.minZ-lakeZ),Math.abs(b.maxZ-lakeZ))/110);
+  const lakeLevel=(layout.lakeX-layout.coast)*.012;
+  if(farLake<1.3)height=Math.min(height,lakeLevel-5+Math.max(0,farLake-.65)*19);
   // Rounding can raise land by .05 m. Include all possible water surfaces in this rectangle.
-  return Math.min(REGIONAL_HEIGHT_CEILING,Math.max(0,river,touchesLake?(layout.lakeX-layout.coast)*.012:0,height+.050001));
+  return Math.min(REGIONAL_HEIGHT_CEILING,Math.max(0,nearRiver<42?river:0,nearLake<1.3?lakeLevel:0,height+.050001));
 }
 export function regionLayout(seed:number) {
   const offset=(regionalHash(seed,0,0,71)-.5)*400;

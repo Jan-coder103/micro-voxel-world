@@ -751,3 +751,24 @@ Status: implemented; automated checks passed; awaiting user/hardware verificatio
 - Decision 0025 and bounded CPU diagnostic/JSON document evidence and limits.
   No heavy browser/load checks under the retained heat restriction; physical FPS,
   longer flight and human terrain/flight feedback remain open.
+
+## Frontier remaining near-ground stutter — 30 October 2026
+
+Status: implemented; automated checks passed; user-device FPS remains unverified.
+
+- Follow-up found the prior fix incomplete below ~30 m: clear 5 m movements still
+  made 62k–72.6k procedural calls (~39–45 ms). Added a hierarchy over the unchanged
+  detailed hull points to accelerate the active contact path; no new AGL cutoff
+  or reduced collision/sweep fidelity. Bounds now include actual river/lake
+  carving, local water presence and airfield blend weights. Cheap obstacle AABB
+  rejection precedes full SAT.
+- Clear 3/5 m runway sweeps now use zero exact calls (~0.25/~0.09 ms). At 2 m,
+  real contact is retained (two calls, ~0.64 ms). Bounded CPU diagnostic / JSON
+  and decision 0026 record results and limitations; not a hardware FPS claim.
+- All 256 unit cases passed serially; final 28 affected cases passed after the
+  interval refinements. Added exhaustive-reference contact parity and work-budget
+  checks down to actual contact plus real-model eight-tick catch-up frames.
+  Build/types/lint and two short mostly paused browser smoke cases pass; the final
+  mixed runway/core paint-bound guard was covered by the affected unit rerun.
+  No heavy browser/load tests under the retained heat restriction. User-device
+  performance and long-flight/feel verification remain open.

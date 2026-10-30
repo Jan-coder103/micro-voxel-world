@@ -15,6 +15,8 @@ it('bounds terrain and water across noise cells, biomes, seeds, distant coordina
     }
   }
   for(const z of [119,120,360,600,601])expect(airbaseHeightCeiling(103,{minX:-25,maxX:25,minZ:z,maxZ:z+1})).toBeGreaterThanOrEqual(10.96);
+  // A query crossing the flattened core boundary can still contain raised runway paint.
+  expect(airbaseHeightCeiling(103,{minX:-20,maxX:20,minZ:590,maxZ:660})).toBeGreaterThanOrEqual(10.96);
 });
 
 it('eliminates procedural hull sampling on clear low passes on both sides of the reported altitude cutoff',()=>{
