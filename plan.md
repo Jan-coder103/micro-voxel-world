@@ -956,3 +956,15 @@ References are described in text so this Markdown file remains useful without a 
 ### 20.3 Maintenance note
 
 Update this plan when intended design or phase dependencies change. Update `tracker.md` when implementation status changes. Update `handoff.md` when a work session ends. Promote a proposal to an accepted project decision only when it has actually been selected, and preserve the distinction between measured results and future targets.
+
+## Accepted integration scope — 30 October 2026
+
+Jan selected the final player loop: start at a base, manually take off from a
+runway, explore streamed procedural terrain and settlements, fight hordes, return
+and manually land/stop to bank money and XP, then buy upgrades. Collisions show an
+explosion/wreck for ten seconds before automatic recovery at home. The regional
+terrain supplies the mountains; remove the cosmetic distant mountain backdrop
+from the player entry and retain distance LODs. This supersedes the finite legacy
+mission quota/airborne base-ring reward flow for `/`; `/play/` keeps those labs.
+Decision 0024 records implementation and limits. This is integration work, not
+release/deployment approval or hardware/player-feel acceptance.

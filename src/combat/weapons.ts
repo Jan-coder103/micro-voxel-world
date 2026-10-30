@@ -16,7 +16,7 @@ export class TargetIndex implements TargetQuery {
   constructor(readonly targets:readonly Target[]) {
     if(targets.length>256 || new Set(targets.map(t=>t.id)).size!==targets.length) throw new Error('Invalid target catalog');
     for(const target of targets) {
-      if(![target.position.x,target.position.y,target.position.z,target.radius,target.maxHealth,target.health].every(Number.isFinite)||target.radius<=0||target.radius>16||target.maxHealth<=0||target.health<0||target.health>target.maxHealth||Math.max(Math.abs(target.position.x),Math.abs(target.position.y),Math.abs(target.position.z))>131000) throw new Error('Invalid target');
+      if(![target.position.x,target.position.y,target.position.z,target.radius,target.maxHealth,target.health].every(Number.isFinite)||target.radius<=0||target.radius>16||target.maxHealth<=0||target.health<0||target.health>target.maxHealth||Math.max(Math.abs(target.position.x),Math.abs(target.position.y),Math.abs(target.position.z))>920000000) throw new Error('Invalid target');
       const p=target.position,r=target.radius;
       this.visit({x:p.x-r,y:p.y-r,z:p.z-r},{x:p.x+r,y:p.y+r,z:p.z+r},k=>{let cell=this.cells.get(k);if(!cell){cell=new Set();this.cells.set(k,cell);}cell.add(target);});
     }
@@ -24,13 +24,13 @@ export class TargetIndex implements TargetQuery {
   private visit(min:Point,max:Point,fn:(key:string)=>void) {
     for(let x=Math.floor(min.x/CELL);x<=Math.floor(max.x/CELL);x++) for(let y=Math.floor(min.y/CELL);y<=Math.floor(max.y/CELL);y++) for(let z=Math.floor(min.z/CELL);z<=Math.floor(max.z/CELL);z++) fn(key(x,y,z));
   }
-  query(min:Point,max:Point):Set<Target> { if(![min.x,min.y,min.z,max.x,max.y,max.z].every(v=>Number.isFinite(v)&&Math.abs(v)<=134000)||max.x<min.x||max.y<min.y||max.z<min.z||Math.max(max.x-min.x,max.y-min.y,max.z-min.z)>1024)throw new Error('Invalid spatial query');const found=new Set<Target>();this.visit(min,max,k=>this.cells.get(k)?.forEach(t=>found.add(t)));return found; }
+  query(min:Point,max:Point):Set<Target> { if(![min.x,min.y,min.z,max.x,max.y,max.z].every(v=>Number.isFinite(v)&&Math.abs(v)<=920001000)||max.x<min.x||max.y<min.y||max.z<min.z||Math.max(max.x-min.x,max.y-min.y,max.z-min.z)>1024)throw new Error('Invalid spatial query');const found=new Set<Target>();this.visit(min,max,k=>this.cells.get(k)?.forEach(t=>found.add(t)));return found; }
 }
 export interface Hit { distance:number; position:Point; target?:Target }
 const along=(o:Point,d:Point,t:number):Point=>({x:o.x+d.x*t,y:o.y+d.y*t,z:o.z+d.z*t});
 /** Terrain readiness is independent of GPU chunks; slight clearance is conservative. */
 export function terrainDistance(origin:Point,direction:Point,range:number,ground:(x:number,z:number)=>number):number|undefined {
-  if(![origin.x,origin.y,origin.z,direction.x,direction.y,direction.z,range].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>132000||range<0||range>512||Math.abs(Math.hypot(direction.x,direction.y,direction.z)-1)>1e-6)throw new Error('Invalid terrain ray');
+  if(![origin.x,origin.y,origin.z,direction.x,direction.y,direction.z,range].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>920000000||range<0||range>512||Math.abs(Math.hypot(direction.x,direction.y,direction.z)-1)>1e-6)throw new Error('Invalid terrain ray');
   const steps=Math.max(1,Math.ceil(range/.25));
   for(let i=0;i<=steps;i++){const distance=range*i/steps,p=along(origin,direction,distance);if(p.y<=ground(p.x,p.z)+.15)return distance;}
   return undefined;
@@ -54,7 +54,7 @@ export class Combat {
   readonly index:TargetQuery;
   readonly effects:CombatEffect[];
   ticks=0;shots=0;hits=0;damage=0;kills=0;blasts=0;droppedEffects=0;
-  lastWeapon:WeaponId='minigun';
+  lastWeapon:WeaponId='minigun';damageMultiplier=1;
   private readonly nextFire:Record<WeaponId,number>={minigun:0,autocannon:0,shell:0};
   constructor(readonly targets:readonly Target[],private readonly ground:(x:number,z:number)=>number,effectCapacity=128,private readonly options:{index?:TargetQuery;blocker?:BlockerQuery;onDamage?:(target:Target)=>void}={}) {
     if(!Number.isInteger(effectCapacity)||effectCapacity<0||effectCapacity>128)throw new Error('Invalid effect capacity');
@@ -65,7 +65,7 @@ export class Combat {
   private effect(kind:EffectKind,from:Point,to:Point,lifetime:number,radius=1){const e=this.effects.find(e=>!e.active);if(!e){this.droppedEffects++;return;}e.active=true;e.kind=kind;Object.assign(e.from,from);Object.assign(e.to,to);e.age=0;e.lifetime=lifetime;e.radius=radius;}
   private damageTarget(target:Target,amount:number){const dealt=Math.min(target.health,Math.max(0,amount));if(!dealt)return;target.health-=dealt;this.damage+=dealt;this.hits++;if(target.health===0)this.kills++;this.options.onDamage?.(target);}
   explode(centre:Point,radius:number,damage:number) {
-    if(![centre.x,centre.y,centre.z,radius,damage].every(Number.isFinite)||Math.max(Math.abs(centre.x),Math.abs(centre.y),Math.abs(centre.z))>132000||radius<=0||radius>32||damage<0)throw new Error('Invalid explosion');
+    if(![centre.x,centre.y,centre.z,radius,damage].every(Number.isFinite)||Math.max(Math.abs(centre.x),Math.abs(centre.y),Math.abs(centre.z))>920000000||radius<=0||radius>32||damage<0)throw new Error('Invalid explosion');
     this.blasts++;this.effect('blast',centre,centre,.7,radius);
     for(const t of this.index.query({x:centre.x-radius,y:centre.y-radius,z:centre.z-radius},{x:centre.x+radius,y:centre.y+radius,z:centre.z+radius})) {
       if(t.health<=0)continue;const p=t.position,dx=p.x-centre.x,dy=p.y-centre.y,dz=p.z-centre.z,distance=Math.hypot(dx,dy,dz);if(distance>=radius)continue;
@@ -77,14 +77,14 @@ export class Combat {
   step(fire:boolean,weapon:WeaponId,origin:Point,direction:Point) {
     if(!Object.hasOwn(WEAPONS,weapon))throw new Error('Unknown weapon');
     const length=Math.hypot(direction.x,direction.y,direction.z);
-    if(![origin.x,origin.y,origin.z,length].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>132000||length<1e-8)throw new Error('Invalid muzzle pose');
+    if(![origin.x,origin.y,origin.z,length].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>920000000||length<1e-8)throw new Error('Invalid muzzle pose');
     for(const e of this.effects)if(e.active){e.age+=1/60;if(e.age+1e-9>=e.lifetime)e.active=false;}
     this.ticks++;if(!fire||this.ticks<this.nextFire[weapon])return;
     const definition=WEAPONS[weapon],d={x:direction.x/length,y:direction.y/length,z:direction.z/length};
     this.nextFire[weapon]=this.ticks+definition.intervalTicks;this.shots++;this.lastWeapon=weapon;
     const hit=raycast(this.index,origin,d,definition.range,this.ground,this.options.blocker),end=hit?.position??along(origin,d,definition.range);
     this.effect('tracer',origin,end,.09);this.effect('muzzle',origin,origin,.05,.7);
-    if(hit){this.effect('impact',end,end,.2,1.5);if(definition.radius>0)this.explode(hit.target?end:{x:end.x-d.x*.05,y:Math.max(end.y-d.y*.05,this.ground(end.x,end.z)+.3),z:end.z-d.z*.05},definition.radius,definition.damage);else if(hit.target)this.damageTarget(hit.target,definition.damage);}
+    if(hit){this.effect('impact',end,end,.2,1.5);if(definition.radius>0)this.explode(hit.target?end:{x:end.x-d.x*.05,y:Math.max(end.y-d.y*.05,this.ground(end.x,end.z)+.3),z:end.z-d.z*.05},definition.radius,definition.damage*this.damageMultiplier);else if(hit.target)this.damageTarget(hit.target,definition.damage*this.damageMultiplier);}
   }
 }
 export function rangeTargets(ground:(x:number,z:number)=>number):Target[] {

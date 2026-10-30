@@ -1,3 +1,4 @@
+import { airbaseReserved } from '../world/airbase.ts';
 import type { Point } from '../flight/flight';
 import type { Target, TargetQuery } from '../combat/weapons';
 import type { StorageLike } from '../persistence/chunk-deltas';
@@ -23,9 +24,9 @@ export class RegionalPopulation implements TargetQuery {
   private cellX:number|undefined;private cellZ:number|undefined;private renderRevision=0;
   /** Changes only when resident presentation can differ: membership, tier or health. */
   get revision(){return this.renderRevision;}
-  constructor(readonly seed:number,private readonly storage?:StorageLike,structures=true){
+  constructor(readonly seed:number,private readonly storage?:StorageLike,structures=true,readonly roaming=false){
     this.world=new SettlementWorld(seed);this.structures=structures;
-    this.key=`mvw:regional-population:v1:g2:s${structures?1:0}:p1:${seed}`;
+    this.key=`${roaming?'frontier:':''}mvw:regional-population:v1:g2:s${structures?1:0}:p1:${seed}`;
     try {
       if(!storage)throw new Error('Browser storage unavailable; population changes are session only');
       const text=storage.getItem(this.key);if(text===null)return;
@@ -36,7 +37,7 @@ export class RegionalPopulation implements TargetQuery {
       for(const entry of v.wounds){
         if(!Array.isArray(entry)||entry.length!==3)throw new Error('Invalid encounter record');
         const [x,z,health]=entry;
-        if(!inside(x,z)||!Array.isArray(health)||health.length>32||!health.every(h=>Number.isFinite(h)&&h>=0&&h<=REGIONAL_HEALTH))throw new Error('Invalid encounter health');
+        if(!(this.roaming?Number.isInteger(x)&&Number.isInteger(z)&&Math.max(Math.abs(x),Math.abs(z))<7000000:inside(x,z))||!Array.isArray(health)||health.length>32||!health.every(h=>Number.isFinite(h)&&h>=0&&h<=REGIONAL_HEALTH))throw new Error('Invalid encounter health');
         const e=this.encounter(x,z);if(health.length!==e.members.length||loaded.has(e.id))throw new Error('Invalid or duplicate encounter');
         loaded.set(e.id,[...health]);
       }
@@ -45,7 +46,7 @@ export class RegionalPopulation implements TargetQuery {
   }
   private readonly structures:boolean;
   encounter(x:number,z:number):Encounter {
-    if(!inside(x,z))throw new Error('Encounter outside supported 8 km region');
+    if(!(this.roaming?Number.isInteger(x)&&Number.isInteger(z)&&Math.max(Math.abs(x),Math.abs(z))<7000000:inside(x,z)))throw new Error('Encounter outside supported 8 km region');
     const id=encounterId(x,z),cached=this.cache.get(id);if(cached)return cached;
     const minX=x*128,minZ=z*128;
     const settlements=this.structures?this.world.inBounds({minX,maxX:minX+128,minZ,maxZ:minZ+128}):[];
@@ -59,6 +60,7 @@ export class RegionalPopulation implements TargetQuery {
       const px=node?node.x+(regionalHash(this.seed,x,z,900+attempt*2)-.5)*12:anchorX+(regionalHash(this.seed,x,z,900+attempt*2)-.5)*20;
       const pz=node?node.z+(regionalHash(this.seed,x,z,901+attempt*2)-.5)*12:anchorZ+(regionalHash(this.seed,x,z,901+attempt*2)-.5)*20;
       if(Math.floor(px/128)!==x||Math.floor(pz/128)!==z||members.some(p=>Math.hypot(p.x-px,p.z-pz)<2))continue;
+      if(this.roaming&&airbaseReserved(px,pz,12))continue;
       if(this.structures?!this.world.walkable(px,pz,1):!this.dry(px,pz))continue;
       members.push({x:px,y:regionalSample(this.seed,px,pz).height+.9,z:pz});
     }
@@ -67,12 +69,12 @@ export class RegionalPopulation implements TargetQuery {
   private dry(x:number,z:number){const s=regionalSample(this.seed,x,z);return s.water===null&&[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]].every(([dx,dz])=>{const p=regionalSample(this.seed,x+dx,z+dz);return p.water===null&&Math.abs(p.height-s.height)<=.5;});}
   targets(e:Encounter):Target[]{const health=this.damage.get(e.id);return e.members.map((p,i)=>({id:`${e.id}:${i}`,position:{...p},radius:.65,maxHealth:REGIONAL_HEALTH,health:health?.[i]??REGIONAL_HEALTH}));}
   update(observer:Point){
-    if(![observer.x,observer.z].every(n=>Number.isFinite(n)&&Math.abs(n)<131000))throw new Error('Invalid population observer');
+    if(![observer.x,observer.z].every(n=>Number.isFinite(n)&&Math.abs(n)<(this.roaming?900000000:131000)))throw new Error('Invalid population observer');
     const cx=Math.floor(observer.x/128),cz=Math.floor(observer.z/128);
     let changed=false;
     if(cx!==this.cellX||cz!==this.cellZ){
       this.cellX=cx;this.cellZ=cz;
-      for(let z=Math.max(-32,cz-3);z<=Math.min(31,cz+3);z++)for(let x=Math.max(-32,cx-3);x<=Math.min(31,cx+3);x++){
+      for(let z=Math.max(this.roaming?-6999999:-32,cz-3);z<=Math.min(this.roaming?6999999:31,cz+3);z++)for(let x=Math.max(this.roaming?-6999999:-32,cx-3);x<=Math.min(this.roaming?6999999:31,cx+3);x++){
         const id=encounterId(x,z);
         if(!this.resident.has(id)){const encounter=this.encounter(x,z);this.resident.set(id,{encounter,tier:'far',targets:this.targets(encounter)});changed=true;}
       }
@@ -86,9 +88,9 @@ export class RegionalPopulation implements TargetQuery {
   }
 
   query(min:Point,max:Point):Target[]{
-    if(![min.x,min.y,min.z,max.x,max.y,max.z].every(n=>Number.isFinite(n)&&Math.abs(n)<=134000)||max.x<min.x||max.y<min.y||max.z<min.z||Math.max(max.x-min.x,max.y-min.y,max.z-min.z)>1024)throw new Error('Invalid population query');
+    if(![min.x,min.y,min.z,max.x,max.y,max.z].every(n=>Number.isFinite(n)&&Math.abs(n)<=(this.roaming?900001000:134000))||max.x<min.x||max.y<min.y||max.z<min.z||Math.max(max.x-min.x,max.y-min.y,max.z-min.z)>1024)throw new Error('Invalid population query');
     const result:Target[]=[];
-    for(let z=Math.max(-32,Math.floor((min.z-.65)/128));z<=Math.min(31,Math.floor((max.z+.65)/128));z++)for(let x=Math.max(-32,Math.floor((min.x-.65)/128));x<=Math.min(31,Math.floor((max.x+.65)/128));x++){
+    for(let z=Math.max(this.roaming?-6999999:-32,Math.floor((min.z-.65)/128));z<=Math.min(this.roaming?6999999:31,Math.floor((max.z+.65)/128));z++)for(let x=Math.max(this.roaming?-6999999:-32,Math.floor((min.x-.65)/128));x<=Math.min(this.roaming?6999999:31,Math.floor((max.x+.65)/128));x++){
       const e=this.encounter(x,z),targets=this.resident.get(e.id)?.targets??this.targets(e);
       for(const t of targets){const p=t.position;if(t.health>0&&p.x+.65>=min.x&&p.x-.65<=max.x&&p.y+.65>=min.y&&p.y-.65<=max.y&&p.z+.65>=min.z&&p.z-.65<=max.z)result.push(t);}
     }return result;
@@ -104,7 +106,7 @@ export class RegionalPopulation implements TargetQuery {
   }
   checkpoint(){
     if(!this.writable||!this.dirty)return;
-    try{const wounds=[...this.damage].map(([id,h])=>{const [x,z]=id.slice(4).split(',').map(Number);return [x,z,h];});const text=JSON.stringify({schema:1,generator:2,population:1,structures:this.structures,seed:this.seed,wounds});if(text.length>SAVE_LIMIT)throw new Error('Population save exceeds 2 MiB');this.storage!.setItem(this.key,text);this.dirty=false;}
+    try{const wounds=[...this.damage].map(([id,h])=>{const [x,z]=id.slice(4).split(',').map(Number);return [x,z,h];});if(wounds.length>4096)throw new Error('Population record limit reached; new damage is session only');const text=JSON.stringify({schema:1,generator:2,population:1,structures:this.structures,seed:this.seed,wounds});if(text.length>SAVE_LIMIT)throw new Error('Population save exceeds 2 MiB');this.storage!.setItem(this.key,text);this.dirty=false;}
     catch(error){this.error=String(error);this.writable=false;}
   }
   get counts(){let alive=0,cleared=0,killed=0;for(const r of this.resident.values())alive+=r.targets.filter(t=>t.health>0).length;for(const h of this.damage.values()){killed+=h.filter(n=>n===0).length;if(h.length&&h.every(n=>n===0))cleared++;}return {resident:this.resident.size,alive,cleared,killed,changed:this.damage.size,cache:this.cache.size};}

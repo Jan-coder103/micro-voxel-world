@@ -711,3 +711,22 @@ reversed orbit movement and premature collisions.
   tested version. Do not restart heavy browser/load checks without Jan's agreement.
   The user's 5173 server was untouched. Prior legacy timeout and hardware/player
   verification remain open; no full-regression success is claimed.
+
+
+## Frontier integration — 30 October 2026
+
+Status: integrated player loop implemented; focused automated verification passed.
+Human handling/balance and hardware/full-browser acceptance remain outstanding.
+
+- Root player game now uses regional terrain, settlements, roaming hordes, weapons,
+  a cleared airbase and manual runway takeoff/landing. `/play/` preserves old missions.
+- Bank money/XP only after touchdown and a full stop; persistent five-level engine,
+  damage and bounty upgrades. Crash explosion/wreck camera lasts ten active seconds,
+  then recovers at base, losing pending rewards. New saves isolate legacy data.
+- Four terrain LODs, coarse horizon coverage, settlement/tree proxies, horde tiers,
+  bounded worker/resource lifetimes and coordinate rebasing replace the static map
+  and decorative mountain annulus. Trees have authoritative aircraft collision.
+- 249 unit cases passing across runs; lint/types/build and 23 asset validations pass.
+  Two small mostly paused browser checks pass; inspected desktop/narrow captures.
+  Four CLI sandbox-output failures passed unchanged outside the sandbox. No heavy
+  browser/load run due to the earlier heat report. See handoff and decision 0024.

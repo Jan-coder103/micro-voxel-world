@@ -20,7 +20,7 @@ test('workspace navigation connects game and tool', async ({ page }) => {
   await page.getByRole('link', { name: 'Voxel workshop' }).click();
   await expect(page).toHaveURL(/\/tools\/voxel-editor\/$/);
   await page.getByRole('link', { name: 'Game', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Game menu' })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Hangar and upgrades' })).toBeVisible();
 });
 
 test('unavailable WebGL reports an actionable fallback', async ({ browser }) => {

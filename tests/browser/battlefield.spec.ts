@@ -43,24 +43,6 @@ test('distant city is present on approach and stays present while the simulation
   expect((await presentation()).depots).toBe(81);await page.screenshot({path:'test-results/city-distance-coverage.png',fullPage:true});
 });
 
-test('player landscape and instruments remain visible at desktop and narrow widths',async({page})=>{
-  test.setTimeout(60000);await page.setViewportSize({width:1440,height:900});await page.goto('/');
-  await page.getByRole('button',{name:'Fly / Resume'}).click();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog',{name:'Game menu'})).not.toBeVisible();
-  await expect(page.locator('#heading-readout')).toHaveText('000°');await expect(page.locator('.sortie-result')).toContainText('Paused');
-  await expect.poll(async()=>JSON.parse(await page.getByLabel('Prototype diagnostics').getAttribute('data-sample')??'{}').settled,{timeout:30000}).toBe(true);
-  await page.screenshot({path:'test-results/autumn-valley-desktop-low.png'});
-  await page.keyboard.press('Escape');await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByLabel('Scenery quality',{exact:true}).selectOption('high');await page.keyboard.press('Escape');
-  await expect.poll(async()=>JSON.parse(await page.getByLabel('Benchmark measurements').getAttribute('data-report')??'{}').presentation?.quality).toBe('high');
-  await page.screenshot({path:'test-results/autumn-valley-desktop.png'});
-  await page.setViewportSize({width:390,height:844});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
-  const a=await page.getByLabel('Mission HUD').boundingBox(),b=await page.getByLabel('Flight HUD').boundingBox();expect(a!.x+a!.width).toBeLessThan(b!.x);
-  const menu=await page.getByRole('button',{name:'Esc · Menu',exact:true}).boundingBox(),compass=await page.locator('.compass-hud').boundingBox(),brand=await page.locator('header .brand').boundingBox();
-  expect(menu!.y+menu!.height).toBeLessThan(compass!.y);expect(brand!.x+brand!.width).toBeLessThan(menu!.x);
-  await page.screenshot({path:'test-results/autumn-valley-narrow.png'});
-});
-
 test('editable depot imports at collision scale and renders in workshop inspection views',async({page})=>{
   await page.goto('/tools/voxel-editor/');await page.locator('#import-source').setInputFiles('assets/source/clearpass-depot.voxel.json');
   await expect(page.locator('#file-result')).toHaveText('Imported Clearpass utility depot.');

@@ -135,12 +135,12 @@ export class SettlementWorld {
   }
   get cachedRegions(){return this.cache.size;}
   region(rx:number,rz:number):Settlement|null{
-    if(!Number.isInteger(rx)||!Number.isInteger(rz)||Math.abs(rx)>258||Math.abs(rz)>258)throw new Error('Invalid settlement region');
+    if(!Number.isInteger(rx)||!Number.isInteger(rz)||Math.abs(rx)>1800000||Math.abs(rz)>1800000)throw new Error('Invalid settlement region');
     const key=`${rx},${rz}`;if(this.cache.has(key))return this.cache.get(key)!;
     const result=this.connected(rx,rz);this.cache.set(key,result);if(this.cache.size>64)this.cache.delete(this.cache.keys().next().value!);return result;
   }
   inBounds(bounds:Rect):Settlement[]{
-    if(![bounds.minX,bounds.maxX,bounds.minZ,bounds.maxZ].every(n=>Number.isFinite(n)&&Math.abs(n)<=132000)||bounds.maxX<=bounds.minX||bounds.maxZ<=bounds.minZ||Math.max(bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ)>1024)throw new Error('Invalid settlement bounds');
+    if(![bounds.minX,bounds.maxX,bounds.minZ,bounds.maxZ].every(n=>Number.isFinite(n)&&Math.abs(n)<=920000000)||bounds.maxX<=bounds.minX||bounds.maxZ<=bounds.minZ||Math.max(bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ)>1024)throw new Error('Invalid settlement bounds');
     const result:Settlement[]=[];
     for(let rz=Math.floor(bounds.minZ/512);rz<Math.ceil(bounds.maxZ/512);rz++)for(let rx=Math.floor(bounds.minX/512);rx<Math.ceil(bounds.maxX/512);rx++){const s=this.region(rx,rz);if(s)result.push(s);}
     return result;
@@ -152,18 +152,19 @@ export class SettlementWorld {
   }
   /** Ground navigation contract for Phase 15; buildings and water are blocked. */
   walkable(x:number,z:number,radius=.8):boolean{
-    if(![x,z,radius].every(Number.isFinite)||radius<=0||radius>16||Math.max(Math.abs(x),Math.abs(z))>131000)throw new Error('Invalid navigation query');
+    if(![x,z,radius].every(Number.isFinite)||radius<=0||radius>16||Math.max(Math.abs(x),Math.abs(z))>920000000)throw new Error('Invalid navigation query');
     const s=regionalSample(this.seed,x,z);if(s.water!==null)return false;
     for(const [dx,dz] of [[-radius,0],[radius,0],[0,-radius],[0,radius],[-radius,-radius],[-radius,radius],[radius,-radius],[radius,radius]]){
       const edge=regionalSample(this.seed,x+dx,z+dz);if(edge.water!==null||Math.abs(edge.height-s.height)/Math.hypot(dx,dz)>.5)return false;
     }
     return !this.buildings(rect(x,z,radius*2,radius*2)).length;
   }
-  ray(origin:Point,direction:Point,range:number,padding=0):number|undefined{
-    if(![origin.x,origin.y,origin.z,direction.x,direction.y,direction.z,range,padding].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>131000||range<0||range>512||padding<0||padding>12||Math.abs(Math.hypot(direction.x,direction.y,direction.z)-1)>1e-6)throw new Error('Invalid structure ray');
+  ray(origin:Point,direction:Point,range:number,padding=0,ignore?:(b:Building)=>boolean):number|undefined{
+    if(![origin.x,origin.y,origin.z,direction.x,direction.y,direction.z,range,padding].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>920000000||range<0||range>512||padding<0||padding>12||Math.abs(Math.hypot(direction.x,direction.y,direction.z)-1)>1e-6)throw new Error('Invalid structure ray');
     const end={x:origin.x+direction.x*range,z:origin.z+direction.z*range},bounds={minX:Math.min(origin.x,end.x)-padding-.01,maxX:Math.max(origin.x,end.x)+padding+.01,minZ:Math.min(origin.z,end.z)-padding-.01,maxZ:Math.max(origin.z,end.z)+padding+.01};
     let hit:number|undefined;
     for(const b of this.buildings(bounds)){
+      if(ignore?.(b))continue;
       let near=0,far=range;
       for(const [o,d,min,max] of [[origin.x,direction.x,b.minX-padding,b.maxX+padding],[origin.y,direction.y,b.bottom-padding,b.y+b.height+padding],[origin.z,direction.z,b.minZ-padding,b.maxZ+padding]]){
         if(Math.abs(d)<1e-10){if(o<min||o>max){far=-1;break;}}else{const a=(min-o)/d,c=(max-o)/d;near=Math.max(near,Math.min(a,c));far=Math.min(far,Math.max(a,c));}
@@ -185,10 +186,10 @@ export function settlementWorld(seed:number):SettlementWorld{
 }
 
 /** Clip every road to the chunk before tessellation: no seam duplicates or long spanning meshes. */
-export function appendRoads(seed:number,cx:number,cz:number,positions:number[],normals:number[],colors:number[]):Building[]{
+export function appendRoads(seed:number,cx:number,cz:number,positions:number[],normals:number[],colors:number[],reserved?:(x:number,z:number,padding?:number)=>boolean):Building[]{
   const bounds={minX:cx*32,maxX:(cx+1)*32,minZ:cz*32,maxZ:(cz+1)*32},world=settlementWorld(seed);
   for(const s of world.inBounds(bounds))for(const road of s.roads){
-    if(!intersects(road,bounds))continue;
+    if(!intersects(road,bounds)||reserved?.((road.minX+road.maxX)/2,(road.minZ+road.maxZ)/2,Math.max(road.maxX-road.minX,road.maxZ-road.minZ)/2))continue;
     const minX=Math.max(road.minX,bounds.minX),maxX=Math.min(road.maxX,bounds.maxX),minZ=Math.max(road.minZ,bounds.minZ),maxZ=Math.min(road.maxZ,bounds.maxZ);
     // Global 2 m grid keeps both sides of a chunk seam identical.
     const xs=[minX],zs=[minZ];for(let x=Math.ceil(minX/2)*2;x<maxX;x+=2)if(x>minX)xs.push(x);xs.push(maxX);for(let z=Math.ceil(minZ/2)*2;z<maxZ;z+=2)if(z>minZ)zs.push(z);zs.push(maxZ);
@@ -197,5 +198,5 @@ export function appendRoads(seed:number,cx:number,cz:number,positions:number[],n
       for(const i of [0,1,2,0,2,3]){const [x,z]=corners[i];positions.push(x-cx*32,regionalSample(seed,x,z).height+.12,z-cz*32);normals.push(0,1,0);const stripe=road.kind==='runway'&&Math.abs(x-(road.minX+road.maxX)/2)<1.2&&Math.floor(z/8)%2===0;colors.push(...(stripe?[.8,.8,.7]:road.kind==='driveway'?[.35,.34,.30]:[.12,.15,.16]));}
     }
   }
-  return world.inBounds(bounds).flatMap(s=>s.buildings.filter(b=>Math.floor(b.x/32)===cx&&Math.floor(b.z/32)===cz));
+  return world.inBounds(bounds).flatMap(s=>s.buildings.filter(b=>Math.floor(b.x/32)===cx&&Math.floor(b.z/32)===cz&&!reserved?.(b.x,b.z,Math.max(b.width,b.depth)/2)));
 }

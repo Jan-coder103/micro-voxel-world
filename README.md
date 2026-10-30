@@ -1,6 +1,6 @@
 # Micro Voxel World
 
-TypeScript / Three.js browser game foundation and voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with procedural settlements and Phase 15 persistent zombie encounters.
+TypeScript / Three.js aircraft combat game with runway sorties, a streamed procedural landscape, banked rewards and upgrades, plus a voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with procedural settlements and Phase 15 persistent zombie encounters.
 
 ## Quick start
 
@@ -11,9 +11,46 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:5173/ for the game. Choose a mission and aircraft, then Fly / Resume. Esc pauses and opens the menu; Settings includes Flying mode (Assisted auto-level / Direct hold attitude), comfort options and Enable developer tools. Press C to unlock the camera and move the mouse over the scene to orbit the aircraft; press C again to lock and reset chase view. A ground shadow stays directly beneath the aircraft, including with soft shadows disabled. The original outdoor test scene is at http://localhost:5173/tools/outdoor/. Open http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
+Open http://localhost:5173/ for **Frontier**, the player game. Start at home on
+runway 18–36, take off, explore the regional landscape and hunt hordes. Return,
+manually land on the strip and stop at idle for one second to bank the run's money
+and XP. The hangar opens automatically for upgrades. A crash loses unbanked
+rewards, shows the wreck for ten active seconds, then returns you to home.
 
-## Play the combat prototype
+- **Takeoff:** hold E for throttle, accelerate past 28 m/s, then hold S / down arrow to lift off.
+- **Fly:** W/S pitch down/up; A/D bank; Q/E throttle; Space fires; 1/2/3 select weapons. C toggles camera orbit.
+- **Land:** align with either runway direction, level the wings, touch down below 48 m/s with less than 4 m/s descent, then hold Q to idle and brake. Keep the whole aircraft on the strip.
+- **Pause:** Esc opens the hangar. Blur/hidden tabs pause; resume explicitly with Esc or the launch button.
+
+The HUD shows the home bearing/distance, speed, vertical speed, AGL, throttle,
+horde markers and unbanked rewards. Each kill earns $10 and 15 XP. Engine upgrades
+add 12% acceleration per level, weapon research adds 20% damage, and bounty
+contracts add $2 per kill. Each has five levels; successive levels cost $100,
+$200, $300, $400 and $500. XP determines the displayed pilot level. Purchases
+require the aircraft to be safely home. Sound starts muted; settings include
+Assisted/Direct flight, aim assistance, effects and render scale.
+
+Regional terrain, forests, mountains, rivers, lakes, coasts/ocean and generated
+city/rural/industrial/military/airport/harbor districts now share the player world.
+There is no decorative mountain annulus. Four worker terrain LODs (49 residents,
+two outstanding jobs/results), a reused 4 km coarse horizon underlay, near authored
+settlement kits/distant building proxies, and three horde tiers bound presentation.
+The player streams beyond the old terrain and population edges; GPU transforms
+are rebased as you travel. Numeric validation retains a very large safety envelope;
+this is on-demand generation, not a preallocated map. Terrain, water, trees, base buildings and generated buildings have collision in
+Frontier; legacy labs retain their existing collision rules.
+
+Pilot progress and roaming casualties use new separate browser-local records;
+legacy lab populations and campaign stars are preserved. Reload starts at the base
+and discards an unfinished run's rewards. Save errors preserve existing bytes and
+continue in the session. Population persistence is bounded to 4096 changed
+encounters / 2 MiB; reaching the cap reports session-only damage. Settings offers
+opt-in developer links, including the terrain explorer. `/play/` keeps the legacy
+Clearpass mission lab. See [the integration decision](docs/decisions/0024-frontier-runs.md).
+
+The original outdoor test scene is at http://localhost:5173/tools/outdoor/. Open http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
+
+## Legacy combat prototype (/play/)
 
 Open http://localhost:5173/play/ or select **Play prototype** from Game. Operation Clearpass combines the authored aircraft, streamed terrain, moving hordes, weapons, audio and one complete objective. Clear the three marked encounters (96 members), fly within 60 m of the sector below 70 m AGL, then return within 20 m of the base ring. Default seed 12012 keeps this sortie separate from the lab's default population.
 
@@ -87,7 +124,7 @@ Twenty original editable reference sources are available in [assets/source](asse
 
 ## Commands
 
-The main game now presents Clearpass as an autumn valley with a sunlit sky,
+The legacy `/play/` lab presents Clearpass as an autumn valley with a sunlit sky,
 terraced distant scenery, woodland, detailed depots and ground materials.
 Settings → Scenery offers Automatic / High / Low. Automatic uses Low on software
 renderers; select High for the full woodland and shadows. Soft shadows disables the 1024² sunlight shadow map independently

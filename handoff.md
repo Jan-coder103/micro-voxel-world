@@ -1,3 +1,57 @@
+# Handoff — 30 October 2026
+
+## Latest: integrated Frontier runway runs
+
+Jan requested the final base → manual takeoff → procedural exploration/combat →
+manual landing/full stop → bank money/XP → upgrades loop, plus ten seconds viewing
+a crash before automatic return. Root now loads `game/frontier-main.ts`; `/play/`
+and all labs retain their earlier gameplay/save scopes. Decision 0024 and README
+cover controls, economy, persistence and limits. The plan records the selected
+integration scope. This is implemented integration, not release/hardware approval.
+
+New modules: `game/frontier.ts`, `frontier-main.ts`, `frontier.css`,
+`world/airbase.ts`, `world/frontier-collision.ts`,
+`rendering/frontier-settlements.ts`, `frontier-scenery.ts`. Shared Flight gains an
+opt-in runway model; default labs stay airborne. Worker specs gain a signatured
+base-flattening/reservation flag. Roaming population uses a separate key and
+continues past the old 8 km population square; shared coordinate validation is
+expanded. Four detail LOD tiers, 49 resident chunks/groups, two jobs/results and
+two attachments/frame remain. Coarse terrain covers the horizon; settlement and
+tree proxies are bounded; GPU transforms rebase in 4096 m steps. No cosmetic
+mountain annulus in Frontier. Trees now collide in Frontier via the same cached
+cuboids the worker renders; base/terrain/water/building contact remains independent
+of GPU readiness. Legacy labs keep their existing tree behavior.
+
+The player starts on a 480 m strip. E accelerates, S rotates above 28 m/s. Touchdown
+requires runway containment, alignment/level wings, <=48 m/s and <=4 m/s descent;
+Q idles and brakes. One stopped second banks once and opens the hangar. Crash
+recovery takes ten unpaused seconds and loses unbanked rewards. Reload starts at
+home; casualties persist separately. Engine/damage/bounty upgrades have five levels
+and save with money/XP. Corrupt/denied saves preserve bytes and show session-only
+status. Population save limit is 4096 changed encounters / 2 MiB. The underlying
+v2 geography keeps its existing broad coast/river layout, with a very large numeric
+safety envelope rather than a mathematical infinite-coordinate representation.
+
+Verification: 249 unique unit checks passed across serial runs and targeted
+reruns (original 233 + 16 new). Initial full serial run passed 243/247; four CLI
+checks returned empty sandbox child stdout/stderr. All 64 cases in those four
+files passed unchanged outside the sandbox. Final Frontier + tree collision tests
+passed (15 cases); scenery tests passed separately. Types/build/lint and 23 source
+validations passed. New two-case player browser smoke passed with one 800×600,
+mostly paused browser (7.3 s), including all LODs, settings, pause, narrow layout,
+shader/JS errors, cleanup and unavailable WebGL. A prior label lookup failure was
+fixed with explicit select accessible names; no timeout was relaxed. Inspected
+final runway and narrow captures. Tree collision was added afterward and verified
+in CPU tests; it does not change the paused render path. Root browser tests now
+assert Frontier; legacy flying-mode assertions remain at `/play/`.
+
+IMPORTANT: retained Jan's earlier heat restriction. No heavy browser suite, route,
+load or flight benchmark was run. The full browser regression, longer travel,
+physical-GPU FPS/Pixel 10a, human landing/flight feel and balance remain open;
+prior legacy sortie-budget and user-feedback gates remain open. Browser preview
+servers were stopped by Playwright; no user server was started/stopped. No push or
+deployment. Required local commit follows these checks; consult git log.
+
 # Handoff — 28 October 2026
 
 ## Latest: corrected orbit axes and fitted aircraft collision

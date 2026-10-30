@@ -1,23 +1,23 @@
-import { expect, test } from '@playwright/test';
+import { expect,test } from '@playwright/test';
 
-test('player entry launches combat and gates labs in pause settings', async ({ page }) => {
-  await page.goto('/');
-  const menu = page.getByRole('dialog', { name: 'Game menu' });
-  await expect(menu).toBeVisible();
-  await page.screenshot({ path: 'test-results/player-menu.png' });
-  await expect(page.getByRole('navigation', { name: 'Workspace' })).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Flight lab', exact: true })).toBeHidden();
-  await menu.getByRole('button', { name: 'Settings', exact: true }).click();
-  await page.getByLabel('Enable developer tools').check();
-  await expect(page.getByRole('link', { name: 'Flight lab', exact: true })).toBeVisible();
-  await page.getByLabel('Enable developer tools').uncheck();
-  await menu.getByRole('button', { name: 'Settings', exact: true }).click();
-  await page.getByRole('button', { name: 'Fly / Resume' }).click();
-  await expect(menu).not.toBeVisible();
-  await expect(page.locator('.sortie-scene canvas')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(menu).toBeVisible();
-  await expect(page.locator('.sortie-result')).toContainText(/paused/i);
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+test('frontier player starts at the runway, gates tools, pauses and fits narrow screens',async({page})=>{
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  await page.setViewportSize({width:800,height:600});await page.goto('/');
+  const menu=page.getByRole('dialog',{name:'Hangar and upgrades'}),host=page.getByLabel('Aircraft flight scene',{exact:true}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');
+  await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).grounded).toBe(true);expect((await read()).speed).toBe(0);expect((await read()).money).toBe(0);
+  await page.getByText('Settings and developer tools',{exact:true}).click();
+  await expect(page.getByRole('link',{name:'Terrain explorer',exact:true})).toBeHidden();await page.getByLabel('Enable developer tools').check();await expect(page.getByRole('link',{name:'Terrain explorer',exact:true})).toBeVisible();await page.getByLabel('Enable developer tools').uncheck();
+  await page.getByLabel('Flying mode',{exact:true}).selectOption('direct');await expect.poll(async()=>(await read()).assisted).toBe(false);
+  await page.getByRole('button',{name:'Start engine / Take off',exact:true}).click();await expect(menu).not.toBeVisible();await page.keyboard.press('Escape');await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).paused).toBe(true);
+  await expect.poll(async()=>(await read()).settled,{timeout:20000}).toBe(true);expect((await read()).distantTrees).toBeGreaterThan(0);expect((await read()).residents).toBeLessThanOrEqual(49);expect((await read()).hordes).toBeLessThanOrEqual(49);expect((await read()).lods.every((n:number)=>n>0)).toBe(true);
+  await page.screenshot({path:'test-results/frontier-hangar.png'});
+  // Close only the dialog for an idle landscape capture; flight remains paused.
+  await menu.evaluate((d:HTMLDialogElement)=>d.close());await page.screenshot({path:'test-results/frontier-runway.png'});
+  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/frontier-narrow.png'});
+  await page.getByRole('button',{name:'Esc · Hangar / Pause'}).click();await expect(menu).toBeVisible();expect(await menu.evaluate(d=>d.scrollWidth<=d.clientWidth)).toBe(true);
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(page.locator('canvas')).toHaveCount(0);expect(errors).toEqual([]);
+});
+
+test('frontier reports unavailable WebGL without enabling flight',async({page})=>{
+  await page.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=(()=>null) as typeof HTMLCanvasElement.prototype.getContext;});await page.goto('/');await expect(page.getByRole('status')).toContainText('WebGL 2 is unavailable');await expect(page.locator('canvas')).toHaveCount(0);await expect(page.getByRole('button',{name:'Esc · Hangar / Pause'})).toBeDisabled();
 });

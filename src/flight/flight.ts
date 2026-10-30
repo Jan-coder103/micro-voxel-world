@@ -10,12 +10,13 @@ export class Flight {
   heading=0; pitch=0; bank=0; speed=60; throttle=.43; ticks=0;
   state:'ready'|'running'|'paused'|'crashed'='ready';
   reason=''; assisted=true; dropped=0;
+  grounded=false; enginePower=1;
   private accumulator=0;
   private previousPose:FlightPose|undefined;
   constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing',private readonly geometry:FlightGeometry={}) { this.kind=aircraftId(kind);this.reset(); }
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
-  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
+  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
   start() { if(this.state==='ready'||this.state==='paused') { this.previousPose=undefined; this.state='running'; } }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
   advance(dt:number,input:FlightInput,onStep?:()=>void) {
@@ -32,13 +33,25 @@ export class Flight {
     const dt=1/60;
     if(this.kind==='helicopter'){this.rotorStep(input);return;}
     this.throttle=clamp(this.throttle+clamp(input.throttle,-1,1)*dt*.35,0,1);
-    this.speed+=(30+70*this.throttle-this.speed)*dt*1.5;
+    const runway=this.geometry.runway;
+    if(runway&&this.grounded){
+      this.speed=clamp(this.speed+(this.throttle*12*this.enginePower-2-(input.throttle<0?8:0))*dt,0,100);
+      this.heading+=clamp(input.bank,-1,1)*dt*.25*Math.min(1,this.speed/10);
+      const next={x:this.position.x+Math.sin(this.heading)*this.speed*dt,y:runway.height+runway.clearance,z:this.position.z-Math.cos(this.heading)*this.speed*dt};
+      if(!runway.contains(next.x,next.z,10)){this.state='crashed';this.reason='Left the runway';return;}
+      this.pitch=this.bank=0;
+      if(input.pitch>0&&this.speed>=28){this.grounded=false;this.pitch=.06;next.y+=.8;this.move(next);}
+      else {this.position=next;this.ticks++;}
+      return;
+    }
+    this.speed+=((runway?0:30)+(runway?100:70)*this.throttle-this.speed)*dt*(runway ? .35 : 1.5)*this.enginePower;
     this.pitch=clamp(this.pitch+clamp(input.pitch,-1,1)*dt*.55,-.65,.65);
     this.bank=clamp(this.bank+clamp(input.bank,-1,1)*dt*1.3,-1.05,1.05);
     if(this.assisted) { if(!input.pitch) this.pitch*=Math.exp(-dt*1.8); if(!input.bank) this.bank*=Math.exp(-dt*2.5); }
     this.heading+=Math.tan(this.bank)*.65*dt;
     const old=this.position;
     const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pitch)*this.speed*dt,y:old.y+Math.sin(this.pitch)*this.speed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pitch)*this.speed*dt};
+    if(runway&&this.speed<28)next.y-=(28-this.speed)*.25*dt;
     this.move(next);
   }
   /** One tick of presentation latency keeps render rates independent of the 60 Hz simulation. */
@@ -70,6 +83,13 @@ export class Flight {
     next.y=Math.min(250,next.y);
     const to:FlightPose={position:next,heading:this.heading,pitch:this.pitch,bank:this.bank};
     const hit=sweepAircraft(this.previousPose!,to,this.kind==='helicopter'?HELICOPTER_HULL:this.geometry.fixedWing??LAB_FIXED_HULL,this.ground,this.geometry);
+    if(hit&&this.geometry.runway){
+      const r=this.geometry.runway,p=hit.pose.position,alignment=Math.abs(Math.sin(this.heading));
+      const descent=(next.y-old.y)*60;
+      if(hit.reason==='Terrain collision'&&r.contains(p.x,p.z,10)&&alignment<.16&&Math.abs(this.bank)<.10&&this.pitch>=-.12&&this.pitch<=.18&&descent>=-4&&this.speed<=48){
+        this.position={x:p.x,y:r.height+r.clearance,z:p.z};this.pitch=this.bank=0;this.grounded=true;this.ticks++;return;
+      }
+    }
     if(hit){this.position=hit.pose.position;this.heading=hit.pose.heading;this.pitch=hit.pose.pitch;this.bank=hit.pose.bank;this.state='crashed';this.reason=hit.reason;this.accumulator=0;return;}
     this.position=next;this.ticks++;
   }

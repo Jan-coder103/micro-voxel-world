@@ -1,26 +1,12 @@
 import { test,expect,type Page } from '@playwright/test';
 const read=async(page:Page,label='Prototype diagnostics')=>JSON.parse(await page.getByLabel(label).getAttribute('data-sample')??'{}');
 
-test('player flying mode controls auto-level and survives recovery, aircraft and world changes',async({page})=>{
-  test.setTimeout(90000);await page.goto('/');
-  await page.getByRole('button',{name:'Settings',exact:true}).click();
-  await page.getByLabel('Flying mode',{exact:true}).selectOption('direct');
-  await expect.poll(async()=>(await read(page)).assisted).toBe(false);
-  await page.setViewportSize({width:390,height:844});
-  const menu=page.getByRole('dialog',{name:'Game menu'});
-  expect(await menu.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
-  await page.screenshot({path:'test-results/flight-settings-narrow.png'});
-  await page.setViewportSize({width:1280,height:720});
-  await page.getByRole('button',{name:'Fly / Resume'}).click();await page.keyboard.down('KeyD');
-  await expect.poll(async()=>(await read(page)).bank).toBeGreaterThan(.2);await page.keyboard.up('KeyD');
-  const bank=(await read(page)).bank,ticks=(await read(page)).ticks;
-  await expect.poll(async()=>(await read(page)).ticks).toBeGreaterThan(ticks+12);expect((await read(page)).bank).toBeCloseTo(bank,5);
-  await page.keyboard.press('Escape');await page.getByLabel('Flying mode',{exact:true}).selectOption('assisted');
-  await page.getByRole('button',{name:'Fly / Resume'}).click();await expect.poll(async()=>(await read(page)).bank).toBeLessThan(bank*.7);
-  await page.keyboard.press('Escape');await page.getByLabel('Flying mode',{exact:true}).selectOption('direct');
-  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('button',{name:'Recover aircraft',exact:true}).click();
-  await page.getByLabel('Aircraft',{exact:true}).selectOption('helicopter');await expect.poll(async()=>(await read(page)).aircraft).toBe('helicopter');expect((await read(page)).assisted).toBe(false);
+test('legacy flying mode survives recovery, aircraft and world changes',async({page})=>{
   await page.goto('/play/');await page.getByLabel('Flying mode',{exact:true}).selectOption('direct');
+  await expect.poll(async()=>(await read(page)).assisted).toBe(false);
+  await page.getByRole('button',{name:'Recover aircraft',exact:true}).click();
+  await page.getByLabel('Aircraft',{exact:true}).selectOption('helicopter');
+  await expect.poll(async()=>(await read(page)).aircraft).toBe('helicopter');expect((await read(page)).assisted).toBe(false);
   await page.getByText('Settings and diagnostics',{exact:true}).click();await page.getByLabel('World seed').fill('12013');await page.getByRole('button',{name:'Load world',exact:true}).click();
   await expect.poll(async()=>(await read(page)).seed).toBe(12013);expect((await read(page)).assisted).toBe(false);
 });

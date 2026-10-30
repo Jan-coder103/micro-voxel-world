@@ -32,7 +32,7 @@ export class ChunkStream<T, R extends OwnedChunk> {
     const changed = specs.length !== this.desired.size || specs.some(s => {
       const old = previous.next().value;
       return !old || s.x !== old.x || s.z !== old.z || s.seed !== old.seed ||
-        s.lod !== old.lod || s.generator !== old.generator || s.structures !== old.structures;
+        s.lod !== old.lod || s.generator !== old.generator || s.structures !== old.structures || s.airbase !== old.airbase;
     });
     if (changed) {
       this.desired = new Map(specs.map((s) => [chunkKey(s.x,s.z), {...s}]));

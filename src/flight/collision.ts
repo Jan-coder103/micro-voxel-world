@@ -5,6 +5,8 @@ export type CollisionBox=readonly [number,number,number,number,number,number];
 export interface Bounds { minX:number;maxX:number;minY:number;maxY:number;minZ:number;maxZ:number }
 export interface Hull { boxes:readonly CollisionBox[];points:readonly Point[];radius:number }
 export interface FlightGeometry {
+  worldLimit?:number;
+  runway?: { contains:(x:number,z:number,margin?:number)=>boolean; height:number; clearance:number };
   fixedWing?:Hull;
   obstacles?:(bounds:Bounds)=>readonly Bounds[];
   /** Authoritative upper bounds, from the world generator; never estimated from a few samples. */
@@ -52,14 +54,14 @@ export function sweepAircraft(from:FlightPose,to:FlightPose,hull:Hull,ground:(x:
   const bounds={minX:Math.min(from.position.x,to.position.x)-r,maxX:Math.max(from.position.x,to.position.x)+r,minY:low,maxY:Math.max(from.position.y,to.position.y)+r,minZ:Math.min(from.position.z,to.position.z)-r,maxZ:Math.max(from.position.z,to.position.z)+r};
   const terrainPossible=low<=(geometry.maxGroundHeight??Infinity);
   const obstacles=low<=(geometry.maxObstacleHeight??Infinity)?geometry.obstacles?.(bounds)??[]:[];
-  const boundaryPossible=Math.max(Math.abs(bounds.minX+r),Math.abs(bounds.maxX-r),Math.abs(bounds.minZ+r),Math.abs(bounds.maxZ-r))>130850;
+  const boundaryPossible=Math.max(Math.abs(bounds.minX+r),Math.abs(bounds.maxX-r),Math.abs(bounds.minZ+r),Math.abs(bounds.maxZ-r))>(geometry.worldLimit??130850);
   if(!terrainPossible&&!obstacles.length&&!boundaryPossible)return;
   const distance=Math.hypot(to.position.x-from.position.x,to.position.y-from.position.y,to.position.z-from.position.z);
   const rotation=r*(Math.abs(to.heading-from.heading)+Math.abs(to.pitch-from.pitch)+Math.abs(to.bank-from.bank));
   const steps=Math.max(1,Math.ceil((distance+rotation)/.1));
   const at=(t:number):FlightPose=>({position:{x:from.position.x+(to.position.x-from.position.x)*t,y:from.position.y+(to.position.y-from.position.y)*t,z:from.position.z+(to.position.z-from.position.z)*t},heading:from.heading+(to.heading-from.heading)*t,pitch:from.pitch+(to.pitch-from.pitch)*t,bank:from.bank+(to.bank-from.bank)*t});
   const contact=(pose:FlightPose):Contact['reason']|undefined=>{
-    if(Math.abs(pose.position.x)>130850||Math.abs(pose.position.z)>130850)return 'World boundary';
+    if(Math.abs(pose.position.x)>(geometry.worldLimit??130850)||Math.abs(pose.position.z)>(geometry.worldLimit??130850))return 'World boundary';
     const basis=axes(pose);
     for(const obstacle of obstacles)for(const box of hull.boxes)if(boxContact(box,pose,basis,obstacle))return 'Obstacle collision';
     if(terrainPossible)for(const point of hull.points){const p=transform(point,pose,basis);if(p.y<=(geometry.maxGroundHeight??Infinity)&&p.y<=ground(p.x,p.z)+1e-7)return 'Terrain collision';}
