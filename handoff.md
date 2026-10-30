@@ -563,3 +563,15 @@ game code/assets are unchanged, so game tests were not repeated.
 A private recovery bundle is kept outside the repository in /tmp. Published
 history is replaced with force-with-lease, preserving concurrent remote updates.
 Old GitHub caches and copies in existing clones cannot be erased by this rewrite.
+
+## 30 October 2026 — Restore GitHub attribution while retaining email privacy
+
+Clarified intent: commits should remain attributed to the user's GitHub account.
+Replaced the anonymous author/committer identity throughout history with the
+GitHub username and account-ID-based GitHub no-reply email, and configured future
+local commits the same way. Private email and full personal name remain absent
+from reachable history; the earlier local-path redaction remains. Historical file
+trees, messages and dates are preserved. This supersedes the Anonymous identity
+choice documented above. Verified identity consistency and unchanged file trees;
+no game changes or game-test rerun. Publish with force-with-lease and verify
+GitHub associates the resulting commit with the intended account.
