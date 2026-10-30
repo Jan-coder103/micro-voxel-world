@@ -11,6 +11,8 @@ export interface FlightGeometry {
   obstacles?:(bounds:Bounds)=>readonly Bounds[];
   /** Authoritative upper bounds, from the world generator; never estimated from a few samples. */
   maxGroundHeight?:number;
+  /** Conservative terrain/water ceiling over the entire swept XZ rectangle. */
+  groundCeiling?:(bounds:Bounds)=>number;
   maxObstacleHeight?:number;
 }
 export function prepareHull(boxes:readonly CollisionBox[]):Hull {
@@ -52,7 +54,8 @@ export interface Contact { pose:FlightPose;reason:'Terrain collision'|'Obstacle 
 export function sweepAircraft(from:FlightPose,to:FlightPose,hull:Hull,ground:(x:number,z:number)=>number,geometry:FlightGeometry):Contact|undefined {
   const r=hull.radius,low=Math.min(from.position.y,to.position.y)-r;
   const bounds={minX:Math.min(from.position.x,to.position.x)-r,maxX:Math.max(from.position.x,to.position.x)+r,minY:low,maxY:Math.max(from.position.y,to.position.y)+r,minZ:Math.min(from.position.z,to.position.z)-r,maxZ:Math.max(from.position.z,to.position.z)+r};
-  const terrainPossible=low<=(geometry.maxGroundHeight??Infinity);
+  const terrainCeiling=Math.min(geometry.maxGroundHeight??Infinity,geometry.groundCeiling?.(bounds)??Infinity);
+  const terrainPossible=low<=terrainCeiling;
   const obstacles=low<=(geometry.maxObstacleHeight??Infinity)?geometry.obstacles?.(bounds)??[]:[];
   const boundaryPossible=Math.max(Math.abs(bounds.minX+r),Math.abs(bounds.maxX-r),Math.abs(bounds.minZ+r),Math.abs(bounds.maxZ-r))>(geometry.worldLimit??130850);
   if(!terrainPossible&&!obstacles.length&&!boundaryPossible)return;
@@ -64,7 +67,7 @@ export function sweepAircraft(from:FlightPose,to:FlightPose,hull:Hull,ground:(x:
     if(Math.abs(pose.position.x)>(geometry.worldLimit??130850)||Math.abs(pose.position.z)>(geometry.worldLimit??130850))return 'World boundary';
     const basis=axes(pose);
     for(const obstacle of obstacles)for(const box of hull.boxes)if(boxContact(box,pose,basis,obstacle))return 'Obstacle collision';
-    if(terrainPossible)for(const point of hull.points){const p=transform(point,pose,basis);if(p.y<=(geometry.maxGroundHeight??Infinity)&&p.y<=ground(p.x,p.z)+1e-7)return 'Terrain collision';}
+    if(terrainPossible)for(const point of hull.points){const p=transform(point,pose,basis);if(p.y<=terrainCeiling&&p.y<=ground(p.x,p.z)+1e-7)return 'Terrain collision';}
   };
   for(let i=0;i<=steps;i++){
     const t=i/steps,reason=contact(at(t));if(!reason)continue;

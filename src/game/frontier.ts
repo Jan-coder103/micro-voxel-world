@@ -5,7 +5,7 @@ import { AircraftSetup } from '../flight/aircraft.ts';
 import { Combat, type Target, type WeaponId } from '../combat/weapons.ts';
 import { RegionalPopulation } from '../hordes/regional-population.ts';
 import type { StorageLike } from '../persistence/chunk-deltas.ts';
-import { AIRBASE,airbaseHeight,airbaseSample,airbaseReserved,airbaseObstacles,onRunway } from '../world/airbase.ts';
+import { AIRBASE,airbaseHeight,airbaseHeightCeiling,airbaseSample,airbaseReserved,airbaseObstacles,onRunway } from '../world/airbase.ts';
 import type { ChunkSpec, Lod } from '../streaming/terrain-data.ts';
 
 export type Upgrade='engine'|'bounty'|'weapons';
@@ -39,7 +39,7 @@ export class Frontier {
     this.ground=(x,z)=>{const s=airbaseSample(seed,x,z);return onRunway(x,z)?this.baseHeight+.16:Math.max(s.height,s.water??-Infinity);};
     this.trees=new FrontierTrees(seed,this.population.world);
     const clearance=.08-Math.min(...PLAYER_FIXED_HULL.points.map(p=>p.y));
-    this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,maxGroundHeight:191,maxObstacleHeight:210,worldLimit:900000000,runway:{height:this.baseHeight+.16,clearance,contains:onRunway},obstacles:b=>[...this.trees.query(b),...airbaseObstacles(seed).filter(v=>v.minX<=b.maxX&&v.maxX>=b.minX&&v.minZ<=b.maxZ&&v.maxZ>=b.minZ),...this.population.world.buildings(b).filter(v=>!airbaseReserved(v.x,v.z,Math.max(v.width,v.depth)/2)).map(v=>({...v,minY:v.bottom,maxY:v.y+v.height}))]});
+    this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,maxGroundHeight:191,groundCeiling:b=>airbaseHeightCeiling(seed,b),maxObstacleHeight:210,worldLimit:900000000,runway:{height:this.baseHeight+.16,clearance,contains:onRunway},obstacles:b=>[...this.trees.query(b),...airbaseObstacles(seed).filter(v=>v.minX<=b.maxX&&v.maxX>=b.minX&&v.minZ<=b.maxZ&&v.maxZ>=b.minZ),...this.population.world.buildings(b).filter(v=>!airbaseReserved(v.x,v.z,Math.max(v.width,v.depth)/2)).map(v=>({...v,minY:v.bottom,maxY:v.y+v.height}))]});
     this.combat=new Combat([],this.ground,128,{index:this.population,blocker:(o,d,r)=>{
       // The cleared airfield has no procedural structures.
       if(airbaseReserved(o.x,o.z)&&airbaseReserved(o.x+d.x*r,o.z+d.z*r))return undefined;

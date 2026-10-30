@@ -1,4 +1,4 @@
-import { regionalSample } from './regional-terrain.ts';
+import { regionalSample,regionalHeightCeiling } from './regional-terrain.ts';
 
 /** Shared by workers, collision, coarse LOD and navigation. */
 export const AIRBASE={x:0,z:360,minZ:120,maxZ:600,halfWidth:22,spawnZ:548};
@@ -12,6 +12,11 @@ export function airbaseSample(seed:number,x:number,z:number){
   if(distance>=96)return s;
   const t=distance/96,w=t*t*(3-2*t),height=airbaseHeight(seed)*(1-w)+s.height*w;
   return {...s,height,water:distance===0?null:s.water!==null&&s.water>height?s.water:null,color:distance===0?[.36,.43,.22]:s.color};
+}
+
+/** Includes raised runway paint and the convex blend into the surrounding landscape. */
+export function airbaseHeightCeiling(seed:number,b:{minX:number;maxX:number;minZ:number;maxZ:number}){
+  return Math.max(regionalHeightCeiling(seed,b),airbaseHeight(seed)+.16);
 }
 
 export function airbaseObstacles(seed:number){const y=airbaseHeight(seed);return [

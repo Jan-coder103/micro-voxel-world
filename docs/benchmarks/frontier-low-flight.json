@@ -1,0 +1,186 @@
+{
+  "scope": "CPU-only isolated 1 m sweeps; timings include JIT variation, not hardware FPS",
+  "hullPoints": 6050,
+  "rows": [
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 30,
+      "local": false,
+      "samples": 66550,
+      "ms": 50.75099599999999,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 30,
+      "local": true,
+      "samples": 0,
+      "ms": 0.44908399999999915,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 139,
+      "local": false,
+      "samples": 66550,
+      "ms": 33.814662,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 139,
+      "local": true,
+      "samples": 0,
+      "ms": 0.06252000000000635,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 140,
+      "local": false,
+      "samples": 66550,
+      "ms": 30.397738000000004,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 140,
+      "local": true,
+      "samples": 0,
+      "ms": 0.085739000000018,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 141,
+      "local": false,
+      "samples": 66550,
+      "ms": 29.574424000000022,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 141,
+      "local": true,
+      "samples": 0,
+      "ms": 0.06031799999999521,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 220,
+      "local": false,
+      "samples": 0,
+      "ms": 0.007862999999986187,
+      "collision": null
+    },
+    {
+      "x": 0,
+      "z": 360,
+      "agl": 220,
+      "local": true,
+      "samples": 0,
+      "ms": 0.0343679999999722,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 30,
+      "local": false,
+      "samples": 66550,
+      "ms": 33.39625799999999,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 30,
+      "local": true,
+      "samples": 0,
+      "ms": 0.053466000000014446,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 139,
+      "local": false,
+      "samples": 297,
+      "ms": 0.9383410000000367,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 139,
+      "local": true,
+      "samples": 0,
+      "ms": 0.0408350000000155,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 140,
+      "local": false,
+      "samples": 0,
+      "ms": 0.7839099999999917,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 140,
+      "local": true,
+      "samples": 0,
+      "ms": 0.029554000000018732,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 141,
+      "local": false,
+      "samples": 0,
+      "ms": 0.7863150000000019,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 141,
+      "local": true,
+      "samples": 0,
+      "ms": 0.03701899999998659,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 220,
+      "local": false,
+      "samples": 0,
+      "ms": 0.0017239999999674183,
+      "collision": null
+    },
+    {
+      "x": 5000,
+      "z": 0,
+      "agl": 220,
+      "local": true,
+      "samples": 0,
+      "ms": 0.04279999999999973,
+      "collision": null
+    }
+  ]
+}

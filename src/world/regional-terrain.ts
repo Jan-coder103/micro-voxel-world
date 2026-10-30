@@ -17,6 +17,33 @@ function noise(seed:number,x:number,z:number,scale:number,salt:number):number {
   const a=regionalHash(seed,ax,az,salt),b=regionalHash(seed,ax+1,az,salt),c=regionalHash(seed,ax,az+1,salt),d=regionalHash(seed,ax+1,az+1,salt);
   return (a+(b-a)*tx)*(1-tz)+(c+(d-c)*tx)*tz;
 }
+type TerrainRect={minX:number;maxX:number;minZ:number;maxZ:number};
+/** Smooth bilinear noise has its extrema at the clipped corners of each lattice cell. */
+function noiseRange(seed:number,b:TerrainRect,scale:number,salt:number):[number,number] {
+  let low=1,high=0;
+  for(let iz=Math.floor(b.minZ/scale);iz<=Math.floor(b.maxZ/scale);iz++)for(let ix=Math.floor(b.minX/scale);ix<=Math.floor(b.maxX/scale);ix++){
+    for(const x of [Math.max(b.minX,ix*scale),Math.min(b.maxX,(ix+1)*scale)])for(const z of [Math.max(b.minZ,iz*scale),Math.min(b.maxZ,(iz+1)*scale)]){
+      const n=noise(seed,x,z,scale,salt);low=Math.min(low,n);high=Math.max(high,n);
+    }
+  }
+  return [low,high];
+}
+/** Interval upper bound, never a sampled estimate. River/lake carving only lowers land. */
+export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
+  const coastNoise=noiseRange(seed,{...b,minX:0,maxX:0},700,8)[0];
+  const layout=regionLayout(seed),inland=b.maxX-layout.coast-coastNoise*160;
+  const broad=noiseRange(seed,b,620,1)[1],detail=noiseRange(seed,b,95,2)[1],fine=noiseRange(seed,b,23,3)[1];
+  const [rmin,rmax]=noiseRange(seed,b,240,5);
+  const ridge=rmin<=.5&&rmax>=.5?1:1-Math.min(Math.abs(rmin*2-1),Math.abs(rmax*2-1));
+  const mountain=smooth((b.maxZ-450)/550)*smooth((inland-1000)/650);
+  const height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*125;
+  const x=b.maxX,reach=x<layout.lakeX-210?layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast):x<=layout.lakeX+210?layout.lakeX:x-210;
+  const river=Math.max(0,Math.min(55,(reach-layout.coast)*.012));
+  const lakeZ=layout.riverZ(layout.lakeX)+65;
+  const touchesLake=b.maxX>=layout.lakeX-155*1.3&&b.minX<=layout.lakeX+155*1.3&&b.maxZ>=lakeZ-110*1.3&&b.minZ<=lakeZ+110*1.3;
+  // Rounding can raise land by .05 m. Include all possible water surfaces in this rectangle.
+  return Math.min(REGIONAL_HEIGHT_CEILING,Math.max(0,river,touchesLake?(layout.lakeX-layout.coast)*.012:0,height+.050001));
+}
 export function regionLayout(seed:number) {
   const offset=(regionalHash(seed,0,0,71)-.5)*400;
   const coast=-1400+offset;

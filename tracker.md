@@ -730,3 +730,24 @@ Human handling/balance and hardware/full-browser acceptance remain outstanding.
   Two small mostly paused browser checks pass; inspected desktop/narrow captures.
   Four CLI sandbox-output failures passed unchanged outside the sandbox. No heavy
   browser/load run due to the earlier heat report. See handoff and decision 0024.
+
+## Frontier low-flight performance and terrain detail — 30 October 2026
+
+Status: implemented; automated checks passed; awaiting user/hardware verification.
+
+- Reproduced a collision CPU discontinuity: global elevation rejection enabled
+  66,550 procedural ground samples per 1 m sweep below the cutoff. Added a
+  conservative regional terrain/water interval ceiling, including the runway
+  blend. Clear 30 m AGL passes now use zero ground samples; isolated CPU cost
+  33–51 ms → 0.05–0.45 ms. No complete-frame or hardware FPS claim.
+- Added filtered world-space ground grain/soil patches, removed a dulling tint,
+  and extended fine underlay sampling to 512 m. Shared material and existing
+  worker/residency caps; collision heights and persistence unchanged.
+- 253 unique unit tests passed across serial runs. Four sandbox CLI-output
+  failures passed unchanged outside the sandbox (64 cases). Build/types/lint
+  passed; two short player browser smoke checks passed, including shader compile,
+  all LODs, pause/settings, narrow layout and cleanup. Initial shader reserved
+  identifier was corrected and rechecked. Final runway screenshot inspected.
+- Decision 0025 and bounded CPU diagnostic/JSON document evidence and limits.
+  No heavy browser/load checks under the retained heat restriction; physical FPS,
+  longer flight and human terrain/flight feedback remain open.

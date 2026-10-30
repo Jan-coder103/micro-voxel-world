@@ -1,5 +1,32 @@
 # Handoff — 30 October 2026
 
+## Latest: low-flight CPU cliff and terrain detail
+
+Jan reported ~3 FPS below ~140 m AGL and muddy ground. Fixed Frontier's
+collision hot path with a conservative local terrain/water interval ceiling.
+The 6,050-point hull previously caused 66,550 procedural samples per 1 m sweep
+below a global world-space elevation limit. Clear low passes now need zero
+samples (isolated CPU 33–51 ms → 0.05–0.45 ms at 30 m AGL). Detailed contact,
+landing, tree/building collision remain active. Other worlds do not opt in.
+This is CPU evidence, not verified hardware FPS. See decision 0025 and the bounded
+`tools/benchmarks/low-flight.ts` diagnostic / JSON evidence.
+
+Added filtered, world-anchored grass/soil grain across Frontier ground LODs,
+removed a dulling tint and extended the finer underlay to 512 m. Same shared
+material/mesh; world rebasing preserves patterns. Inspected final runway capture.
+Heights, saves and worker/residency caps are unchanged.
+
+Validation: 253 unique unit tests passed (249/253 initially in sandbox; all 64
+cases in the four CLI files passed on a serial outside-sandbox rerun). Build,
+types, lint passed. Two short mostly paused player smoke checks passed after
+fixing a GLSL reserved identifier caught on the initial attempt. No heavy browser,
+flight or load suite; retain Jan's heat restriction. Hardware FPS, longer travel,
+human visual/landing acceptance and earlier legacy gates remain open. User server
+untouched; preview server managed/stopped by Playwright. No push/deployment.
+Required local commit follows verification; consult git log.
+
+# Handoff — 30 October 2026
+
 ## Latest: integrated Frontier runway runs
 
 Jan requested the final base → manual takeoff → procedural exploration/combat →

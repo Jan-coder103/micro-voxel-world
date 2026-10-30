@@ -1,4 +1,5 @@
 import { createFrontierScenery } from '../rendering/frontier-scenery';
+import { configureFrontierMaterial } from '../rendering/frontier-material';
 import { ACESFilmicToneMapping,BoxGeometry,Color,DirectionalLight,Fog,Group,HemisphereLight,Mesh,MeshBasicMaterial,MeshStandardMaterial,PerspectiveCamera,Scene,SphereGeometry,Vector3,WebGLRenderer } from 'three';
 import aircraftSource from '../../assets/source/ref-attack-aircraft.voxel.json';
 import { createVoxelMesh } from '../rendering/voxel-mesh';
@@ -31,9 +32,9 @@ function mount(){
   const sun=new DirectionalLight('#ffe8cb',2.4);sun.position.set(-300,500,120);scene.add(sun,new HemisphereLight('#d7efff','#616845',1.4));
   const camera=new PerspectiveCamera(62,1,.2,2500),chase=new FlightCamera(38,12,24),aircraft=createVoxelMesh(aircraftSource),airframe=new Group();aircraft.mesh.position.y=-2.4;airframe.add(aircraft.mesh);world.add(airframe);
   const shadow=createAircraftShadow();world.add(shadow.mesh);
-  const terrainMaterial=new MeshStandardMaterial({vertexColors:true,color:'#aab7a2',roughness:1}),cube=new BoxGeometry(1,1,1),markerMaterial=new MeshStandardMaterial();
+  const terrainMaterial=new MeshStandardMaterial({vertexColors:true,roughness:1}),terrainSurface=configureFrontierMaterial(terrainMaterial,model.seed),cube=new BoxGeometry(1,1,1),markerMaterial=new MeshStandardMaterial();
   // Reused coarse terrain covers the horizon while four worker LOD tiers arrive nearby.
-  const fallback=createTerrainFallback(model.seed,(x,z)=>{const s=airbaseSample(model.seed,x,z);return {height:Math.max(s.height,s.water??-Infinity),color:[...s.color]};},128,{innerExtent:256,innerSpacing:16,drop:1,material:terrainMaterial});world.add(fallback.mesh);
+  const fallback=createTerrainFallback(model.seed,(x,z)=>{const s=airbaseSample(model.seed,x,z);return {height:Math.max(s.height,s.water??-Infinity),color:[...s.color]};},128,{innerExtent:512,innerSpacing:16,drop:1,material:terrainMaterial});world.add(fallback.mesh);
   const scenery=createFrontierScenery(model.seed,model.population.world);world.add(scenery.group);
   const populationView=createRegionalPopulationView(model.population),cities=createFrontierSettlements(model.population.world),combatView=createCombatView(model.combat);world.add(populationView.group,cities.group,combatView.group);
   const runwayMaterial=new MeshStandardMaterial({color:'#343e3d',roughness:1}),paint=new MeshStandardMaterial({color:'#eee7c3',roughness:1}),hangarMaterial=new MeshStandardMaterial({color:'#777e72',roughness:1}),roofMaterial=new MeshStandardMaterial({color:'#526361',roughness:1}),base=new Group();world.add(base);
@@ -87,6 +88,7 @@ function mount(){
     f.samplePose(pose);scenery.update(pose.position.x,pose.position.y,pose.position.z);airframe.position.set(pose.position.x,pose.position.y,pose.position.z);airframe.rotation.set(pose.pitch,-pose.heading,-pose.bank,'YXZ');shadow.update(pose,model.ground,false);
     // Keep GPU world transforms near zero even after long flights.
     world.position.set(-Math.floor(p.x/4096)*4096,0,-Math.floor(p.z/4096)*4096);
+    terrainSurface.updateOrigin(-world.position.x,-world.position.z);
     const tracking=chase.update(camera,pose,dt,snap);snap=false;
     camera.position.y=Math.max(camera.position.y,model.ground(camera.position.x,camera.position.z)+3);
     camera.position.x+=world.position.x;camera.position.z+=world.position.z;tracking.target.x+=world.position.x;tracking.target.z+=world.position.z;
