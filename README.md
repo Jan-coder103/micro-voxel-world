@@ -32,6 +32,9 @@ Assisted/Direct flight, aim assistance, effects and render scale.
 
 Regional terrain, forests, mountains, rivers, lakes, coasts/ocean and generated
 city/rural/industrial/military/airport/harbor districts now share the player world.
+Flat seeded crop fields form varied rectangular lowland parcels with grassy
+margins, green/gold/tilled soil colors and planting rows. Trees clear their
+interiors. Broader, taller mountains and expanded foothills add more relief.
 There is no decorative mountain annulus. Four worker terrain LODs (49 residents,
 two outstanding jobs/results), a reused 4 km coarse horizon underlay, near authored
 settlement kits/distant building proxies, and three horde tiers bound presentation.

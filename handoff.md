@@ -1,5 +1,39 @@
 # Handoff — 30 October 2026
 
+## Latest: procedural crop fields and larger mountains
+
+Jan requested flat, realistically proportioned rectangular crop fields using an
+attached aerial landscape as direction, plus bigger/more common mountains.
+Implemented shared seeded farm descriptors and flat plateaus with smooth grassy
+headlands in regional-terrain.ts; canonical tree rendering/collision clear their
+interiors. Frontier's terrain material adds sharp crop edges, five crop/soil colors
+and filtered planting rows via a 5.3 KiB descriptor atlas, with no added draw calls
+or geometry. Natural vertex colors avoid coarse halos. Atlas updates on farm-block
+crossings, supports render rebasing, and is disposed with the scene. Near/far
+terrain geometry and collision share the flattened heightfield. Existing regional
+labs receive the terrain shaping; crop surface detail is Frontier presentation.
+
+Mountain amplitude 125→170 m, wavelength 240→320 m; foothills begin 150 m closer
+to lowlands. Updated 235 m global terrain ceiling and Frontier collision bounds;
+250 m flight ceiling retained. Tight local field-blend bounds preserve near-ground
+collision work budgets. See decision 0030 and README. Existing regional terrain,
+settlements and tree layouts may regenerate under the same seed; no save reset or
+legacy-v1 changes.
+
+Verification: all 263 unit cases pass serially; final types/build/lint pass. Five
+focused browser cases pass across final runs: crop shader pixel comparison and
+landscape, distant forest, sharp shoreline, paused/narrow Frontier, and unavailable
+WebGL. Inspected final crop landscape PNG, copied to /tmp/mvw-crop-landscape.png.
+Initial shader reserved-name and local-collision-bound issues were fixed. Four
+sandboxed CLI test failures passed outside the sandbox; final full suite also
+passed there. An initial player smoke raced the build; both player checks passed
+again after build completion. No heavy flight/load/browser suite under retained
+heat restriction. Physical FPS and human visual/handling acceptance remain open.
+Preview servers were managed/stopped by Playwright; user server untouched.
+Required local commit follows checks; consult git log. No push/deployment.
+
+# Handoff — 30 October 2026
+
 ## Latest: dense green distant forest
 
 Jan requested removal of sparse dark tree blocks and dense far-away trees in the

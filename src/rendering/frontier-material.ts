@@ -1,20 +1,36 @@
-import { Vector2,type MeshStandardMaterial } from 'three';
+import { cropFields,farmLayout,FARM_BLOCK_SIZE,CROP_COLORS } from '../world/regional-terrain';
+import { DataTexture,FloatType,RGBAFormat,Vector2,type MeshStandardMaterial } from 'three';
 
 /** World-anchored, filtered soil/grass grain, shared by streamed terrain and its underlay. */
 export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number){
-  const origin={value:new Vector2()};
-  material.customProgramCacheKey=()=> 'frontier-ground-v2';
+  const origin={value:new Vector2()},farmOrigin={value:new Vector2()},size=13;
+  const pixels=new Float32Array(size*size*8),farms=new DataTexture(pixels,size*2,size,RGBAFormat,FloatType);
+  let anchor='';
+  const updateFields=(x:number,z:number)=>{
+    const bx=Math.floor(x/FARM_BLOCK_SIZE)-6,bz=Math.floor(z/FARM_BLOCK_SIZE)-6,key=`${bx},${bz}`;if(anchor===key)return;anchor=key;
+    farmOrigin.value.set(bx,bz);pixels.fill(-1);
+    for(let dz=0;dz<size;dz++)for(let dx=0;dx<size;dx++){
+      const i=(dz*size*2+dx*2)*4;
+      pixels.set([...farmLayout(seed,bx+dx,bz+dz),0],i);
+      for(const f of cropFields(seed,bx+dx,bz+dz))pixels[i+4+f.slot]=f.crop+(f.rowsAlongX?.25:0);
+    }
+    farms.needsUpdate=true;
+  };updateFields(0,0);
+  material.customProgramCacheKey=()=> 'frontier-ground-v3';
   material.onBeforeCompile=shader=>{
-    shader.uniforms.terrainOrigin=origin;
+    shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
     shader.uniforms.terrainSeed={value:seed%65536};
     shader.vertexShader=shader.vertexShader.replace('#include <common>',`#include <common>
-      uniform vec2 terrainOrigin; varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater;`)
+      uniform vec2 terrainOrigin; varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable;`)
       .replace('#include <begin_vertex>',`#include <begin_vertex>
       vTerrainPosition=(modelMatrix*vec4(position,1.0)).xz+terrainOrigin;
       vTerrainTop=smoothstep(.5,.9,normal.y);
-      vTerrainWater=step(color.r*1.5,color.b);`);
+      vTerrainWater=step(color.r*1.5,color.b);
+      vTerrainCultivable=step(.17,color.r)*step(color.b*1.5,color.g)*step(color.r*.7,color.g);`);
     shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
-      varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; uniform float terrainSeed;
+      varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable; uniform float terrainSeed;
+      uniform sampler2D farmAtlas; uniform vec2 farmOrigin;
+      vec3 cropColor(float crop){${CROP_COLORS.map((c,i)=>`if(crop<${i+.5})return vec3(${c.join(',')});`).join('')}return vec3(.4,.4,.2);}
       float terrainHash(vec2 cell){vec3 p=fract(vec3(cell.xyx)*.1031+terrainSeed*.001);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
       float terrainGrain(vec2 p,float size){float fade=1.0-smoothstep(.35,1.2,max(fwidth(p.x),fwidth(p.y))/size);return (terrainHash(floor(p/size))-.5)*fade;}`)
       .replace('#include <color_fragment>',`#include <color_fragment>
@@ -31,7 +47,25 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
       float groundPatch=terrainGrain(vTerrainPosition,12.0),soil=terrainGrain(vTerrainPosition,3.0),grain=terrainGrain(vTerrainPosition,.65);
       float variation=groundPatch*.24+soil*.16+grain*.16;
       diffuseColor.rgb*=1.0+variation*land*vTerrainTop;
-      diffuseColor.rgb+=vec3(.025,.012,-.018)*soil*land*vTerrainTop;`);
+      diffuseColor.rgb+=vec3(.025,.012,-.018)*soil*land*vTerrainTop;
+      // Two tiny nearest-filtered atlas reads keep parcel edges exact at every LOD.
+      vec2 block=floor(vTerrainPosition/384.0),local=vTerrainPosition-block*384.0,index=block-farmOrigin;
+      if(all(greaterThanEqual(index,vec2(0.0)))&&all(lessThan(index,vec2(13.0)))){
+        vec4 parcelLayout=texture2D(farmAtlas,vec2((index.x*2.0+.5)/26.0,(index.y+.5)/13.0));
+        vec4 crops=texture2D(farmAtlas,vec2((index.x*2.0+1.5)/26.0,(index.y+.5)/13.0));
+        bool right=local.x>=parcelLayout.x;float cut=right?parcelLayout.z:parcelLayout.y;bool upper=local.y>=cut;
+        float code=right?(upper?crops.w:crops.z):(upper?crops.y:crops.x);
+        vec2 lo=vec2(right?parcelLayout.x:0.0,upper?cut:0.0)+9.0;
+        vec2 hi=vec2(right?384.0:parcelLayout.x,upper?384.0:cut)-9.0;
+        float edge=min(min(local.x-lo.x,hi.x-local.x),min(local.y-lo.y,hi.y-local.y));
+        float aa=max(fwidth(edge),.01),coverage=smoothstep(-aa,aa,edge)*step(0.0,code)*land*vTerrainTop*vTerrainCultivable;
+        float rowPosition=fract(code)>.1?vTerrainPosition.y:vTerrainPosition.x;
+        float rowFade=1.0-smoothstep(.5,2.0,fwidth(rowPosition));
+        float rows=cos(rowPosition*3.14159265)*.055*rowFade;
+        float headland=smoothstep(0.0,3.0,edge);
+        vec3 crop=cropColor(floor(code))*(.88+.12*headland+rows*headland+soil*.08);
+        diffuseColor.rgb=mix(diffuseColor.rgb,crop,coverage);
+      }`);
   };
-  return {updateOrigin(x:number,z:number){origin.value.set(x,z);}};
+  return {updateFields,dispose(){farms.dispose();},updateOrigin(x:number,z:number){origin.value.set(x,z);}};
 }

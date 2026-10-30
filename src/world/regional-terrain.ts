@@ -2,9 +2,9 @@ import type { ChunkSpec } from '../streaming/terrain-data';
 
 /** Independent v2 field: old combat/marker worlds retain generator v1. Units are metres. */
 export const REGIONAL_VERSION = 2;
-// Base <=60, offset -7, noise <=9+2.5+0.4, ridges <=125; valleys only lower.
-// Rounded terrain <=189.9 m; all water levels <=55 m. Collision broad phase only.
-export const REGIONAL_HEIGHT_CEILING=190;
+// Base <=60, offset -7, noise <=9+2.5+0.4, ridges <=170; valleys only lower.
+// Rounded terrain <=234.9 m; all water levels <=55 m. Collision broad phase only.
+export const REGIONAL_HEIGHT_CEILING=235;
 export type Biome = 'ocean' | 'coast' | 'river' | 'lake' | 'plains' | 'forest' | 'mountains';
 const clamp = (n:number) => Math.max(0,Math.min(1,n));
 const smooth = (n:number) => { const t=clamp(n); return t*t*(3-2*t); };
@@ -53,10 +53,10 @@ export function regionalHeightBounds(seed:number,b:TerrainRect) {
   const coastNoise=noiseRange(seed,{...b,minX:0,maxX:0},700,8)[0];
   const layout=regionLayout(seed),inland=b.maxX-layout.coast-coastNoise*160;
   const broad=noiseRange(seed,b,620,1)[1],detail=noiseRange(seed,b,95,2)[1],fine=noiseRange(seed,b,23,3)[1];
-  const [rmin,rmax]=noiseRange(seed,b,240,5);
+  const [rmin,rmax]=noiseRange(seed,b,320,5);
   const ridge=rmin<=.5&&rmax>=.5?1:1-Math.min(Math.abs(rmin*2-1),Math.abs(rmax*2-1));
-  const mountain=smooth((b.maxZ-450)/550)*smooth((inland-1000)/650);
-  let height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*125;
+  const mountain=smooth((b.maxZ-300)/600)*smooth((inland-1000)/650);
+  let height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*170;
   const riverLevel=(x:number)=>{const reach=x<layout.lakeX-210?layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast):x<=layout.lakeX+210?layout.lakeX:x-210;return Math.max(0,Math.min(55,(reach-layout.coast)*.012));};
   const river=riverLevel(b.maxX),phase=regionalHash(seed,0,0,99)*6.28,offset=layout.coast+1400;
   const [sinLow,sinHigh]=sineRange(b.minX/570+phase,b.maxX/570+phase);
@@ -74,6 +74,14 @@ export function regionalHeightBounds(seed:number,b:TerrainRect) {
   for(const rw of [rminWeight,rmaxWeight])for(const lw of [lminWeight,lmaxWeight])height=Math.max(height,watercourseHeight(landTop,riverTop,rw,lakeTop,lw));
   const overlapMin=Math.max(rminWeight,lminWeight),overlapMax=Math.min(rmaxWeight,lmaxWeight);
   if(overlapMin<=overlapMax)for(const w of [overlapMin,overlapMax])height=Math.max(height,watercourseHeight(landTop,riverTop,w,lakeTop,w));
+  // Flattened parcels are convex blends with their constant plateau height.
+  for(let bz=Math.floor(b.minZ/FARM_BLOCK_SIZE);bz<=Math.floor(b.maxZ/FARM_BLOCK_SIZE);bz++)for(let bx=Math.floor(b.minX/FARM_BLOCK_SIZE);bx<=Math.floor(b.maxX/FARM_BLOCK_SIZE);bx++)for(const f of cropFields(seed,bx,bz)){
+    const near=Math.max(f.minX-b.maxX,b.minX-f.maxX,f.minZ-b.maxZ,b.minZ-f.maxZ,0);
+    if(near>=8)continue;
+    const far=Math.max(f.minX-b.minX,b.maxX-f.maxX,f.minZ-b.minZ,b.maxZ-f.maxZ,0);
+    const lowWeight=1-smooth(far/8),highWeight=1-smooth(near/8);
+    height=Math.max(height*(1-lowWeight)+f.height*lowWeight,height*(1-highWeight)+f.height*highWeight);
+  }
   // Rounding can raise land by .05 m. Include all possible water surfaces in this rectangle.
   return {height:Math.min(REGIONAL_HEIGHT_CEILING,height+.050001),water:Math.max(0,nearRiver<42?river:0,nearLake<1.3?lakeLevel:0)};
 }
@@ -87,15 +95,15 @@ export function regionLayout(seed:number) {
 }
 export interface RegionalSample { height:number; water:number|null; biome:Biome; moisture:number; color:readonly number[] }
 /** Global continuous fields, terraced to 0.1 m only after valley/shore shaping. */
-export function regionalSample(seed:number,x:number,z:number):RegionalSample {
+function naturalSample(seed:number,x:number,z:number):RegionalSample {
   const layout=regionLayout(seed),coast=layout.coast+noise(seed,0,z,700,8)*160;
   const inland=x-coast;
   const broad=noise(seed,x,z,620,1),detail=noise(seed,x,z,95,2),fine=noise(seed,x,z,23,3);
   const moisture=noise(seed,x,z,400,4);
-  const mountain=smooth((z-450)/550)*smooth((inland-1000)/650);
+  const mountain=smooth((z-300)/600)*smooth((inland-1000)/650);
   // Ridged elevation with a smooth valley envelope approximates erosion-shaped drainage.
-  const ridge=1-Math.abs(noise(seed,x,z,240,5)*2-1);
-  let height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*125;
+  const ridge=1-Math.abs(noise(seed,x,z,320,5)*2-1);
+  let height=Math.max(-55,Math.min(60,inland*.018))-7+(broad-.5)*18+(detail-.5)*5+(fine-.5)*.8+mountain*ridge*170;
   const riverDistance=Math.abs(z-layout.riverZ(x));
   const reach=x<layout.lakeX-210 ? layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast) : x<=layout.lakeX+210 ? layout.lakeX : x-210;
   const riverLevel=Math.max(0,Math.min(55,(reach-layout.coast)*.012));
@@ -112,6 +120,49 @@ export function regionalSample(seed:number,x:number,z:number):RegionalSample {
   const color=water!==null ? [.10,.36,.49] : biome==='coast' ? [.62,.57,.37] : biome==='mountains' ? [.46,.47,.40] : biome==='forest' ? [.22,.36,.16] : [.43,.52,.24];
   return {height,water,biome,moisture,color};
 }
+/** Each 384 m farm block has staggered rectangular parcels and grass access margins. */
+export interface CropField { minX:number;maxX:number;minZ:number;maxZ:number;height:number;crop:number;rowsAlongX:boolean;slot:number }
+export const FARM_BLOCK_SIZE=384;
+export const CROP_COLORS:readonly (readonly number[])[]=[[.56,.45,.17],[.37,.46,.14],[.49,.52,.21],[.35,.25,.13],[.61,.53,.26]];
+export function farmLayout(seed:number,bx:number,bz:number){return [130+regionalHash(seed,bx,bz,302)*100,105+regionalHash(seed,bx,bz,303)*140,105+regionalHash(seed,bx,bz,304)*140];}
+const farms=new Map<string,readonly CropField[]>();
+/** Bounded cache shared by terrain, vegetation and scenery; tests use the same authoritative field. */
+export function cropFields(seed:number,bx:number,bz:number):readonly CropField[]{
+  const key=`${seed}:${bx},${bz}`,cached=farms.get(key);if(cached)return cached;
+  const fields:CropField[]=[],ox=bx*FARM_BLOCK_SIZE,oz=bz*FARM_BLOCK_SIZE;
+  if(regionalHash(seed,bx,bz,301)<.82){
+    const [split,cut0,cut1]=farmLayout(seed,bx,bz);
+    for(let col=0;col<2;col++){
+      const cuts=[0,col===0?cut0:cut1,FARM_BLOCK_SIZE];
+      for(let row=0;row<2;row++){
+        const minX=ox+(col===0?0:split)+9,maxX=ox+(col===0?split:FARM_BLOCK_SIZE)-9,minZ=oz+cuts[row]+9,maxZ=oz+cuts[row+1]-9;
+        // Keep home infrastructure clear in every regional mode; settlements check reservations separately.
+        if(minX<190&&maxX> -190&&minZ<758&&maxZ> -38)continue;
+        const samples:RegionalSample[]=[];
+        for(const x of [minX-8,(minX+maxX)/2,maxX+8])for(const z of [minZ-8,(minZ+maxZ)/2,maxZ+8])samples.push(naturalSample(seed,x,z));
+        const low=Math.min(...samples.map(s=>s.height)),high=Math.max(...samples.map(s=>s.height));
+        if(samples.some(s=>s.water!==null||!['plains','forest'].includes(s.biome))||high-low>8)continue;
+        fields.push({slot:col*2+row,minX,maxX,minZ,maxZ,height:samples[4].height,crop:Math.floor(regionalHash(seed,bx,bz,310+col*2+row)*CROP_COLORS.length),rowsAlongX:regionalHash(seed,bx,bz,320+col*2+row)>.5});
+      }
+    }
+  }
+  farms.set(key,fields);if(farms.size>512)farms.delete(farms.keys().next().value!);return fields;
+}
+export function cropFieldAt(seed:number,x:number,z:number):CropField|undefined {
+  return cropFields(seed,Math.floor(x/FARM_BLOCK_SIZE),Math.floor(z/FARM_BLOCK_SIZE)).find(f=>x>=f.minX&&x<=f.maxX&&z>=f.minZ&&z<=f.maxZ);
+}
+/** Flat cultivated interiors feather into natural land over an 8 m grassy headland. */
+export function regionalSample(seed:number,x:number,z:number):RegionalSample {
+  const s=naturalSample(seed,x,z);
+  if(s.water!==null)return s;
+  for(const f of cropFields(seed,Math.floor(x/FARM_BLOCK_SIZE),Math.floor(z/FARM_BLOCK_SIZE))){
+    const d=Math.max(f.minX-x,x-f.maxX,f.minZ-z,z-f.maxZ,0);
+    if(d>=8)continue;
+    const w=1-smooth(d/8);
+    return {...s,height:s.height*(1-w)+f.height*w};
+  }
+  return s;
+}
 export interface RegionalTree { x:number; z:number; y:number; height:number }
 /** Global 8 m placement lattice; half-open ownership prevents duplicates at chunk edges. */
 export function regionTrees(spec:ChunkSpec):RegionalTree[] {
@@ -122,7 +173,7 @@ export function regionTrees(spec:ChunkSpec):RegionalTree[] {
     const px=x+1+regionalHash(spec.seed,x,z,21)*6,pz=z+1+regionalHash(spec.seed,x,z,22)*6;
     const sample=regionalSample(spec.seed,px,pz);
     const slope=Math.max(Math.abs(regionalSample(spec.seed,px+2,pz).height-sample.height),Math.abs(regionalSample(spec.seed,px,pz+2).height-sample.height))/2;
-    if(sites.some(site=>Math.hypot(site.x-px,site.z-pz)<site.radius+3) || sample.water!==null || slope>.5 || !['forest','plains'].includes(sample.biome) || regionalHash(spec.seed,x,z,23)>(sample.biome==='forest'?.8:.08))continue;
+    if(sites.some(site=>Math.hypot(site.x-px,site.z-pz)<site.radius+3) || sample.water!==null || cropFieldAt(spec.seed,px,pz) || slope>.5 || !['forest','plains'].includes(sample.biome) || regionalHash(spec.seed,x,z,23)>(sample.biome==='forest'?.8:.08))continue;
     result.push({x:px,z:pz,y:sample.height,height:4+regionalHash(spec.seed,x,z,24)*5});
   }
   return result;

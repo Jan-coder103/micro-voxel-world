@@ -1,16 +1,16 @@
 import { REGIONAL_HEIGHT_CEILING } from '../../src/world/regional-terrain';
 import { expect, it } from 'vitest';
 import { generateTerrain, heightAt, signature } from '../../src/streaming/terrain-data';
-import { regionalSample, regionLayout, regionTrees, settlementSite, regionalLandmarks } from '../../src/world/regional-terrain';
+import { regionalHeightCeiling, regionalSample, regionLayout, regionTrees, settlementSite, regionalLandmarks } from '../../src/world/regional-terrain';
 
 const seeds=[103,12012,0,4294967295];
 it('reproduces seeded regional fixtures and keeps legacy worlds separate',()=>{
   expect(seeds.map(seed=>regionalSample(seed,800,900).height)).toMatchInlineSnapshot(`
     [
-      87.7,
-      109.2,
-      115.4,
-      150.2,
+      96.3,
+      181.3,
+      199.7,
+      161.2,
     ]
   `);
   expect(new Set(seeds.map(seed=>JSON.stringify(regionalSample(seed,800,900)))).size).toBe(4);
@@ -56,7 +56,7 @@ it('supports fixed-step aircraft travel and authoritative terrain/water collisio
   const {Flight}=await import('../../src/flight/flight');
   for(const seed of seeds){
     const ground=(x:number,z:number)=>{const s=regionalSample(seed,x,z);return Math.max(s.height,s.water??-Infinity);};
-    const flight=new Flight(ground,undefined,'fixed-wing',{maxGroundHeight:REGIONAL_HEIGHT_CEILING});flight.position.y=220;flight.start();
+    const flight=new Flight(ground,undefined,'fixed-wing',{maxGroundHeight:REGIONAL_HEIGHT_CEILING,groundCeiling:b=>regionalHeightCeiling(seed,b)});flight.position.y=220;flight.start();
     for(let i=0;i<600;i++)flight.advance(1/60,{pitch:0,bank:0,throttle:1});
     expect(flight.state).toBe('running');expect(flight.position.z).toBeLessThan(-750);
     const lake=regionalLandmarks(seed).Lake;flight.position={...lake,y:ground(lake.x,lake.z)+2};flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('running');flight.position={...lake,y:ground(lake.x,lake.z)+.4};flight.advance(1/60,{pitch:0,bank:0,throttle:0});expect(flight.state).toBe('crashed');

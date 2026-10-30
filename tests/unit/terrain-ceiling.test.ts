@@ -1,5 +1,5 @@
 import { expect,it } from 'vitest';
-import { regionalHash,regionalHeightCeiling,regionalSample } from '../../src/world/regional-terrain';
+import { regionalHash,REGIONAL_HEIGHT_CEILING,regionalHeightCeiling,regionalSample } from '../../src/world/regional-terrain';
 import { airbaseHeightCeiling,airbaseSample } from '../../src/world/airbase';
 import { PLAYER_FIXED_HULL } from '../../src/flight/aircraft-hulls';
 import { sweepAircraft } from '../../src/flight/collision';
@@ -24,7 +24,7 @@ it('eliminates procedural hull sampling on clear low passes on both sides of the
     const s=airbaseSample(103,x,z),y=Math.max(s.height,s.water??-Infinity)+agl;
     const from={position:{x,y,z},heading:0,pitch:0,bank:0},to={...from,position:{x,y,z:z-1}};
     let calls=0;const ground=(px:number,pz:number)=>{calls++;const s=airbaseSample(103,px,pz);return Math.max(s.height,s.water??-Infinity);};
-    expect(sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:191,groundCeiling:b=>airbaseHeightCeiling(103,b)})).toBeUndefined();
+    expect(sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:REGIONAL_HEIGHT_CEILING+1,groundCeiling:b=>airbaseHeightCeiling(103,b)})).toBeUndefined();
     expect(calls).toBe(0);
   }
 });
@@ -34,8 +34,8 @@ it('preserves banked ground/water contacts and obstacle checks when local terrai
     const sample=regionalSample(103,x,z),y=Math.max(sample.height,sample.water??-Infinity)+1;
     const from={position:{x,y:y+2,z},heading:.4,pitch:-.1,bank},to={...from,position:{x,y,z:z-1}};
     const ground=(px:number,pz:number)=>{const s=regionalSample(103,px,pz);return Math.max(s.height,s.water??-Infinity);};
-    const reference=sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:190});
-    const optimized=sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:190,groundCeiling:b=>regionalHeightCeiling(103,b)});
+    const reference=sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:REGIONAL_HEIGHT_CEILING});
+    const optimized=sweepAircraft(from,to,PLAYER_FIXED_HULL,ground,{maxGroundHeight:REGIONAL_HEIGHT_CEILING,groundCeiling:b=>regionalHeightCeiling(103,b)});
     expect(optimized).toEqual(reference);expect(optimized?.reason).toBe('Terrain collision');
   }
   const from={position:{x:0,y:100,z:360},heading:0,pitch:0,bank:0};

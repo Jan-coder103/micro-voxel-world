@@ -3,7 +3,7 @@ import { Frontier } from '../../src/game/frontier';
 import { PLAYER_FIXED_HULL } from '../../src/flight/aircraft-hulls';
 import { sweepAircraft,prepareHull } from '../../src/flight/collision';
 import { airbaseHeightCeiling,airbaseSample } from '../../src/world/airbase';
-import { regionalLandmarks,regionalHeightCeiling,regionalSample } from '../../src/world/regional-terrain';
+import { regionalLandmarks,REGIONAL_HEIGHT_CEILING,regionalHeightCeiling,regionalSample } from '../../src/world/regional-terrain';
 
 it('keeps near-contact clear passes cheap and preserves contact at every height without thinning hull samples',()=>{
   const seed=103,landmarks=regionalLandmarks(seed),reference={...PLAYER_FIXED_HULL,terrainTree:undefined};
@@ -12,8 +12,8 @@ it('keeps near-contact clear passes cheap and preserves contact at every height 
     const from={position:{x,y,z},heading:.3,pitch:0,bank:.1},to={...from,position:{x:x+.3,y,z:z-1}};
     let calls=0;
     const ground=(px:number,pz:number)=>{const s=airbaseSample(seed,px,pz);return Math.max(s.height,s.water??-Infinity);};
-    const expected=sweepAircraft(from,to,reference,ground,{maxGroundHeight:191});
-    const actual=sweepAircraft(from,to,PLAYER_FIXED_HULL,(px,pz)=>{calls++;return ground(px,pz);},{maxGroundHeight:191,groundCeiling:b=>airbaseHeightCeiling(seed,b)});
+    const expected=sweepAircraft(from,to,reference,ground,{maxGroundHeight:REGIONAL_HEIGHT_CEILING+1});
+    const actual=sweepAircraft(from,to,PLAYER_FIXED_HULL,(px,pz)=>{calls++;return ground(px,pz);},{maxGroundHeight:REGIONAL_HEIGHT_CEILING+1,groundCeiling:b=>airbaseHeightCeiling(seed,b)});
     expect(actual).toEqual(expected);
     // Bound real work, including the active near-ground path, rather than asserting hardware timings.
     expect(calls,JSON.stringify({x,z,agl})).toBeLessThan(512);

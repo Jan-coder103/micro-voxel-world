@@ -824,3 +824,26 @@ awaiting user visual/device verification.
   (15.6 s); inspected actual-scenery capture with dense forest into the horizon.
   No heavy flight/load/browser suite under the heat restriction. Real vegetation
   GPU/memory cost, physical-device FPS and visual/long-travel feedback remain open.
+
+
+## 30 October 2026 — Crop fields and larger mountains
+
+- Added deterministic staggered rectangular lowland crop parcels, flat interiors,
+  smooth grassy headlands, five green/gold/soil palettes and filtered planting
+  rows. Canonical tree generation and collision clear cultivated interiors.
+- Frontier shares a bounded 5.3 KiB descriptor texture between near terrain and
+  horizon material, keeping edges sharp with no added geometry/draw calls. Atlas
+  coverage moves in 384 m steps, supports origin rebasing and is disposed.
+- Raised mountain ridge amplitude from 125 to 170 m and broadened wavelength from
+  240 to 320 m; expanded foothills for modestly greater mountain coverage. Updated
+  global/local terrain and Frontier collision bounds below the 250 m flight cap.
+- All 263 unit cases pass, including flatness/variety, tree exclusion, LOD seams,
+  conservative bounds and the unchanged near-ground work budget. Final lint,
+  types/production build pass. Five focused browser cases pass across final runs;
+  crop-enabled/disabled GPU pixel comparison verifies rendered coverage. Inspected
+  final landscape screenshot. Decision 0030 documents presentation and costs.
+- Initial shader compile and collision-bound regressions were corrected; sandbox
+  CLI output failures passed outside the sandbox, including the final full unit
+  suite. Player smoke passed after a build-race rerun. No heavy browser/load suite
+  under the existing heat restriction; human visual acceptance/physical FPS remain
+  open. No push/deployment; local commit required after checks.
