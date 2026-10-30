@@ -27,3 +27,13 @@ Fly this region transfers seed/location to the optional regional Flight lab. Con
 Unit fixtures cover four seeds including uint32 endpoints, all biomes, connected monotonic water, shared LOD edges, stable placement, full-world elevation bounds and real flight/water collision. Browser inspection covers landmark navigation, seed changes, selected-location flight, bounded resources, saves and teardown. Full earlier regression checks remain required.
 
 `node --experimental-transform-types tools/benchmarks/terrain.ts` generates 49 chunks at five landmarks for seeds 103/12012. Committed JSON records CPU generation durations, payload bytes and triangles. The initial sample ran concurrently with browser verification; its timings include warmup/contention and establish no frame budget. It reports roughly 2.45–2.87 MB of resident typed-array payload and at most 489,024 bytes per chunk. GPU copies, temporary JS arrays and runtime overhead are additional. Physical-GPU acceptance remains deferred.
+
+
+## Shoreline correction — 30 October 2026
+
+Decision 0027 supersedes the lowering-only watercourse shaping described above.
+River/lake profiles now also raise containing banks, retaining continuous surfaces
+at the old eligibility cutoffs. Airfield water/land blend together. Regional-v2
+shore-adjacent geography is corrected; v1 worlds remain unchanged. Conservative
+collision intervals include these raised banks; existing near-contact performance
+regressions remain enabled.

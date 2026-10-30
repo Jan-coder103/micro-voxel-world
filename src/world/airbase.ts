@@ -1,4 +1,4 @@
-import { regionalSample,regionalHeightCeiling } from './regional-terrain.ts';
+import { regionalSample,regionalHeightCeiling,regionalHeightBounds } from './regional-terrain.ts';
 
 /** Shared by workers, collision, coarse LOD and navigation. */
 export const AIRBASE={x:0,z:360,minZ:120,maxZ:600,halfWidth:22,spawnZ:548};
@@ -11,17 +11,19 @@ export function airbaseSample(seed:number,x:number,z:number){
   const distance=Math.max(Math.abs(x)-82,AIRBASE.minZ-50-z,z-AIRBASE.maxZ-50,0);
   if(distance>=96)return s;
   const t=distance/96,w=t*t*(3-2*t),height=airbaseHeight(seed)*(1-w)+s.height*w;
-  return {...s,height,water:distance===0?null:s.water!==null&&s.water>height?s.water:null,color:distance===0?[.36,.43,.22]:s.color};
+  const water=s.water===null?null:airbaseHeight(seed)*(1-w)+s.water*w;
+  return {...s,height,water:distance===0?null:water!==null&&water>height?water:null,color:distance===0?[.36,.43,.22]:s.color};
 }
 
 /** Includes raised runway paint and the convex blend into the surrounding landscape. */
 export function airbaseHeightCeiling(seed:number,b:{minX:number;maxX:number;minZ:number;maxZ:number}){
   if(b.minX>=-82&&b.maxX<=82&&b.minZ>=AIRBASE.minZ-50&&b.maxZ<=AIRBASE.maxZ+50)return airbaseHeight(seed)+.16;
   if(b.minX>=178||b.maxX<=-178||b.maxZ<=AIRBASE.minZ-146||b.minZ>=AIRBASE.maxZ+146)return regionalHeightCeiling(seed,b);
-  const ceiling=regionalHeightCeiling(seed,b),distance=Math.max(0,Math.max(0,b.minX,-b.maxX)-82,AIRBASE.minZ-50-b.maxZ,b.minZ-AIRBASE.maxZ-50);
-  const t=Math.min(1,distance/96),w=t*t*(3-2*t);
+  const bounds=regionalHeightBounds(seed,b),distance=Math.max(0,Math.max(0,b.minX,-b.maxX)-82,AIRBASE.minZ-50-b.maxZ,b.minZ-AIRBASE.maxZ-50);
+  const farDistance=Math.max(0,Math.abs(b.minX)-82,Math.abs(b.maxX)-82,AIRBASE.minZ-50-b.minZ,b.maxZ-AIRBASE.maxZ-50);
+  const blend=(d:number,height:number)=>{const t=Math.min(1,d/96),w=t*t*(3-2*t);return airbaseHeight(seed)*(1-w)+height*w;};
   const runway=b.minX<=AIRBASE.halfWidth&&b.maxX>=-AIRBASE.halfWidth&&b.minZ<=AIRBASE.maxZ&&b.maxZ>=AIRBASE.minZ;
-  return Math.max(ceiling,airbaseHeight(seed)*(1-w)+ceiling*w,runway?airbaseHeight(seed)+.16:-Infinity);
+  return Math.max(blend(distance,bounds.height),blend(farDistance,bounds.height),blend(distance,bounds.water),blend(farDistance,bounds.water),runway?airbaseHeight(seed)+.16:-Infinity);
 }
 
 export function airbaseObstacles(seed:number){const y=airbaseHeight(seed);return [

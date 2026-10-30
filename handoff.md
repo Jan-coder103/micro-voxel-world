@@ -1,5 +1,31 @@
 # Handoff — 30 October 2026
 
+## Latest: raised water walls / shoreline correction
+
+Jan reported the elevated blue river wall. Root cause: fixed-width water above
+unraised plains (seed 103 x=0: water 18.925 m, outside bank 11.5 m), plus airfield
+flattening that moved land without moving water. Regional profiles now shape beds
+and containing banks, merge river/lake junctions continuously, and blend into the
+landscape. Airfield land/water now use the same flattening weights. Decision 0027
+has details. Visual meshes, fallback and collision use the same corrected field.
+
+Updated conservative land/water collision bounds for raised banks and airfield
+blending; low-flight hierarchy/work-budget tests still pass. No added rendering
+objects/materials/workers or dependency. Regional-v2 shore-adjacent content can
+regenerate; no save-key reset/write or legacy-v1 terrain change.
+
+Verification: all 259 unit cases passed serially; final strengthened three-case
+shoreline subset passed again. Build/types/lint pass. Three short mostly paused
+browser checks passed in 12.1 s, including new river/lake captures. Inspected both:
+water meets banks without the elevated blue wall. Bounded CPU sweep diagnostic
+retained <=2 exact ground calls in sampled scenarios; 5 m runway used zero calls
+(~0.085 ms), not hardware FPS. No heavy flight/browser load suite under the heat
+restriction. Keep physical-device FPS and human visual/flight acceptance open.
+User server untouched; preview managed/stopped by Playwright. Required local
+commit follows final checks; consult git log. No push/deployment.
+
+# Handoff — 30 October 2026
+
 ## Latest: remaining near-ground collision cost
 
 Jan still reported stutter below ~30 m. The previous broad rejection was

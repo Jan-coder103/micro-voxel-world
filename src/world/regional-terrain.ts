@@ -33,8 +33,23 @@ function sineRange(low:number,high:number):[number,number] {
   const contains=(phase:number)=>Math.ceil((low-phase)/(Math.PI*2))<=Math.floor((high-phase)/(Math.PI*2));
   return [contains(-Math.PI/2)?-1:Math.min(a,b),contains(Math.PI/2)?1:Math.max(a,b)];
 }
-/** Interval upper bound, never a sampled estimate. River/lake carving only lowers land. */
-export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
+const riverWeight=(distance:number)=>1-smooth((distance-50)/90);
+const lakeWeight=(distance:number)=>1-smooth((distance-1.3)/.5);
+function riverProfile(level:number,distance:number){
+  const offset=-3+Math.max(0,distance-12)*.18;
+  // Banks taper into the ocean at the river mouth rather than making a ridge at sea.
+  return level+Math.min(0,offset)+Math.max(0,offset)*smooth(level/3);
+}
+/** Merge overlapping basins without damming the river where it enters the lake. */
+function watercourseHeight(land:number,river:number,rw:number,lake:number,lw:number){
+  const weight=Math.max(rw,lw);
+  if(rw===0)return land*(1-lw)+lake*lw;
+  if(lw===0)return land*(1-rw)+river*rw;
+  const low=Math.min(river,lake),high=Math.max(river,lake),lowWeight=river<lake?rw:lw;
+  return land*(1-weight)+high*(weight-lowWeight)+low*lowWeight;
+}
+/** Interval upper bound, never a sampled estimate. Includes shaped river/lake banks. */
+export function regionalHeightBounds(seed:number,b:TerrainRect) {
   const coastNoise=noiseRange(seed,{...b,minX:0,maxX:0},700,8)[0];
   const layout=regionLayout(seed),inland=b.maxX-layout.coast-coastNoise*160;
   const broad=noiseRange(seed,b,620,1)[1],detail=noiseRange(seed,b,95,2)[1],fine=noiseRange(seed,b,23,3)[1];
@@ -47,15 +62,23 @@ export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
   const [sinLow,sinHigh]=sineRange(b.minX/570+phase,b.maxX/570+phase);
   const deltaLow=b.minZ-(offset+100*sinHigh),deltaHigh=b.maxZ-(offset+100*sinLow);
   const nearRiver=deltaLow<=0&&deltaHigh>=0?0:Math.min(Math.abs(deltaLow),Math.abs(deltaHigh)),farRiver=Math.max(Math.abs(deltaLow),Math.abs(deltaHigh));
-  const valley=smooth((100-farRiver)/75),bed=river-3+Math.max(0,farRiver-12)*.18;
-  height-=valley*Math.max(0,height-bed);
   const lakeZ=layout.riverZ(layout.lakeX)+65;
   const nearLake=Math.hypot(Math.max(0,b.minX-layout.lakeX,layout.lakeX-b.maxX)/155,Math.max(0,b.minZ-lakeZ,lakeZ-b.maxZ)/110);
   const farLake=Math.hypot(Math.max(Math.abs(b.minX-layout.lakeX),Math.abs(b.maxX-layout.lakeX))/155,Math.max(Math.abs(b.minZ-lakeZ),Math.abs(b.maxZ-lakeZ))/110);
   const lakeLevel=(layout.lakeX-layout.coast)*.012;
-  if(farLake<1.3)height=Math.min(height,lakeLevel-5+Math.max(0,farLake-.65)*19);
+  const riverTop=riverProfile(river,farRiver),lakeTop=lakeLevel-5+Math.max(0,farLake-.65)*19,landTop=height;
+  const rminWeight=riverWeight(farRiver),rmaxWeight=riverWeight(nearRiver),lminWeight=lakeWeight(farLake),lmaxWeight=lakeWeight(nearLake);
+  // The merge is monotone in its height inputs and piecewise affine in weights.
+  // Weight extrema lie at interval corners or where the two weights are equal.
+  height=-Infinity;
+  for(const rw of [rminWeight,rmaxWeight])for(const lw of [lminWeight,lmaxWeight])height=Math.max(height,watercourseHeight(landTop,riverTop,rw,lakeTop,lw));
+  const overlapMin=Math.max(rminWeight,lminWeight),overlapMax=Math.min(rmaxWeight,lmaxWeight);
+  if(overlapMin<=overlapMax)for(const w of [overlapMin,overlapMax])height=Math.max(height,watercourseHeight(landTop,riverTop,w,lakeTop,w));
   // Rounding can raise land by .05 m. Include all possible water surfaces in this rectangle.
-  return Math.min(REGIONAL_HEIGHT_CEILING,Math.max(0,nearRiver<42?river:0,nearLake<1.3?lakeLevel:0,height+.050001));
+  return {height:Math.min(REGIONAL_HEIGHT_CEILING,height+.050001),water:Math.max(0,nearRiver<42?river:0,nearLake<1.3?lakeLevel:0)};
+}
+export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
+  const bounds=regionalHeightBounds(seed,b);return Math.max(bounds.height,bounds.water);
 }
 export function regionLayout(seed:number) {
   const offset=(regionalHash(seed,0,0,71)-.5)*400;
@@ -76,12 +99,10 @@ export function regionalSample(seed:number,x:number,z:number):RegionalSample {
   const riverDistance=Math.abs(z-layout.riverZ(x));
   const reach=x<layout.lakeX-210 ? layout.coast+(x-layout.coast)*(layout.lakeX-layout.coast)/(layout.lakeX-210-layout.coast) : x<=layout.lakeX+210 ? layout.lakeX : x-210;
   const riverLevel=Math.max(0,Math.min(55,(reach-layout.coast)*.012));
-  const valley=smooth((100-riverDistance)/75);
-  height=height*(1-valley)+Math.min(height,riverLevel-3+Math.max(0,riverDistance-12)*.18)*valley;
   const lakeZ=layout.riverZ(layout.lakeX)+65;
   const lakeDistance=Math.hypot((x-layout.lakeX)/155,(z-lakeZ)/110);
   const lakeLevel=(layout.lakeX-layout.coast)*.012;
-  if(lakeDistance<1.3) height=Math.min(height,lakeLevel-5+Math.max(0,lakeDistance-.65)*19);
+  height=watercourseHeight(height,riverProfile(riverLevel,riverDistance),riverWeight(riverDistance),lakeLevel-5+Math.max(0,lakeDistance-.65)*19,lakeWeight(lakeDistance));
   let water:number|null=height<0 ? 0 : null;
   let biome:Biome=height<0 ? 'ocean' : height<3 || inland<180 ? 'coast' : mountain>.45 ? 'mountains' : moisture>.48 ? 'forest' : 'plains';
   if(riverLevel>0 && riverDistance<42 && height<riverLevel){water=riverLevel;biome='river';}

@@ -16,7 +16,7 @@ it('keeps near-contact clear passes cheap and preserves contact at every height 
     const actual=sweepAircraft(from,to,PLAYER_FIXED_HULL,(px,pz)=>{calls++;return ground(px,pz);},{maxGroundHeight:191,groundCeiling:b=>airbaseHeightCeiling(seed,b)});
     expect(actual).toEqual(expected);
     // Bound real work, including the active near-ground path, rather than asserting hardware timings.
-    expect(calls).toBeLessThan(512);
+    expect(calls,JSON.stringify({x,z,agl})).toBeLessThan(512);
   }
 });
 

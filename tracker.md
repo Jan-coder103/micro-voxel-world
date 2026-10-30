@@ -772,3 +772,21 @@ Status: implemented; automated checks passed; user-device FPS remains unverified
   mixed runway/core paint-bound guard was covered by the affected unit rerun.
   No heavy browser/load tests under the retained heat restriction. User-device
   performance and long-flight/feel verification remain open.
+
+## Raised water walls and shorelines — 30 October 2026
+
+Status: implemented; automated checks and agent visual inspection passed;
+awaiting user visual/device verification.
+
+- Fixed river/lake water perched above surrounding plains at hard cutoffs.
+  Profiles now shape containing banks and merge channel/lake junctions smoothly.
+  Airfield water and land share flattening weights instead of leaving water at
+  its old elevation. Collision and both visual coverage tiers share the fields.
+- Updated conservative collision bounds for the raised banks and separate
+  airfield land/water blending. Low-flight work-budget/contact regressions pass.
+  No added rendering resources/dependencies or legacy-v1 terrain changes.
+- All 259 unit cases pass; strengthened final shoreline subset passes again.
+  Build/types/lint pass; three short mostly paused browser checks pass (12.1 s).
+  Inspected idle river/lake captures: the elevated blue walls are gone. No heavy
+  browser/flight load checks under the retained heat restriction. Decision 0027
+  records the cause, geography implications, verification and limits.
