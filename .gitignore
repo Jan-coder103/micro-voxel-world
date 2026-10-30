@@ -26,6 +26,28 @@ credentials/
 *.pfx
 *.jks
 *.keystore
+*.kdbx
+id_rsa
+id_ed25519
+.envrc
+.secrets/
+secrets.json
+secrets.yaml
+secrets.yml
+credentials.json
+service-account*.json
+service_account*.json
+*.tfstate
+*.tfstate.*
+
+# Browser session state and local agent authentication
+playwright/.auth/
+.auth/
+*.storage-state.json
+.codex/auth.json
+.codex/sessions/
+.codex/log/
+.claude/settings.local.json
 
 # Logs and local editor/OS files
 *.log

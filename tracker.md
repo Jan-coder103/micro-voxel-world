@@ -963,3 +963,15 @@ sandbox CLI/server restrictions passed with approved subprocess access.
 Local commit follows; consult git log. No sustained flight or physical-GPU
 performance claim; human visual/balance acceptance remains open. User server left
 alone; Playwright owns its short-lived preview. No push/deployment.
+
+## 30 October 2026 — Pre-push credential audit
+
+Scanned all 679 reachable historical blobs (~39 MB, 48 commits) for private keys,
+common provider tokens, JWTs, embedded URL credentials and secret assignments;
+no matches or sensitive credential filenames found. No dedicated secret-scanner
+binary was installed, so this was a local pattern/path audit, not a guarantee.
+Existing author name/email metadata and a historical local username path remain.
+Hardened .gitignore for service-account credentials, browser authentication state,
+local agent authentication/session data, private key names and Terraform state.
+Validated 12 excluded paths and five retained source/example paths; diff checks
+pass. No game changes or history rewrite. Push authorized by Jan after audit.
