@@ -806,3 +806,21 @@ awaiting user visual/device verification.
   in the old reference versus <=2 with the correction. Inspected both PNGs.
   Initial fixture output-array handling was fixed and retested. No heavy flight/
   browser load suite under the heat restriction; no hardware FPS claim.
+
+## Dense green distant forest — 30 October 2026
+
+Status: implemented; automated checks and agent visual inspection passed;
+awaiting user visual/device verification.
+
+- Removed sparse dark 32 m tree placeholders. Distant tall cuboids use canonical
+  8 m tree placement and the nearby foliage's linear green, extending roughly
+  1.4 km. Water, slopes, settlements and the airfield retain canonical exclusions.
+- 97 culled 256 m tiles share geometry/material. Increased explicit scenery cap:
+  99,328 slots (~6.36 MB per matrix copy). Small async generation batches and tile
+  reuse avoid full-field rebuilds while flying; paused invalidations are throttled.
+  Actual detailed terrain residency hides/restores matching proxies. Terrain /
+  collision / saves / legacy labs unchanged. See decision 0029.
+- All 261 unit cases pass; build/types/lint pass. Three short browser checks pass
+  (15.6 s); inspected actual-scenery capture with dense forest into the horizon.
+  No heavy flight/load/browser suite under the heat restriction. Real vegetation
+  GPU/memory cost, physical-device FPS and visual/long-travel feedback remain open.

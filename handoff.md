@@ -1,5 +1,34 @@
 # Handoff — 30 October 2026
 
+## Latest: dense green distant forest
+
+Jan requested removal of sparse dark tree blocks and dense far-away trees in the
+near foliage's green, retaining tall simple cuboids. Replaced the old 32 m scenery
+lattice with canonical `regionTrees` 8 m placement, matching linear RGB, water /
+slope / settlement / airfield filters. The new view reaches roughly 1.4 km in
+97 culled 256 m instance tiles; all share the existing cube geometry and one
+material. Explicit scenery capacity is now 99,328 slots (~6.36 MB per matrix copy),
+not the prior 4096. See decision 0029 for cost/ownership and verification.
+
+Generation uses <=16 canonical chunks / ~3 ms target per async batch, yielding
+8 ms. Existing tiles persist during travel; settled buffers do not rebuild.
+Paused scenes receive throttled invalidations while loading and stop after it.
+Proxy slots hide when actual resident LOD 0/1 vegetation is present and restore
+at identical positions on unload. Root diagnostics include forestPending. Timers,
+unloaded tiles and shared resources are cleaned up. No terrain/collision/save/
+canonical tree-layout/legacy-lab changes.
+
+Validation: all 261 unit cases pass; build/types/lint pass. Three short browser
+checks pass (15.6 s), including an actual-scenery one-frame capture with thousands
+of trees at 500–1200 m and <60 draw calls in the isolated view. Inspected the PNG:
+dense matching green cuboids into the horizon. No heavy flight/load/browser suite
+under the heat restriction. Increased vegetation GPU/memory cost is real;
+physical FPS, long travel and human visual acceptance remain open. User server
+untouched; preview managed/stopped by Playwright. Required local commit follows
+checks; consult git log. No push/deployment.
+
+# Handoff — 30 October 2026
+
 ## Latest: sharp distant shoreline colors
 
 Jan showed blurry distant shores versus a sharp nearby edge. Horizon triangles
