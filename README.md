@@ -1,82 +1,60 @@
-# Micro Voxel World
+# Micro Voxel World: Frontier
 
-TypeScript / Three.js aircraft combat game with runway sorties, a streamed procedural landscape, banked rewards and upgrades, plus a voxel source workshop with manual editing, optimized meshing and GLB export, plus an outdoor scene, streaming lab, arcade flight, weapons range seeded horde lab the Phase 12 combat prototype, and regional terrain with procedural settlements and Phase 15 persistent zombie encounters.
+**Take off. Find the fight. Make it home.**
 
-## Quick start
+Frontier is an arcade aircraft combat game set in a huge, procedurally generated world. Fly low across connected fields, dirt roads, forests, rivers and mountain ranges. Find roaming zombie hordes and towering mutant bosses, choose your attack, then bring your aircraft home to bank the rewards.
 
-Use Node.js 24 LTS and npm (validated with Node 24.21.0 / npm 11.19.0).
+<p align="center">
+  <img src="docs/images/expansion-fields.png" alt="A colossal mutant looms over fields, flower plots and forests" width="49%">
+  <img src="docs/images/expansion-boss.png" alt="A colossal mutant standing above the cultivated countryside" width="49%">
+</p>
+
+## The sortie
+
+Every run starts on the home runway. Take off and head for a horde, explore a new region, or follow the hangar’s navigation marker toward **Carrier Resolute** and the sparse battleship groups in the ocean. Airfields and carrier decks both support the same landing, reward banking, shopping and takeoff loop.
+
+Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. They never attack the aircraft, but their bodies are solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
+
+A kill earns money and XP, but the rewards stay at risk until you land and bring the aircraft to a full stop. A crash loses the unbanked haul. A successful landing opens the hangar, where you can train a pilot skill, buy and equip gear, or launch the next sortie. A carrier you land on becomes your recovery base for the rest of the session; reloading starts you back at home.
+
+## A world worth exploring
+
+The seeded landscape combines plains, forests, connected triangular and rectangular crop parcels, small flower fields, rural dirt tracks, towns, rivers, lakes, ocean and larger mountain ranges. Roads appear ahead of the aircraft as you travel. Sparse naval groups put carriers and battleships out on the water.
+
+The pilot’s skill tree has three branches—Flight, Gunnery and Operations—with 18 skills and three ranks per skill. The equipment shop offers 18 unlocks for engine, weapon, airframe and utility slots. Skill points come from banked XP; cash purchases and loadout changes require a safe landing.
+
+Boss rewards before bonuses:
+
+- **Brute:** 24 m tall, 3,500 HP, $600 and 900 XP.
+- **Colossus:** 125 m tall, 24,000 HP, $4,000 and 6,000 XP.
+
+## Controls and landing
+
+- **E / Q:** increase / reduce throttle. Hold Q to idle and brake on a runway or carrier deck.
+- **W / S:** pitch down / up. **A / D:** bank and turn.
+- **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit.
+- **Esc:** pause and open the hangar.
+
+To land, line up with the strip, level the wings and touch down below 48 m/s while descending less than 4 m/s. Keep the whole aircraft inside the marked strip, then hold Q until the aircraft stops for one second. The destination selector changes your bearing and marker; it does not teleport the aircraft.
+
+## Run Frontier
+
+Use Node.js 24 and npm:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open http://localhost:5173/ for **Frontier**, the player game. Start at home on
-runway 18–36, take off, explore the regional landscape and hunt hordes. Return,
-manually land on the strip and stop at idle for one second to bank the run's money
-and XP. The hangar opens automatically for upgrades. A crash loses unbanked
-rewards, shows the wreck for ten active seconds, then returns you to home.
+Open [http://localhost:5173/](http://localhost:5173/) to play. Sound starts muted. Pilot progression and world changes save in your browser; reloading starts a new sortie at home.
 
-- **Takeoff:** hold E for throttle, accelerate past 28 m/s, then hold S / down arrow to lift off.
-- **Fly:** W/S pitch down/up; A/D bank; Q/E throttle; Space fires; 1/2/3 select weapons. C toggles camera orbit.
-- **Land:** align with either runway direction, level the wings, touch down below 48 m/s with less than 4 m/s descent, then hold Q to idle and brake. Keep the whole aircraft on the strip.
-- **Pause:** Esc opens the hangar. Blur/hidden tabs pause; resume explicitly with Esc or the launch button.
+## Developer workbenches
 
-The HUD shows the home bearing/distance, speed, vertical speed, AGL, throttle,
-horde markers and unbanked rewards. Each kill earns $10 and 15 XP. Engine upgrades
-add 12% acceleration per level, weapon research adds 20% damage, and bounty
-contracts add $2 per kill. Each has five levels; successive levels cost $100,
-$200, $300, $400 and $500. XP determines the displayed pilot level. Purchases
-require the aircraft to be safely home. Sound starts muted; settings include
-Assisted/Direct flight, aim assistance, effects and render scale.
+Frontier is the main game. Optional settings links lead to the terrain explorer, regional flight lab, horde lab, weapons lab and voxel workshop. The legacy combat prototype remains at `/play/`. These tools are documented below.
 
-Regional terrain, forests, mountains, rivers, lakes, coasts/ocean and generated
-city/rural/industrial/military/airport/harbor districts now share the player world.
-Flat seeded crop fields form connected rectangles, triangular and clipped-corner
-parcels, with grassy margins and planting rows. Smaller pink/purple/yellow flower
-plots break up the green/gold/tilled-soil patchwork. Rural dirt roads and farm
-tracks share an independent road layer visible roughly 1–1.5 km ahead. Broader,
-taller mountains and expanded foothills add more relief.
+## Technical references and development tools
 
-Select a **Navigation destination** in the hangar to find **Carrier Resolute** in
-the ocean southwest of home. Sparse naval groups contain 5–8 battleships plus a
-carrier. Land on a carrier's marked strip using the same rules as home, idle and
-stop to bank rewards, shop and take off again. A safe touchdown makes that base
-your recovery point for this session; reload starts at home. The destination
-selector supplies bearings and a marker; it does not move the aircraft.
-
-Look for **Mutant Brutes** (24 m / 3500 HP) and **Colossal Mutants** (125 m / 24000 HP).
-They do not attack, but colliding with their bodies crashes the aircraft. Brutes
-pay $600 / 900 XP; colossi pay $4000 / 6000 XP before reward bonuses. Damage and
-kills persist; the money and XP remain unbanked until a safe landing and stop.
-A health panel and marker help track nearby bosses.
-
-The hangar's **Pilot skill tree** has 18 skills across Flight, Gunnery and
-Operations, with three ranks each and prerequisites. Every 300 banked XP grants
-one skill point. The **Equipment shop** offers 18 unlocks across engine, weapon,
-airframe and utility slots; equip one per slot. Purchases and skills affect actual
-flight, weapons and rewards. Training and equipment changes require a safe base.
-Existing money, XP and the original cash upgrades migrate to the new pilot save.
-
-There is no decorative mountain annulus. Four worker terrain LODs (49 residents,
-two outstanding jobs/results), a reused 4 km coarse horizon underlay, near authored
-settlement kits/distant building proxies, and three horde tiers bound presentation.
-The player streams beyond the old terrain and population edges; GPU transforms
-are rebased as you travel. Numeric validation retains a very large safety envelope;
-this is on-demand generation, not a preallocated map. Terrain, water, trees, base buildings and generated buildings have collision in
-Frontier; legacy labs retain their existing collision rules.
-
-Pilot progress and roaming casualties use new separate browser-local records;
-legacy lab populations and campaign stars are preserved. Reload starts at the base
-and discards an unfinished run's rewards. Save errors preserve existing bytes and
-continue in the session. Population persistence is bounded to 4096 changed
-encounters / 2 MiB; reaching the cap reports session-only damage. Settings offers
-opt-in developer links, including the terrain explorer. `/play/` keeps the legacy
-Clearpass mission lab. See [the integration decision](docs/decisions/0024-frontier-runs.md).
-
-The original outdoor test scene is at http://localhost:5173/tools/outdoor/. Open http://localhost:5173/tools/voxel-editor/ for the voxel workshop. Start the simulation, focus the scene, use WASD/arrows to move the test cube and hold Space for cosmetic test pulses. Pause/Resume freezes and continues simulation; Reset returns to ready with zero ticks and cleared effects. Window blur/hidden tabs pause automatically. Diagnostics report 60 Hz simulation ticks, pool use and discarded catchup time. The 64 × 64 m scene contains stepped terrain, a road, buildings, and instanced vegetation at the established metre scale. The cube stops at conservative static collision bounds. Compare High (shadows) and Low presets, toggle distance fog, or show collision bounds. Rendering measurements include draw calls, triangles, resident geometries and CPU submission time; these are not GPU frame times. Flight and combat are later phases. See [the outdoor rendering decision](docs/decisions/0007-outdoor-rendering.md) and [baseline](docs/benchmarks/phase-7-outdoor.md).
-
-## Legacy combat prototype (/play/)
+### Legacy combat prototype (/play/)
 
 Open http://localhost:5173/play/ or select **Play prototype** from Game. Operation Clearpass combines the authored aircraft, streamed terrain, moving hordes, weapons, audio and one complete objective. Clear the three marked encounters (96 members), fly within 60 m of the sector below 70 m AGL, then return within 20 m of the base ring. Default seed 12012 keeps this sortie separate from the lab's default population.
 
@@ -90,7 +68,7 @@ Run isolated **Crowd benchmark** and **Sustained-fire benchmark** from Settings,
 
 Implementation and automated verification do not establish player enjoyment or physical-GPU performance. The Phase 12 gate remains open for feedback on approach, aiming, hit feedback and recovery (deferred by Jan until later playtesting).
 
-## Regional terrain and settlements (Phases 13–14)
+### Regional terrain and settlements (Phases 13–14)
 
 Open `/tools/streaming/?terrain=regional` or choose **Terrain explorer** from Game. Load a uint32 seed and jump to Plains, Forest, Mountains, River, Lake, Coast, Ocean or an earlier Settlement reservation. The district buttons below select the generated settlements. WASD/arrows move the inspection camera at 80 m/s. Choose **City**, **Rural**, **Industrial**, **Military**, **Airport**, or **Harbor** to inspect generated districts. Seeded streets connect valid plots and neighboring regions where terrain permits. Houses, height-varied city blocks, warehouses, tanks, barracks, towers, runways/aprons and coastal piers reuse shared original voxel kits. A missing valid district is reported explicitly.
 
@@ -100,7 +78,7 @@ Generator v2 combines global layered value noise, ridged mountain elevation, moi
 
 Jan deferred the Phase 12 playtest and physical-GPU gates on 27 October 2026. They remain outstanding; neither player enjoyment nor hardware FPS has been verified.
 
-## Horde lab
+### Horde lab
 
 Open http://localhost:5173/tools/hordes/ or follow **Horde lab** from Game. Start / Resume runs the population and focuses the scene. WASD/arrows move the observer; hold Space to fire the selected Phase 10 weapon. Tracking explicitly aims at the first living home member (encounter 0,0); uncheck it to aim with the pointer. This observer lab proves crowd systems; aircraft and a complete combat objective are Phase 12 work.
 
@@ -110,19 +88,19 @@ Wounds, kills, formation offsets and patrol progress save per seed/generator/pop
 
 Diagnostics distinguish global population, residents, active individuals and far proxies, plus worker/render/resource counts. Effects/audio retain their 128-slot/eight-voice caps. Focus/window/visibility loss pauses and checkpoints; resume explicitly. Sound starts muted. This is a bounded correctness demonstration, with simple patrol navigation and body-sphere hit proxies, not a huge-horde FPS claim. See [horde decisions](docs/decisions/0011-hordes.md).
 
-## Weapons lab
+### Weapons lab
 
 Open http://localhost:5173/tools/weapons/ or follow **Weapons lab** from Game. Start / Resume focuses flight; Space fires forward. Keys 1/2/3 or the Weapon selector choose minigun (20 shots/s), autocannon (5 shots/s) or explosive shell (1 shot/s). Flight controls are shared with Flight lab. Gold spheres are resettable test targets: three airborne for level passes and three on the ground for dive attacks. Recover / Reset restores aircraft, target health, counters and pooled effects. These are range fixtures, not zombies or persistent enemies.
 
 Tracers, muzzle flashes, impacts and wireframe blast volumes accompany authoritative ray hits. Terrain blocks shots and blast visibility even while chunks load. Explosions use linear centre-distance damage falloff with a 16 m radius and leave terrain intact. Ammunition is unlimited for testing. Diagnostics report damage, clears, blasts, effects and dropped cosmetics. Sound starts muted; Enable sound activates synthesized placeholder audio, and Mute sound disables it. Audio failure is reported and leaves weapons working. Leaving viewport focus pauses flight/firing and stops sound; resume explicitly. See [weapon decisions](docs/decisions/0010-weapons.md).
 
-## Flight lab
+### Flight lab
 
 Open http://localhost:5173/tools/flight/ or follow **Flight lab** from Game. Start / Resume focuses the scene. W/S or up/down pitch down/up; A/D or left/right bank to turn; Q/E reduce/increase throttle (30–100 m/s). Assisted levels pitch/bank on release; Direct holds attitude. Pause, leaving scene focus, window blur or visibility changes pause flight. Resume explicitly. Recover / Reset returns above home in ready state after collision. The chase camera follows a voxel-style attack-aircraft silhouette; altitude is capped at 250 m.
 
 Collision sweeps the fitted aircraft hull against authoritative terrain even when streamed geometry is late. Diagnostics expose terrain loading gaps, resident/job counts, generation failures and discarded catchup time. This prototype has no weapons, realistic aerodynamics or streamed props. See [flight decisions](docs/decisions/0009-flight.md).
 
-## Streaming lab
+### Streaming lab
 
 Open http://localhost:5173/tools/streaming/ or follow **Streaming lab** from Game. Focus the scene and use WASD/arrows to move the test camera at 80 m/s. Travel east/west jumps 256 m; Return home goes back to the starting chunk. Inspect four color-coded terrain LOD rings, generated by two workers from a uint32 seed. Load seed rebuilds the region; default seed is 103. Wait for Terrain ready after travel; loading can produce temporary gaps.
 
@@ -130,7 +108,7 @@ Clear current marker records that chunk's test beacon as cleared. It stays clear
 
 The lab caps residents at 49 chunks, outstanding terrain jobs/results at two combined, and integrations at two per frame. Every tier preserves identical 1 m boundary samples to join mixed LODs. Diagnostics show tier counts, jobs, stale results and rendering resources. See [the streaming decision](docs/decisions/0008-streaming.md) for lifecycle, persistence, world bounds and limitations. Aircraft and streamed collision are later work; the original rural scene remains available at Game.
 
-## Voxel workshop
+### Voxel workshop
 
 Select the direction marker or metre cube from the catalog. Left-drag to orbit, scroll to zoom, and right-drag to pan. Focus the canvas for arrow-key panning. Frame asset restores perspective; Front −Z and Top +Y provide repeatable inspection angles. Toggle the metre grid/axes and bounding box independently. Measurements show grid dimensions, declared physical bounds, and occupied cells.
 
@@ -144,11 +122,11 @@ Source v1 uses sparse occupancy, a named palette of opaque matte colors, explici
 
 See [the format contract](docs/asset-authoring/format.md), [authoring skill](docs/asset-authoring/mvw-voxel-assets/SKILL.md), and [Phase 3 decision](docs/decisions/0003-voxel-source.md). The viewer now uses hidden-face removal and greedy surface meshes; [the mesh pipeline](docs/asset-authoring/mesh-pipeline.md) explains GLB export and [reference measurements](docs/benchmarks/phase-4-meshing.md).
 
-## Reference assets
+### Reference assets
 
 Twenty original editable reference sources are available in [assets/source](assets/source/README.md): zombie, attack aircraft, field tree, utility building, combined road/landing pad, pine tree, derelict car, streetlight, concrete barrier, small warehouse, water tower, shipping container, bus shelter, fuel tank, military watchtower, farmhouse, barn, tractor, windmill, and wooden bridge. Import their `ref-*.voxel.json` files into the workshop; `npm run assets:export` generates their GLBs alongside the two fixtures. They are static scale/gameplay references for the next phases.
 
-## Commands
+### Commands
 
 The legacy `/play/` lab presents Clearpass as an autumn valley with a sunlit sky,
 terraced distant scenery, woodland, detailed depots and ground materials.
@@ -176,7 +154,7 @@ See [the visual decision](docs/decisions/0021-autumn-valley.md).
 
 PowerShell users whose execution policy blocks npm.ps1 can use npm.cmd / npx.cmd.
 
-## Repository conventions
+### Repository conventions
 
 Read agent.md, plan.md, tracker.md, and handoff.md before development. Runtime code lives in src/, tool entry points in tools/, and tests in tests/unit and tests/browser. Shared schema/validation lives in src/assets/ and does not depend on Three.js. Authoritative source assets belong in assets/source; generated GLB derivatives belong in assets/generated/ and are rebuilt locally.
 
@@ -184,7 +162,7 @@ Use small descriptive commits after tests pass. Never commit node_modules/, dist
 
 Platform and tooling choices are in docs/decisions/0001-foundation.md. The initial scale convention is now fixed by source v1 in docs/decisions/0003-voxel-source.md.
 
-## Continue on another computer
+### Continue on another computer
 
 Pull main (or clone the GitHub repository), use Node 24, then run `npm ci`, `npm run check`, and `npm run dev`. Use `npm run assets:export` to regenerate ignored GLBs. Read handoff.md for the latest stopping point. Browser-created session assets must be exported as JSON and transferred separately; they are not automatically committed.
 
@@ -224,7 +202,7 @@ For the longer continuous regional return profile, build and run
 (Node 24, POSIX shell). It is skipped by default. The report includes Chromium
 post-GC heap and renderer geometry checkpoints; see the Phase 16 notes for limits.
 
-## Aircraft and loadouts (Phase 17)
+### Aircraft and loadouts (Phase 17)
 
 Clearpass (`/play/`), Flight lab, Weapons lab and regional Flight now offer
 **Clearpass · fixed wing** and **Kestrel · helicopter**. Fixed wing retains its
@@ -250,7 +228,7 @@ Phase 16 Pixel 10a / 720p / 60 FPS validation and user handling/balance feedback
 remain outstanding. Touch controls are not implemented.
 
 
-## Missions and progression (Phase 18)
+### Missions and progression (Phase 18)
 
 Open `/play/` and choose a mission on the board (the existing Clearpass generator-v1
 region; regional-v2 missions are not implemented). **Operation Clearpass** remains
@@ -280,7 +258,7 @@ access campaign records. See [mission decisions](docs/decisions/0019-missions-pr
 Player balance/pressure feedback and Pixel 10a performance verification remain open.
 
 
-## Combat feedback and comfort (Phase 19)
+### Combat feedback and comfort (Phase 19)
 
 In `/play/`, **Comfort and sound** controls effects (Full / Reduced / Off), flashes,
 smoke, optional camera shake, HUD contrast, fog and master volume. Reduced/Off
