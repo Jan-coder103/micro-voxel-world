@@ -975,3 +975,16 @@ Hardened .gitignore for service-account credentials, browser authentication stat
 local agent authentication/session data, private key names and Terraform state.
 Validated 12 excluded paths and five retained source/example paths; diff checks
 pass. No game changes or history rewrite. Push authorized by Jan after audit.
+
+## 30 October 2026 — Anonymize published commit history
+
+At the user's request, rewrote all 49 commits with an anonymous author and
+committer identity and removed the local username path from historical handoffs.
+Set the repository-local future commit identity to Anonymous with an invalid
+example email. Verified all commit identities and 682 historical blobs, preserved
+commit count, messages, dates and parent structure, and checked Git connectivity.
+The only current file change from the rewrite is the anonymized handoff path;
+game code/assets are unchanged, so game tests were not repeated.
+A private recovery bundle is kept outside the repository in /tmp. Published
+history is replaced with force-with-lease, preserving concurrent remote updates.
+Old GitHub caches and copies in existing clones cannot be erased by this rewrite.
