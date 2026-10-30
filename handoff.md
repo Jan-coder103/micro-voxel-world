@@ -1,5 +1,27 @@
 # Handoff — 30 October 2026
 
+## Latest: sharp distant shoreline colors
+
+Jan showed blurry distant shores versus a sharp nearby edge. Horizon triangles
+interpolated water and land vertex colors over 16–128 m. Frontier's shared material
+now interpolates a vertex water mask, recovers the unmixed dry palette, and uses
+a pixel-antialiased coverage threshold. Removes the wide blue/green smear at both
+terrain tiers without new geometry, textures, samples, draw calls or streaming
+work. Same water palette/grain/rebasing; terrain/collision/saves unchanged.
+Decision 0028 records the method and geometric-resolution limit.
+
+Verification: all 259 unit cases pass serially; build/types/lint pass. Two short
+mostly paused player smoke cases pass. New actual-shader one-frame GPU pixel test
+passes: >100 mixed pixels in the interpolated reference versus <=2 in the sharp
+version. Inspected both before/after PNGs. Initial fixture output-array handling
+was corrected and the test rerun passed (2.5 s overall). Fixture bundles with
+existing Vite only and is excluded from production. No heavy browser/flight load
+suite under the heat restriction; physical FPS and human visual acceptance remain
+open. User server untouched; preview managed/stopped by Playwright. Required local
+commit follows checks; consult git log. No push/deployment.
+
+# Handoff — 30 October 2026
+
 ## Latest: raised water walls / shoreline correction
 
 Jan reported the elevated blue river wall. Root cause: fixed-width water above

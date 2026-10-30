@@ -790,3 +790,19 @@ awaiting user visual/device verification.
   Inspected idle river/lake captures: the elevated blue walls are gone. No heavy
   browser/flight load checks under the retained heat restriction. Decision 0027
   records the cause, geography implications, verification and limits.
+
+## Sharp distant shoreline colors — 30 October 2026
+
+Status: implemented; automated checks and agent visual inspection passed;
+awaiting user visual/device verification.
+
+- Replaced wide water/land vertex-color blending with a reconstructed dry palette
+  and pixel-antialiased water coverage in Frontier's shared terrain material.
+  Both streamed chunks and horizon underlay use it. No added geometry, textures,
+  draw calls, generation work or collision changes. Coarse geometric silhouettes
+  and intentional distance haze remain; see decision 0028.
+- All 259 unit cases pass; build/types/lint pass. Two short player smoke cases
+  pass. New one-frame shader pixel regression passes: >100 intermediate pixels
+  in the old reference versus <=2 with the correction. Inspected both PNGs.
+  Initial fixture output-array handling was fixed and retested. No heavy flight/
+  browser load suite under the heat restriction; no hardware FPS claim.
