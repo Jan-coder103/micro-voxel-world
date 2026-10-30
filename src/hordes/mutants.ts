@@ -19,6 +19,8 @@ export function mutantParts(t:Mutant):MutantPart[]{
 export function mutantBounds(t:Mutant):Bounds[]{return mutantParts(t).filter(p=>p.color!==3).map(p=>({minX:p.x-p.w/2,maxX:p.x+p.w/2,minY:p.y-p.h/2,maxY:p.y+p.h/2,minZ:p.z-p.d/2,maxZ:p.z+p.d/2}));}
 export class Mutants implements TargetQuery {
   readonly key:string;readonly landmark:Mutant;error='';revision=0;
+  private movementTime=0;
+  private roaming=new Map<string,{x:number;z:number;time:number}>();
   private cache=new Map<string,Mutant|null>();private wounds=new Map<string,number>();private writable=true;
   constructor(readonly seed:number,private storage?:StorageLike){
     this.key=`mvw:frontier:mutants:v1:${seed}`;
@@ -47,6 +49,21 @@ export class Mutants implements TargetQuery {
   nearby(p:Point,radius=2200):Mutant[]{
     const result:Mutant[]=[];if(this.landmark.health>0&&Math.hypot(p.x-this.landmark.position.x,p.z-this.landmark.position.z)<radius+200)result.push(this.landmark);
     for(let z=Math.floor((p.z-radius-200)/1536);z<=Math.floor((p.z+radius+200)/1536);z++)for(let x=Math.floor((p.x-radius-200)/1536);x<=Math.floor((p.x+radius+200)/1536);x++){const t=this.at(x,z);if(t&&t.health>0&&Math.hypot(p.x-t.position.x,p.z-t.position.z)<radius+200)result.push(t);}return result;
+  }
+  /** Only nearby living giants consume movement work; roam within their spawn cell. */
+  step(player:Point,dt:number){
+    this.movementTime+=dt;if(this.movementTime<.2)return;dt=this.movementTime;this.movementTime=0;
+    for(const t of this.nearby(player,850)){
+      if(Math.hypot(player.x-t.position.x,player.y-t.position.y,player.z-t.position.z)>850)continue;
+      let roam=this.roaming.get(t.id);if(!roam){roam={x:t.position.x,z:t.position.z,time:0};this.roaming.set(t.id,roam);if(this.roaming.size>128)this.roaming.delete(this.roaming.keys().next().value!);}
+      roam.time+=dt;
+      const phase=regionalHash(this.seed,Math.floor(roam.x),Math.floor(roam.z),1810)*Math.PI*2;
+      const speed=t.kind==='colossus'?.9:.6,angle=phase+roam.time*.018;
+      const x=t.position.x+Math.cos(angle)*speed*dt,z=t.position.z+Math.sin(angle)*speed*dt;
+      if(Math.hypot(x-roam.x,z-roam.z)>90)continue;
+      const candidate=this.spawn(t.id,x,z,t.kind);if(!candidate)continue;
+      Object.assign(t,{position:candidate.position,ground:candidate.ground,hitSpheres:candidate.hitSpheres});this.revision++;
+    }
   }
   query(min:Point,max:Point){return this.nearby({x:(min.x+max.x)/2,y:0,z:(min.z+max.z)/2},Math.max(max.x-min.x,max.z-min.z)/2+200).filter(t=>t.position.x+t.radius>=min.x&&t.position.x-t.radius<=max.x&&t.position.y+t.radius>=min.y&&t.position.y-t.radius<=max.y&&t.position.z+t.radius>=min.z&&t.position.z-t.radius<=max.z);}
   obstacles(b:Bounds){return this.query({x:b.minX,y:b.minY,z:b.minZ},{x:b.maxX,y:b.maxY,z:b.maxZ}).flatMap(t=>mutantBounds(t));}

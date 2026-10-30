@@ -20,7 +20,7 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
     }
     farms.needsUpdate=true;
   };updateFields(0,0);
-  material.customProgramCacheKey=()=> 'frontier-ground-v4';
+  material.customProgramCacheKey=()=> 'frontier-ground-v5';
   material.onBeforeCompile=shader=>{
     shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
     shader.uniforms.terrainSeed={value:seed%65536};
@@ -74,7 +74,25 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
         float petals=terrainGrain(vTerrainPosition,.45)*.35;
         vec3 crop=cropColor(floor(code))*(.88+.12*headland+rows*headland+soil*.08+flowers*petals);
         diffuseColor.rgb=mix(diffuseColor.rgb,crop,coverage);
-      }`);
+      }`)
+      .replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+        roughnessFactor=mix(roughnessFactor,.30,waterCoverage);`)
+      .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+        // Static multi-scale wave normals: no time uniform or moving geometry.
+        vec2 wp=vTerrainPosition;wp+=vec2(sin(wp.y*.017),sin(wp.x*.011))*9.0;
+        vec2 slope=vec2(cos(wp.x*.095+wp.y*.047)*.11+cos(wp.x*.33-wp.y*.19)*.045,
+          cos(wp.x*.095+wp.y*.047)*.055-cos(wp.x*.33-wp.y*.19)*.03);
+        vec3 waveNormal=normalize(vec3(-slope.x,1.0,-slope.y));
+        normal=normalize(mix(normal,normalize(mat3(viewMatrix)*waveNormal),waterCoverage));`)
+      .replace('#include <opaque_fragment>',`
+        // Analytic sunset sky reflection avoids a reflection camera or render target.
+        vec3 worldNormal=normalize(vec3(-slope.x,1.0,-slope.y));
+        vec3 viewWorld=normalize(inverseTransformDirection(normalize(vViewPosition),viewMatrix));
+        vec3 reflected=reflect(-viewWorld,worldNormal);
+        float glint=pow(max(dot(reflected,normalize(vec3(-.85,.38,-.35))),0.0),65.0);
+        float fresnel=.08+.65*pow(1.0-max(dot(viewWorld,worldNormal),0.0),4.0);
+        outgoingLight+=waterCoverage*(vec3(.13,.20,.36)*fresnel+vec3(1.8,.85,.32)*glint);
+        #include <opaque_fragment>`);
   };
   return {updateFields,dispose(){farms.dispose();},updateOrigin(x:number,z:number){origin.value.set(x,z);}};
 }

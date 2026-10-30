@@ -10,7 +10,7 @@ export function createFrontierRoads(world:SettlementWorld,wake=()=>{}){
   const tiles=new Map<string,Mesh<BufferGeometry,MeshStandardMaterial>>();let queue:{x:number;z:number}[]=[],anchor='',timer:ReturnType<typeof setTimeout>|undefined,disposed=false;
   const build=(tx:number,tz:number)=>{
     const ox=tx*512,oz=tz*512,positions:number[]=[],colors:number[]=[],roads:Road[]=[];
-    const s=world.region(tx,tz);if(s)roads.push(...s.roads);
+    for(const s of world.inBounds({minX:ox,maxX:ox+512,minZ:oz,maxZ:oz+512}))roads.push(...s.roads);
     for(let bz=Math.floor(oz/FARM_BLOCK_SIZE);bz<=Math.floor((oz+512)/FARM_BLOCK_SIZE);bz++)for(let bx=Math.floor(ox/FARM_BLOCK_SIZE);bx<=Math.floor((ox+512)/FARM_BLOCK_SIZE);bx++)for(const f of cropFields(world.seed,bx,bz)){
       roads.push({minX:f.minX-2.5,maxX:f.maxX+2.5,minZ:f.minZ-2.5,maxZ:f.minZ-.2,id:'farm-lane',kind:'driveway',surface:'dirt',from:'farm',to:'farm'});
     }
@@ -25,7 +25,7 @@ export function createFrontierRoads(world:SettlementWorld,wake=()=>{}){
       }
     }
     const geometry=new BufferGeometry();geometry.setAttribute('position',new BufferAttribute(new Float32Array(positions),3));geometry.setAttribute('color',new BufferAttribute(new Float32Array(colors),3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
-    const mesh=new Mesh(geometry,material);mesh.position.set(ox,0,oz);group.add(mesh);tiles.set(`${tx},${tz}`,mesh);
+    const mesh=new Mesh(geometry,material);mesh.receiveShadow=true;mesh.position.set(ox,0,oz);group.add(mesh);tiles.set(`${tx},${tz}`,mesh);
   };
   const pump=()=>{timer=undefined;if(disposed)return;const tile=queue.shift();if(tile)build(tile.x,tile.z);wake();if(queue.length)timer=setTimeout(pump,12);};
   return {group,get pending(){return queue.length>0||timer!==undefined;},get count(){return tiles.size;},

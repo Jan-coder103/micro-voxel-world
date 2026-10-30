@@ -4,7 +4,7 @@ import { createMutantView } from '../rendering/mutant-view';
 import { SHOP,SKILLS,type GearSlot } from './progression';
 import { createFrontierScenery } from '../rendering/frontier-scenery';
 import { configureFrontierMaterial } from '../rendering/frontier-material';
-import { ACESFilmicToneMapping,BoxGeometry,Color,DirectionalLight,Fog,Group,HemisphereLight,Mesh,MeshBasicMaterial,MeshStandardMaterial,PerspectiveCamera,Scene,SphereGeometry,Vector3,WebGLRenderer } from 'three';
+import { ACESFilmicToneMapping,BoxGeometry,Color,DirectionalLight,Fog,Group,HemisphereLight,Mesh,MeshBasicMaterial,MeshStandardMaterial,PCFSoftShadowMap,PerspectiveCamera,Scene,SphereGeometry,Vector3,WebGLRenderer } from 'three';
 import aircraftSource from '../../assets/source/ref-attack-aircraft.voxel.json';
 import { createVoxelMesh } from '../rendering/voxel-mesh';
 import { FlightCamera,bindFlightOrbit } from '../rendering/flight-camera';
@@ -32,9 +32,12 @@ function mount(){
   try{renderer=new WebGLRenderer({antialias:true});}catch{hint.textContent='WebGL 2 is unavailable. Enable hardware acceleration and reload.';app.querySelectorAll('button').forEach(b=>b.disabled=true);return ()=>{};}
   host.append(renderer.domElement);renderer.toneMapping=ACESFilmicToneMapping;renderer.toneMappingExposure=1;
   let storage:Storage|undefined;try{storage=localStorage;}catch{/* The pilot panel reports session-only saves. */}
-  const model=new Frontier(103,storage),scene=new Scene(),world=new Group();scene.add(world);scene.background=new Color('#b6cbd0');scene.fog=new Fog('#b6cbd0',650,1650);
-  const sun=new DirectionalLight('#ffe8cb',2.4);sun.position.set(-300,500,120);scene.add(sun,new HemisphereLight('#d7efff','#616845',1.4));
-  const camera=new PerspectiveCamera(62,1,.2,2500),chase=new FlightCamera(38,12,24),aircraft=createVoxelMesh(aircraftSource),airframe=new Group();aircraft.mesh.position.y=-2.4;airframe.add(aircraft.mesh);world.add(airframe);
+  const model=new Frontier(103,storage),scene=new Scene(),world=new Group();scene.add(world);scene.background=new Color('#9b8296');scene.fog=new Fog('#9b8296',650,1650);
+  const sun=new DirectionalLight('#ffbc7e',3);scene.add(sun,sun.target,new HemisphereLight('#8cace1','#635143',1.25));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=PCFSoftShadowMap;
+  sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+  Object.assign(sun.shadow.camera,{left:-240,right:240,top:240,bottom:-240,near:1,far:1600});sun.shadow.normalBias=.45;sun.shadow.bias=-.00015;
+  const camera=new PerspectiveCamera(62,1,.2,2500),chase=new FlightCamera(38,12,24),aircraft=createVoxelMesh(aircraftSource),airframe=new Group();aircraft.mesh.position.y=-2.4;aircraft.mesh.castShadow=true;aircraft.mesh.receiveShadow=true;airframe.add(aircraft.mesh);world.add(airframe);
   const shadow=createAircraftShadow();world.add(shadow.mesh);
   const terrainMaterial=new MeshStandardMaterial({vertexColors:true,roughness:1}),terrainSurface=configureFrontierMaterial(terrainMaterial,model.seed),cube=new BoxGeometry(1,1,1),markerMaterial=new MeshStandardMaterial();
   // Reused coarse terrain covers the horizon while four worker LOD tiers arrive nearby.
@@ -43,7 +46,7 @@ function mount(){
   const scenery=createFrontierScenery(model.seed,model.population.world,()=>wake());world.add(scenery.group);
   const populationView=createRegionalPopulationView(model.population),cities=createFrontierSettlements(model.population.world),combatView=createCombatView(model.combat);world.add(populationView.group,cities.group,combatView.group);
   const runwayMaterial=new MeshStandardMaterial({color:'#343e3d',roughness:1}),paint=new MeshStandardMaterial({color:'#eee7c3',roughness:1}),hangarMaterial=new MeshStandardMaterial({color:'#777e72',roughness:1}),roofMaterial=new MeshStandardMaterial({color:'#526361',roughness:1}),base=new Group();world.add(base);
-  const box=(x:number,y:number,z:number,w:number,h:number,d:number,material:MeshStandardMaterial)=>{const mesh=new Mesh(cube,material);mesh.position.set(x,y,z);mesh.scale.set(w,h,d);base.add(mesh);return mesh;};
+  const box=(x:number,y:number,z:number,w:number,h:number,d:number,material:MeshStandardMaterial)=>{const mesh=new Mesh(cube,material);mesh.position.set(x,y,z);mesh.scale.set(w,h,d);mesh.castShadow=true;mesh.receiveShadow=true;base.add(mesh);return mesh;};
   const y=model.baseHeight;
   box(0,y+.08,AIRBASE.z,44,.16,480,runwayMaterial);
   for(let z=AIRBASE.minZ+24;z<AIRBASE.maxZ-12;z+=24)box(0,y+.17,z,1.2,.02,11,paint);
@@ -104,6 +107,8 @@ function mount(){
     // Keep GPU world transforms near zero even after long flights.
     world.position.set(-Math.floor(p.x/4096)*4096,0,-Math.floor(p.z/4096)*4096);
     terrainSurface.updateOrigin(-world.position.x,-world.position.z);
+    sun.target.position.set(p.x+world.position.x,0,p.z+world.position.z);
+    sun.position.set(sun.target.position.x-850,380,sun.target.position.z-350);
     const tracking=chase.update(camera,pose,dt,snap);snap=false;
     camera.position.y=Math.max(camera.position.y,model.ground(camera.position.x,camera.position.z)+3);
     camera.position.x+=world.position.x;camera.position.z+=world.position.z;tracking.target.x+=world.position.x;tracking.target.z+=world.position.z;
@@ -145,6 +150,6 @@ function mount(){
     const sample={assisted:f.assisted,orbit:chase.unlocked,renderPose:pose,groundShadow:{x:shadow.mesh.position.x,y:shadow.mesh.position.y,z:shadow.mesh.position.z},state:model.state,paused:model.paused,grounded:f.grounded,departed:model.departed,crashSeconds:model.crashSeconds,x:p.x,y:p.y,z:p.z,speed:f.speed,throttle:f.throttle,heading:f.heading,pitch:f.pitch,bank:f.bank,money:model.progress.data.money,xp:model.progress.data.xp,pendingMoney:model.pendingMoney,kills:model.combat.kills,residents:stream?.resident.size??0,jobs:stream?.pending??0,results:stream?.completed??0,hordes:model.population.resident.size,distantTrees:scenery.treeCount,roadTiles:roads.count,roadsPending:roads.pending,navalParts:naval.count,mutants:model.mutants.nearby(p).length,currentBase:model.currentBase.id,skillPoints:model.progress.skillPoints,forestPending:scenery.pending,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,frameCount,lods:[0,1,2,3].map(l=>[...stream?.resident.values()??[]].filter(r=>r.spec.lod===l).length),settled:stream?.settled??true};host.dataset.sample=JSON.stringify(sample);app.querySelector('#diagnostics')!.textContent=JSON.stringify(sample,null,2);
     const continuing=!model.paused||tracking.moving; if(!continuing)previous=undefined;return continuing;
   });wake=scheduler.invalidate;resize();openMenu();wake();
-  return ()=>{if(disposed)return;disposed=true;model.pause();scheduler.dispose();observer.disconnect();releases.forEach(r=>r());stream?.dispose();workers?.dispose();audio.dispose();aircraft.dispose();shadow.dispose();fallback.dispose();cities.dispose();populationView.dispose();combatView.dispose();scenery.dispose();roads.dispose();naval.dispose();mutantView.dispose();terrainSurface.dispose();terrainMaterial.dispose();cube.dispose();markerMaterial.dispose();runwayMaterial.dispose();paint.dispose();hangarMaterial.dispose();roofMaterial.dispose();crashGeometry.dispose();fireMaterial.dispose();smokeMaterial.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
+  return ()=>{if(disposed)return;disposed=true;model.pause();scheduler.dispose();observer.disconnect();releases.forEach(r=>r());stream?.dispose();workers?.dispose();audio.dispose();aircraft.dispose();shadow.dispose();fallback.dispose();cities.dispose();populationView.dispose();combatView.dispose();scenery.dispose();roads.dispose();naval.dispose();mutantView.dispose();terrainSurface.dispose();terrainMaterial.dispose();cube.dispose();markerMaterial.dispose();runwayMaterial.dispose();paint.dispose();hangarMaterial.dispose();roofMaterial.dispose();crashGeometry.dispose();fireMaterial.dispose();smokeMaterial.dispose();sun.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();};
 }
 const release=mount();const onHide=(e:PageTransitionEvent)=>{if(!e.persisted)release();};window.addEventListener('pagehide',onHide);if(import.meta.hot)import.meta.hot.dispose(()=>{window.removeEventListener('pagehide',onHide);release();});

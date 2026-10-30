@@ -15,7 +15,7 @@ export function createSettlementView(){
   const group=new Group(),capacity=512,matrix=new Matrix4(),scale=new Vector3(),sources={house,office,warehouse,tank,tower,container,pier};
   const kits=(Object.keys(sources) as BuildingKit[]).map(kit=>{
     const source=createVoxelMesh(sources[kit]),mesh=new InstancedMesh(source.mesh.geometry,source.mesh.material,capacity);
-    mesh.count=0;mesh.name=`settlement:${kit}`;group.add(mesh);return {kit,source,mesh,size:assetMetres(source.source)};
+    mesh.castShadow=true;mesh.receiveShadow=true;mesh.count=0;mesh.name=`settlement:${kit}`;group.add(mesh);return {kit,source,mesh,size:assetMetres(source.source)};
   });
   const geometry=new BoxGeometry(1,1,1),material=new MeshStandardMaterial({color:'#777868',roughness:1}),foundations=new InstancedMesh(geometry,material,capacity);
   foundations.count=0;group.add(foundations);

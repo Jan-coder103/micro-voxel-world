@@ -5,7 +5,7 @@ import { airbaseReserved } from '../world/airbase';
 /** Detailed shared kits nearby, one proxy batch out to the terrain horizon. */
 export function createFrontierSettlements(world:SettlementWorld){
   const group=new Group(),near=createSettlementView(),geometry=new BoxGeometry(1,1,1),material=new MeshStandardMaterial({color:'#888c81',roughness:1}),far=new InstancedMesh(geometry,material,2048),dummy=new Object3D();
-  far.count=0;group.add(near.group,far);let key='',release:(()=>void)|undefined;
+  far.castShadow=true;far.receiveShadow=true;far.count=0;group.add(near.group,far);let key='',release:(()=>void)|undefined;
   return {group,update(x:number,z:number){
     const cx=Math.floor(x/128)*128,cz=Math.floor(z/128)*128,next=`${cx},${cz}`;if(key===next)return;key=next;
     const unique=new Map<string,Building>();

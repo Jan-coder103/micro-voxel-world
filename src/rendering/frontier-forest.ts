@@ -45,7 +45,7 @@ export function createFrontierForest(seed:number,world:SettlementWorld,geometry:
       for(let dz=-5;dz<=5;dz++)for(let dx=-5;dx<=5;dx++){
         if(Math.hypot(dx*256,dz*256)>FOREST_RADIUS)continue;
         const tx=cx+dx,tz=cz+dz,key=`${tx},${tz}`;wanted.add(key);if(tiles.has(key))continue;
-        const mesh=new InstancedMesh(geometry,material,1024);mesh.count=0;mesh.name=`forest:${key}`;mesh.position.set(tx*256,0,tz*256);mesh.instanceMatrix.setUsage(DynamicDrawUsage);
+        const mesh=new InstancedMesh(geometry,material,1024);mesh.castShadow=true;mesh.receiveShadow=true;mesh.count=0;mesh.name=`forest:${key}`;mesh.position.set(tx*256,0,tz*256);mesh.instanceMatrix.setUsage(DynamicDrawUsage);
         // The generator's full tree envelope is 0..210 m; avoid rescanning every matrix on growth.
         mesh.boundingSphere=new Sphere(new Vector3(128,105,128),215);
         const tile={x:tx,z:tz,mesh,cursor:0,ranges:new Map<string,Range>()};tiles.set(key,tile);group.add(mesh);

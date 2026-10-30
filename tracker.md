@@ -943,3 +943,23 @@ imports/invalid edits, GLB export/failure, viewer navigation/toggles, allocation
 limits, unavailable WebGL, resize/navigation and paused/narrow Frontier smoke.
 Browser and CLI subprocess checks used approved execution outside the sandbox.
 No gameplay or asset edits. Local commit follows; no push.
+
+## 30 October 2026 — Roaming giants and sunset countryside
+
+Implemented Jan's requested giant movement, organic city/rural placement,
+field-side farmhouses, sunset lighting/shadows, directional warm/cool atmosphere,
+and static reflective ocean/river waves. See docs/decisions/0032-frontier-sunset-roaming.md.
+Giant movement is nearby-only, passive and paused with simulation; hit spheres and
+solid bodies follow. Town outskirts thin into houses. Farm groups attempt 1–2
+houses per 2–4 parcels and skip unsuitable footprints. Same terrain/water collision
+heights and wound/progression save keys; procedural structures may regenerate.
+
+Validation: all 274 unit tests (38 files) pass in the final serial run (68.65 s).
+Types, production build, lint and diff whitespace checks pass. Three final browser
+checks pass (36.2 s): countryside/ocean/boss static views, paused runway/narrow
+player smoke, and unavailable WebGL. Inspected the runway, fields and ocean
+captures; final water glints were softened after the initial visual pass. Initial
+sandbox CLI/server restrictions passed with approved subprocess access.
+Local commit follows; consult git log. No sustained flight or physical-GPU
+performance claim; human visual/balance acceptance remains open. User server left
+alone; Playwright owns its short-lived preview. No push/deployment.

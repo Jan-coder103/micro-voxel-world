@@ -1,4 +1,4 @@
-import { regionalHash, regionalSample } from './regional-terrain.ts';
+import { cropFields, FARM_BLOCK_SIZE, regionalHash, regionalSample } from './regional-terrain.ts';
 import type { Point } from '../flight/flight';
 
 export const STRUCTURE_VERSION=1;
@@ -65,14 +65,19 @@ function generateSettlement(seed:number,rx:number,rz:number):Settlement|null {
   if(kind==='airport'){
     const f=foundation(seed,runway);if(!f || f.high-f.low>5 || !safeRoad(seed,runway))return null;
   }
+  // Irregular block widths retain connected streets without a checkerboard cadence.
+  const organic=kind==='city'||kind==='rural';
+  const axis=(salt:number)=>Array.from({length:7},(_,i)=>(i-3)*24+(organic&&i!==3?(regionalHash(seed,rx*7+i,rz,salt)-.5)*14:0));
+  const xs=axis(710),zs=axis(711);
   const grid:RoadNode[][]=[];
   for(let iz=0;iz<7;iz++){
     const row:RoadNode[]=[];grid.push(row);
-    for(let ix=0;ix<7;ix++)row.push({id:`${id}:n${ix},${iz}`,x:x+(ix-3)*24,z:z+(iz-3)*24});
+    for(let ix=0;ix<7;ix++)row.push({id:`${id}:n${ix},${iz}`,x:x+xs[ix],z:z+zs[iz]});
   }
   const candidates:Road[]=[];
   for(let iz=0;iz<7;iz++)for(let ix=0;ix<7;ix++)for(const [dx,dz] of [[1,0],[0,1]]){
     const a=grid[iz][ix],b=grid[iz+dz]?.[ix+dx];if(!b)continue;
+    if(organic&&Math.hypot((a.x+b.x)/2-x,(a.z+b.z)/2-z)>48&&regionalHash(seed,rx*14+ix*2+dx,rz*14+iz*2+dz,715)>.62)continue;
     const bounds={minX:Math.min(a.x,b.x)-3,maxX:Math.max(a.x,b.x)+3,minZ:Math.min(a.z,b.z)-3,maxZ:Math.max(a.z,b.z)+3};
     if(kind==='airport' && intersects(bounds,runway))continue;
     if(safeRoad(seed,bounds))candidates.push({...bounds,id:`${a.id}-${b.id}`,kind:'street',surface:kind==='rural'?'dirt':'asphalt',from:a.id,to:b.id});
@@ -83,18 +88,20 @@ function generateSettlement(seed:number,rx:number,rz:number):Settlement|null {
   if(roads.length<12)return null;
   if(kind==='airport'){roads.push({...runway,id:`${id}:runway`,kind:'runway',from:root.id,to:root.id});const apron={minX:x+7,maxX:x+21,minZ:z-48,maxZ:z+48};if(safeRoad(seed,apron))roads.push({...apron,id:`${id}:apron`,kind:'apron',from:root.id,to:root.id});}
   for(let iz=0;iz<6;iz++)for(let ix=0;ix<6;ix++){
-    const px=x+(ix-2.5)*24,pz=z+(iz-2.5)*24;
-    const adjacent=roads.find(r=>r.kind==='street'&&contains(r,px-12,pz));
-    const alternate=roads.find(r=>r.kind==='street'&&contains(r,px,pz-12));
+    const px=x+(xs[ix]+xs[ix+1])/2+(organic?(regionalHash(seed,rx*6+ix,rz*6+iz,713)-.5)*3:0),pz=z+(zs[iz]+zs[iz+1])/2+(organic?(regionalHash(seed,rx*6+ix,rz*6+iz,714)-.5)*3:0);
+    const distance=Math.hypot(px-x,pz-z)/100;
+    if(organic&&regionalHash(seed,rx*6+ix,rz*6+iz,712)>.98-.68*distance)continue;
+    const adjacent=roads.find(r=>r.kind==='street'&&contains(r,x+xs[ix],pz));
+    const alternate=roads.find(r=>r.kind==='street'&&contains(r,px,z+zs[iz]));
     const road=adjacent??alternate;if(!road)continue;
     let kit:BuildingKit=kind==='rural'?'house':kind==='city'?'office':kind==='industrial'?(ix%2?'warehouse':'tank'):kind==='military'?(iz%3===0?'tower':'container'):kind==='airport'?(ix===0&&iz===0?'tower':'warehouse'):ix%2?'container':'warehouse';
-    if(kind==='city' && (ix+iz)%4===0)kit='house';
+    if(kind==='city' && (distance>.48||(ix+iz)%4===0))kit='house';
     const dimensions:Record<BuildingKit,[number,number,number]>={house:[7,5,6],office:[8,6+Math.floor(regionalHash(seed,ix+rx*6,iz+rz*6,77)*4)*4,6],warehouse:[12,5,12],tank:[6,5,9],tower:[5,11,5],container:[5,3,10],pier:[8,2.2,40]};
     const [w,height,d]=dimensions[kit],yaw=adjacent?Math.PI/2:0,width=adjacent?d:w,depth=adjacent?w:d,bounds=rect(px,pz,width,depth);
     if(kind==='airport'&&intersects({...bounds,minX:bounds.minX-4,maxX:bounds.maxX+4},runway))continue;
     const f=foundation(seed,{minX:bounds.minX-1,maxX:bounds.maxX+1,minZ:bounds.minZ-1,maxZ:bounds.maxZ+1});if(!f||f.high-f.low>1.6)continue;
-    const driveway=adjacent?{minX:px-9,maxX:bounds.minX,minZ:pz-1,maxZ:pz+1}:{minX:px-1,maxX:px+1,minZ:pz-9,maxZ:bounds.minZ};
-    if(!safeRoad(seed,driveway))continue;
+    const driveway=adjacent?{minX:x+xs[ix]+3,maxX:bounds.minX,minZ:pz-1,maxZ:pz+1}:{minX:px-1,maxX:px+1,minZ:z+zs[iz]+3,maxZ:bounds.minZ};
+    if(driveway.maxX<=driveway.minX||driveway.maxZ<=driveway.minZ||roads.some(r=>intersects(bounds,r))||!safeRoad(seed,driveway))continue;
     buildings.push({...bounds,id:`${id}:b${ix},${iz}`,kit,x:px,y:f.high+.1,z:pz,width,depth,height,bottom:f.low-.2,access:road.from,yaw});
     roads.push({...driveway,id:`${id}:d${ix},${iz}`,kind:'driveway',surface:kind==='rural'?'dirt':'asphalt',from:road.from,to:road.from});
   }
@@ -113,6 +120,7 @@ function generateSettlement(seed:number,rx:number,rz:number):Settlement|null {
 
 /** Bounded memoization; eviction changes cost, never generation output. */
 export class SettlementWorld {
+  private readonly farmCache=new Map<string,Settlement|null>();
   private readonly cache=new Map<string,Settlement|null>();
   private readonly bases=new Map<string,Settlement|null>();
   constructor(readonly seed:number){if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw new Error('Invalid settlement seed');}
@@ -143,7 +151,32 @@ export class SettlementWorld {
     if(![bounds.minX,bounds.maxX,bounds.minZ,bounds.maxZ].every(n=>Number.isFinite(n)&&Math.abs(n)<=920000000)||bounds.maxX<=bounds.minX||bounds.maxZ<=bounds.minZ||Math.max(bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ)>1024)throw new Error('Invalid settlement bounds');
     const result:Settlement[]=[];
     for(let rz=Math.floor(bounds.minZ/512);rz<Math.ceil(bounds.maxZ/512);rz++)for(let rx=Math.floor(bounds.minX/512);rx<Math.ceil(bounds.maxX/512);rx++){const s=this.region(rx,rz);if(s)result.push(s);}
+    for(let bz=Math.floor((bounds.minZ-16)/FARM_BLOCK_SIZE);bz<Math.ceil((bounds.maxZ+16)/FARM_BLOCK_SIZE);bz++)for(let bx=Math.floor((bounds.minX-16)/FARM_BLOCK_SIZE);bx<Math.ceil((bounds.maxX+16)/FARM_BLOCK_SIZE);bx++){
+      const key=`${bx},${bz}`;
+      if(!this.farmCache.has(key)){this.farmCache.set(key,this.farms(bx,bz));if(this.farmCache.size>128)this.farmCache.delete(this.farmCache.keys().next().value!);}
+      const farm=this.farmCache.get(key);if(farm)result.push(farm);
+    }
     return result;
+  }
+  private farms(bx:number,bz:number):Settlement|null{
+      const fields=cropFields(this.seed,bx,bz).filter(f=>!f.flower);
+      if(fields.length<2)return null;
+      const buildings:Building[]=[],nodes:RoadNode[]=[],roads:Road[]=[],id=`farm:${this.seed}:${bx},${bz}`;
+      for(let i=0;i<Math.ceil(fields.length/3);i++){
+        const f=fields[i*2];if(!f)continue;
+        // Place in the grassy headland, outside the planted parcel.
+        for(const side of [-1,1]){
+          const x=side<0?f.minX+8:f.maxX-8,z=side<0?f.minZ-5:f.maxZ+5,b=rect(x,z,7,6);
+          if([-1,0,1].some(dx=>[-1,0,1].some(dz=>cropFields(this.seed,bx+dx,bz+dz).some(field=>intersects(field,b)))))continue;
+          const ground=foundation(this.seed,b);if(!ground||ground.high-ground.low>1.6)continue;
+          const district=this.region(Math.floor(x/512),Math.floor(z/512));
+          if(district&&(district.buildings.some(v=>intersects(v,b))||district.roads.some(v=>intersects(v,b))||Math.hypot(x-district.x,z-district.z)<110))continue;
+          const access=`${id}:n${i}`;nodes.push({id:access,x:x-8,z});
+          buildings.push({...b,id:`${id}:b${i}`,kit:'house',x,z,y:ground.high+.1,bottom:ground.low-.2,width:7,depth:6,height:5,access,yaw:0});
+          roads.push({...rect(x-6,z,5,2),id:`${id}:d${i}`,kind:'driveway',surface:'dirt',from:access,to:access});break;
+        }
+      }
+      return buildings.length?{id,kind:'rural',x:bx*384+192,z:bz*384+192,buildings,nodes,roads}:null;
   }
   buildings(bounds:Rect):Building[]{return this.inBounds(bounds).flatMap(s=>s.buildings.filter(b=>intersects(b,bounds)));}
   reserved(x:number,z:number,padding=3):boolean{

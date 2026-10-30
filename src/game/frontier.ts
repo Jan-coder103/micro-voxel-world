@@ -60,7 +60,7 @@ export class Frontier {
     if(this.state==='crashed'){this.crashSeconds=Math.max(0,this.crashSeconds-dt);if(this.crashSeconds===0){this.rearm();this.notice='Aircraft replaced. Unbanked rewards lost.';}return;}
     if(this.state!=='flying')return;
     this.flight.advance(dt,input,()=>{
-      const f=this.flight;this.population.update(f.position);
+      const f=this.flight;this.population.update(f.position);this.mutants.step(f.position,1/60);
       if(!f.grounded)this.departed=true;else {const b=this.navy.landingAt(f.position.x,f.position.z);if(b)this.currentBase=b;}
       const origin=this.muzzle,lock=input.aim?this.lock:undefined;
       this.combat.step(input.fire&&!f.grounded,input.weapon,origin,lock?{x:lock.position.x-origin.x,y:lock.position.y-origin.y,z:lock.position.z-origin.z}:this.forward);
