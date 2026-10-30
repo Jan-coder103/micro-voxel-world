@@ -13,9 +13,11 @@ function pointTree(points:Point[]):PointTree {
   points.sort((a,b)=>a[axis]-b[axis]);const mid=Math.floor(points.length/2);
   return {bounds,children:[pointTree(points.slice(0,mid)),pointTree(points.slice(mid))]};
 }
+export interface Runway { contains:(x:number,z:number,margin?:number)=>boolean; height:number; clearance:number }
 export interface FlightGeometry {
+  runwayAt?:(x:number,z:number)=>Runway|undefined;
   worldLimit?:number;
-  runway?: { contains:(x:number,z:number,margin?:number)=>boolean; height:number; clearance:number };
+  runway?:Runway;
   fixedWing?:Hull;
   obstacles?:(bounds:Bounds)=>readonly Bounds[];
   /** Authoritative upper bounds, from the world generator; never estimated from a few samples. */

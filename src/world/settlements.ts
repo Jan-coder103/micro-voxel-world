@@ -7,7 +7,7 @@ export type District='rural'|'city'|'industrial'|'military'|'airport'|'harbor';
 export type BuildingKit='house'|'office'|'warehouse'|'tank'|'tower'|'container'|'pier';
 export interface Rect { minX:number; maxX:number; minZ:number; maxZ:number }
 export interface Building extends Rect { id:string; kit:BuildingKit; x:number; y:number; z:number; width:number; depth:number; height:number; bottom:number; access:string; yaw:number }
-export interface Road extends Rect { id:string; kind:'street'|'driveway'|'runway'|'apron'; from:string; to:string }
+export interface Road extends Rect { id:string; kind:'street'|'driveway'|'runway'|'apron'; from:string; to:string; surface?:'dirt'|'asphalt' }
 export interface RoadNode { id:string; x:number; z:number }
 export interface Settlement { id:string; kind:District; x:number; z:number; nodes:RoadNode[]; roads:Road[]; buildings:Building[] }
 export const intersects=(a:Rect,b:Rect)=>a.minX<b.maxX && a.maxX>b.minX && a.minZ<b.maxZ && a.maxZ>b.minZ;
@@ -75,7 +75,7 @@ function generateSettlement(seed:number,rx:number,rz:number):Settlement|null {
     const a=grid[iz][ix],b=grid[iz+dz]?.[ix+dx];if(!b)continue;
     const bounds={minX:Math.min(a.x,b.x)-3,maxX:Math.max(a.x,b.x)+3,minZ:Math.min(a.z,b.z)-3,maxZ:Math.max(a.z,b.z)+3};
     if(kind==='airport' && intersects(bounds,runway))continue;
-    if(safeRoad(seed,bounds))candidates.push({...bounds,id:`${a.id}-${b.id}`,kind:'street',from:a.id,to:b.id});
+    if(safeRoad(seed,bounds))candidates.push({...bounds,id:`${a.id}-${b.id}`,kind:'street',surface:kind==='rural'?'dirt':'asphalt',from:a.id,to:b.id});
   }
   const root=kind==='airport'?grid[3][0]:grid[3][3],reachable=new Set([root.id]);
   let changed=true;while(changed){changed=false;for(const road of candidates)if(reachable.has(road.from)||reachable.has(road.to)){if(!reachable.has(road.from)||!reachable.has(road.to))changed=true;reachable.add(road.from);reachable.add(road.to);}}
@@ -96,7 +96,7 @@ function generateSettlement(seed:number,rx:number,rz:number):Settlement|null {
     const driveway=adjacent?{minX:px-9,maxX:bounds.minX,minZ:pz-1,maxZ:pz+1}:{minX:px-1,maxX:px+1,minZ:pz-9,maxZ:bounds.minZ};
     if(!safeRoad(seed,driveway))continue;
     buildings.push({...bounds,id:`${id}:b${ix},${iz}`,kit,x:px,y:f.high+.1,z:pz,width,depth,height,bottom:f.low-.2,access:road.from,yaw});
-    roads.push({...driveway,id:`${id}:d${ix},${iz}`,kind:'driveway',from:road.from,to:road.from});
+    roads.push({...driveway,id:`${id}:d${ix},${iz}`,kind:'driveway',surface:kind==='rural'?'dirt':'asphalt',from:road.from,to:road.from});
   }
   if(buildings.length<4)return null;
   if(shore){
@@ -126,7 +126,7 @@ export class SettlementWorld {
       const portal={id:`s1:${this.seed}:portal:${Math.min(rx,rx+dx)},${Math.min(rz,rz+dz)}:${dx?'x':'z'}`,x:dx?(rx+(dx>0?1:0))*512:rx*512+256,z:dz?(rz+(dz>0?1:0))*512:rz*512+256};
       const elbow={id:`${base.id}:exit:${dx},${dz}`,x:dx?a.x:portal.x,z:dz?a.z:portal.z};
       const other={id:'peer-elbow',x:dx?b.x:portal.x,z:dz?b.z:portal.z};
-      const segment=(from:RoadNode,to:RoadNode):Road=>({id:`${from.id}-${to.id}`,kind:'street',from:from.id,to:to.id,minX:Math.min(from.x,to.x)-3,maxX:Math.max(from.x,to.x)+3,minZ:Math.min(from.z,to.z)-3,maxZ:Math.max(from.z,to.z)+3});
+      const segment=(from:RoadNode,to:RoadNode):Road=>({id:`${from.id}-${to.id}`,kind:'street',surface:base.kind==='rural'||peer.kind==='rural'?'dirt':'asphalt',from:from.id,to:to.id,minX:Math.min(from.x,to.x)-3,maxX:Math.max(from.x,to.x)+3,minZ:Math.min(from.z,to.z)-3,maxZ:Math.max(from.z,to.z)+3});
       const path=[segment(a,elbow),segment(elbow,portal)],peerPath=[segment(b,other),segment(other,portal)];
       if([...path,...peerPath].some(r=>!safeRoad(this.seed,r)))continue;
       result.nodes.push(elbow,portal);result.roads.push(...path);
@@ -186,16 +186,16 @@ export function settlementWorld(seed:number):SettlementWorld{
 }
 
 /** Clip every road to the chunk before tessellation: no seam duplicates or long spanning meshes. */
-export function appendRoads(seed:number,cx:number,cz:number,positions:number[],normals:number[],colors:number[],reserved?:(x:number,z:number,padding?:number)=>boolean):Building[]{
+export function appendRoads(seed:number,cx:number,cz:number,positions:number[],normals:number[],colors:number[],reserved?:(x:number,z:number,padding?:number)=>boolean,visual=true):Building[]{
   const bounds={minX:cx*32,maxX:(cx+1)*32,minZ:cz*32,maxZ:(cz+1)*32},world=settlementWorld(seed);
-  for(const s of world.inBounds(bounds))for(const road of s.roads){
+  for(const s of visual?world.inBounds(bounds):[])for(const road of s.roads){
     if(!intersects(road,bounds)||reserved?.((road.minX+road.maxX)/2,(road.minZ+road.maxZ)/2,Math.max(road.maxX-road.minX,road.maxZ-road.minZ)/2))continue;
     const minX=Math.max(road.minX,bounds.minX),maxX=Math.min(road.maxX,bounds.maxX),minZ=Math.max(road.minZ,bounds.minZ),maxZ=Math.min(road.maxZ,bounds.maxZ);
     // Global 2 m grid keeps both sides of a chunk seam identical.
     const xs=[minX],zs=[minZ];for(let x=Math.ceil(minX/2)*2;x<maxX;x+=2)if(x>minX)xs.push(x);xs.push(maxX);for(let z=Math.ceil(minZ/2)*2;z<maxZ;z+=2)if(z>minZ)zs.push(z);zs.push(maxZ);
     for(let iz=0;iz<zs.length-1;iz++)for(let ix=0;ix<xs.length-1;ix++){
       const corners=[[xs[ix],zs[iz]],[xs[ix],zs[iz+1]],[xs[ix+1],zs[iz+1]],[xs[ix+1],zs[iz]]];
-      for(const i of [0,1,2,0,2,3]){const [x,z]=corners[i];positions.push(x-cx*32,regionalSample(seed,x,z).height+.12,z-cz*32);normals.push(0,1,0);const stripe=road.kind==='runway'&&Math.abs(x-(road.minX+road.maxX)/2)<1.2&&Math.floor(z/8)%2===0;colors.push(...(stripe?[.8,.8,.7]:road.kind==='driveway'?[.35,.34,.30]:[.12,.15,.16]));}
+      for(const i of [0,1,2,0,2,3]){const [x,z]=corners[i];positions.push(x-cx*32,regionalSample(seed,x,z).height+.12,z-cz*32);normals.push(0,1,0);const stripe=road.kind==='runway'&&Math.abs(x-(road.minX+road.maxX)/2)<1.2&&Math.floor(z/8)%2===0;colors.push(...(stripe?[.8,.8,.7]:road.surface==='dirt'?[.39,.29,.17]:road.kind==='driveway'?[.35,.34,.30]:[.12,.15,.16]));}
     }
   }
   return world.inBounds(bounds).flatMap(s=>s.buildings.filter(b=>Math.floor(b.x/32)===cx&&Math.floor(b.z/32)===cz&&!reserved?.(b.x,b.z,Math.max(b.width,b.depth)/2)));

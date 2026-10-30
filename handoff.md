@@ -1,5 +1,50 @@
 # Handoff — 30 October 2026
 
+## Latest: Frontier countryside, ocean bases, mutants and expanded hangar
+
+Jan requested the staged expansion in docs/frontier-expansion-plan.md. Features
+are implemented end to end; see decision 0031 and README for gameplay and costs.
+Fields form connected triangular/trapezoid/clipped-corner parcels, with smaller
+flower fields. A 25-tile road view presents streets well ahead of near terrain,
+including rural dirt roads and farm access lanes; no duplicate Frontier worker roads.
+
+New NavalWorld supplies sparse groups of 5–8 battleships plus a carrier. One fleet
+southwest of home guarantees Carrier Resolute. Procedural fleets check ship
+footprints against ocean. Shared original block descriptions supply visuals and
+solid hulls/islands. Spatial runway queries allow the same manual landing, full
+stop/banking, hangar, takeoff and crash recovery loop at every carrier and home.
+The hangar destination selector changes navigation only. Reload starts at home;
+session recovery returns to the latest landed base.
+
+New Mutants population adds passive 24 m brutes (3500 HP / $600 / 900 XP) and 125 m
+colossi (24000 HP / $4000 / 6000 XP). Wounds/deaths persist separately; body hit
+spheres and skin-distance explosions make all weapons useful. Living bodies are
+solid collision hazards; there are no enemy attacks. Larger rewards remain
+unbanked until stopping at any base. A boss kill→carrier landing→bank→spend skill
+point→reload regression exercises the complete new loop.
+
+New progression.ts migrates valid v1 pilot money/XP/three upgrades into a separate
+v2 save; original bytes remain untouched. Added 18 prerequisite skills (54 ranks),
+one skill point per 300 lifetime banked XP, and 18 permanent functional purchases
+with four exclusive equipment slots. Landed hangars permit training, purchase,
+equip and unequip. Menu updates are revision-driven. Existing three cash upgrade
+tracks remain. All new resources are scene-owned, cancel timers on teardown and
+preserve the borrowed cube geometry. Ship/mutant instance positions are rebased.
+
+Verification: all 275 unit checks pass across 37 files in the final serial run
+(66.9 s); final types/production build/lint pass. Seven focused browser checks passed
+(58.5 s): actual landscape/fleet/boss captures, desktop/narrow skill/shop navigation
+and save reload, crop GPU pixel comparison, distant forest, sharp shoreline,
+paused root smoke and unavailable WebGL. Inspected the final scene and hangar
+screenshots; copies in /tmp/mvw-frontier-expansion/. These are static/mostly paused
+checks, not hardware FPS or balance acceptance. Initial deck slab collision and
+escort coastal placement regressions were fixed. No sustained flight/load/browser
+suite under the retained heat restriction. User server untouched; preview owned
+and stopped by Playwright. Local commit follows final checks; consult git log.
+No push/deployment. Human visual/flight/balance and physical-GPU gates remain open.
+
+# Handoff — 30 October 2026
+
 ## Latest: procedural crop fields and larger mountains
 
 Jan requested flat, realistically proportioned rectangular crop fields using an

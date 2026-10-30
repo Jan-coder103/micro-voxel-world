@@ -77,9 +77,9 @@ export function regionalHeightBounds(seed:number,b:TerrainRect) {
   // Flattened parcels are convex blends with their constant plateau height.
   for(let bz=Math.floor(b.minZ/FARM_BLOCK_SIZE);bz<=Math.floor(b.maxZ/FARM_BLOCK_SIZE);bz++)for(let bx=Math.floor(b.minX/FARM_BLOCK_SIZE);bx<=Math.floor(b.maxX/FARM_BLOCK_SIZE);bx++)for(const f of cropFields(seed,bx,bz)){
     const near=Math.max(f.minX-b.maxX,b.minX-f.maxX,f.minZ-b.maxZ,b.minZ-f.maxZ,0);
-    if(near>=8)continue;
+    if(near>=2.5)continue;
     const far=Math.max(f.minX-b.minX,b.maxX-f.maxX,f.minZ-b.minZ,b.maxZ-f.maxZ,0);
-    const lowWeight=1-smooth(far/8),highWeight=1-smooth(near/8);
+    const lowWeight=1-smooth(far/2.5),highWeight=1-smooth(near/2.5);
     height=Math.max(height*(1-lowWeight)+f.height*lowWeight,height*(1-highWeight)+f.height*highWeight);
   }
   // Rounding can raise land by .05 m. Include all possible water surfaces in this rectangle.
@@ -121,9 +121,9 @@ function naturalSample(seed:number,x:number,z:number):RegionalSample {
   return {height,water,biome,moisture,color};
 }
 /** Each 384 m farm block has staggered rectangular parcels and grass access margins. */
-export interface CropField { minX:number;maxX:number;minZ:number;maxZ:number;height:number;crop:number;rowsAlongX:boolean;slot:number }
+export interface CropField { minX:number;maxX:number;minZ:number;maxZ:number;height:number;crop:number;rowsAlongX:boolean;slot:number;crop2:number;diagonal:number;flower:boolean }
 export const FARM_BLOCK_SIZE=384;
-export const CROP_COLORS:readonly (readonly number[])[]=[[.56,.45,.17],[.37,.46,.14],[.49,.52,.21],[.35,.25,.13],[.61,.53,.26]];
+export const CROP_COLORS:readonly (readonly number[])[]=[[.56,.45,.17],[.37,.46,.14],[.49,.52,.21],[.35,.25,.13],[.61,.53,.26],[.63,.25,.40],[.48,.29,.61],[.79,.62,.18]];
 export function farmLayout(seed:number,bx:number,bz:number){return [130+regionalHash(seed,bx,bz,302)*100,105+regionalHash(seed,bx,bz,303)*140,105+regionalHash(seed,bx,bz,304)*140];}
 const farms=new Map<string,readonly CropField[]>();
 /** Bounded cache shared by terrain, vegetation and scenery; tests use the same authoritative field. */
@@ -135,14 +135,19 @@ export function cropFields(seed:number,bx:number,bz:number):readonly CropField[]
     for(let col=0;col<2;col++){
       const cuts=[0,col===0?cut0:cut1,FARM_BLOCK_SIZE];
       for(let row=0;row<2;row++){
-        const minX=ox+(col===0?0:split)+9,maxX=ox+(col===0?split:FARM_BLOCK_SIZE)-9,minZ=oz+cuts[row]+9,maxZ=oz+cuts[row+1]-9;
+        const flower=regionalHash(seed,bx,bz,350+col*2+row)<.22;
+        const minX=ox+(col===0?0:split)+3,minZ=oz+cuts[row]+3;
+        const maxX=flower?minX+38+regionalHash(seed,bx,bz,360+row)*30:ox+(col===0?split:FARM_BLOCK_SIZE)-3;
+        const maxZ=flower?minZ+30+regionalHash(seed,bx,bz,370+col)*32:oz+cuts[row+1]-3;
         // Keep home infrastructure clear in every regional mode; settlements check reservations separately.
         if(minX<190&&maxX> -190&&minZ<758&&maxZ> -38)continue;
         const samples:RegionalSample[]=[];
-        for(const x of [minX-8,(minX+maxX)/2,maxX+8])for(const z of [minZ-8,(minZ+maxZ)/2,maxZ+8])samples.push(naturalSample(seed,x,z));
+        for(const x of [minX-2.5,(minX+maxX)/2,maxX+2.5])for(const z of [minZ-2.5,(minZ+maxZ)/2,maxZ+2.5])samples.push(naturalSample(seed,x,z));
         const low=Math.min(...samples.map(s=>s.height)),high=Math.max(...samples.map(s=>s.height));
         if(samples.some(s=>s.water!==null||!['plains','forest'].includes(s.biome))||high-low>8)continue;
-        fields.push({slot:col*2+row,minX,maxX,minZ,maxZ,height:samples[4].height,crop:Math.floor(regionalHash(seed,bx,bz,310+col*2+row)*CROP_COLORS.length),rowsAlongX:regionalHash(seed,bx,bz,320+col*2+row)>.5});
+        const crop=flower?5+Math.floor(regionalHash(seed,bx,bz,380+row+col)*3):Math.floor(regionalHash(seed,bx,bz,310+col*2+row)*5);
+        const diagonal=flower||regionalHash(seed,bx,bz,390+col*2+row)<.4?0:(regionalHash(seed,bx,bz,395+col*2+row)>.5?1:-1)*(.65+regionalHash(seed,bx,bz,397+col*2+row)*.7);
+        fields.push({flower,diagonal,crop2:diagonal?(crop+1+Math.floor(regionalHash(seed,bx,bz,398+col*2+row)*4))%5:crop,slot:col*2+row,minX,maxX,minZ,maxZ,height:samples[4].height,crop,rowsAlongX:regionalHash(seed,bx,bz,320+col*2+row)>.5});
       }
     }
   }
@@ -151,14 +156,19 @@ export function cropFields(seed:number,bx:number,bz:number):readonly CropField[]
 export function cropFieldAt(seed:number,x:number,z:number):CropField|undefined {
   return cropFields(seed,Math.floor(x/FARM_BLOCK_SIZE),Math.floor(z/FARM_BLOCK_SIZE)).find(f=>x>=f.minX&&x<=f.maxX&&z>=f.minZ&&z<=f.maxZ);
 }
-/** Flat cultivated interiors feather into natural land over an 8 m grassy headland. */
+/** Diagonal divisions share one flat plateau, so connected triangles never create cracks. */
+export function fieldCropAt(f:CropField,x:number,z:number){
+  const u=(x-f.minX)/(f.maxX-f.minX),v=(z-f.minZ)/(f.maxZ-f.minZ);
+  return f.diagonal&&(f.diagonal>0?u+v>Math.abs(f.diagonal):u-v>1-Math.abs(f.diagonal))?f.crop2:f.crop;
+}
+/** Flat cultivated interiors feather into natural land over a 2.5 m grassy headland. */
 export function regionalSample(seed:number,x:number,z:number):RegionalSample {
   const s=naturalSample(seed,x,z);
   if(s.water!==null)return s;
   for(const f of cropFields(seed,Math.floor(x/FARM_BLOCK_SIZE),Math.floor(z/FARM_BLOCK_SIZE))){
     const d=Math.max(f.minX-x,x-f.maxX,f.minZ-z,z-f.maxZ,0);
-    if(d>=8)continue;
-    const w=1-smooth(d/8);
+    if(d>=2.5)continue;
+    const w=1-smooth(d/2.5);
     return {...s,height:s.height*(1-w)+f.height*w};
   }
   return s;

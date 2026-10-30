@@ -847,3 +847,39 @@ awaiting user visual/device verification.
   suite. Player smoke passed after a build-race rerun. No heavy browser/load suite
   under the existing heat restriction; human visual acceptance/physical FPS remain
   open. No push/deployment; local commit required after checks.
+
+
+## 30 October 2026 — Connected countryside, ocean bases, mutants and hangar expansion
+
+- Followed the user-authorized sequence in docs/frontier-expansion-plan.md.
+  Fields now have diagonal triangular/trapezoid/clipped-corner subdivisions,
+  six-metre shared margins and smaller pink/purple/yellow flower plots. CPU/GPU
+  descriptors agree on shapes and flat heights; canonical trees clear parcels.
+- Added independent road presentation in 25 asynchronously generated 512 m tiles,
+  reaching roughly 1–1.5 km ahead. Rural dirt streets/connections/driveways and farm
+  lanes avoid water/home. Frontier worker roads are suppressed to avoid duplicates.
+- Added sparse ocean fleets of 5–8 battleships plus one carrier, including a known
+  carrier southwest of home. Procedural ship footprints must be ocean. Shared block
+  descriptions drive batched rendering and hull/superstructure collision. Spatial
+  runways give carriers the same landing, stop/bank, hangar, takeoff and recovery
+  loop as home. Navigation changes destination only; reload still starts at home.
+- Added passive 24 m / 3500 HP brutes and 125 m / 24000 HP colossi, persistent wounds
+  and deaths, body weapon hits, shell damage against skin, visible health/rewards,
+  physical body collision and larger unbanked rewards. Brutes pay $600 / 900 XP;
+  colossi pay $4000 / 6000 XP before bonuses. Boss rewards bank at either base type.
+- Added three prerequisite branches / 18 three-rank skills, one point per 300 banked
+  XP, and 18 permanent equipment purchases across four exclusive equipment slots.
+  Flight/weapon/reward effects are functional. A separate v2 pilot record migrates
+  old money/XP/upgrades without overwriting v1; corrupt/denied saves stay session-only.
+  Training/shopping/loadout changes require a landed hangar. Hidden menu cards update
+  only when their state changes. Naval/mutant matrices use local rebased coordinates.
+- Decision 0031 and README describe ownership, budgets, controls, save behavior and
+  limitations. Road tiles add up to 25 draw calls; ship and mutant views add one
+  instance batch each. Existing terrain/forest residency and worker budgets remain.
+- Verification: all 275 unit checks pass in the final 37-file serial run (66.9 s);
+  final types/build/lint pass. Seven focused browser cases pass (58.5 s), including
+  actual static scene captures, shop/skills/base navigation and saved loadouts at
+  desktop/narrow sizes. Agent inspected the final PNGs; previews are copied to
+  /tmp/mvw-frontier-expansion/. Human visual,
+  balance and physical-GPU acceptance remain open. Retained heat restriction excludes
+  heavy browser/flight/load runs. No push/deployment.

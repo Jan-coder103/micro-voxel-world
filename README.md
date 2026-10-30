@@ -32,9 +32,32 @@ Assisted/Direct flight, aim assistance, effects and render scale.
 
 Regional terrain, forests, mountains, rivers, lakes, coasts/ocean and generated
 city/rural/industrial/military/airport/harbor districts now share the player world.
-Flat seeded crop fields form varied rectangular lowland parcels with grassy
-margins, green/gold/tilled soil colors and planting rows. Trees clear their
-interiors. Broader, taller mountains and expanded foothills add more relief.
+Flat seeded crop fields form connected rectangles, triangular and clipped-corner
+parcels, with grassy margins and planting rows. Smaller pink/purple/yellow flower
+plots break up the green/gold/tilled-soil patchwork. Rural dirt roads and farm
+tracks share an independent road layer visible roughly 1–1.5 km ahead. Broader,
+taller mountains and expanded foothills add more relief.
+
+Select a **Navigation destination** in the hangar to find **Carrier Resolute** in
+the ocean southwest of home. Sparse naval groups contain 5–8 battleships plus a
+carrier. Land on a carrier's marked strip using the same rules as home, idle and
+stop to bank rewards, shop and take off again. A safe touchdown makes that base
+your recovery point for this session; reload starts at home. The destination
+selector supplies bearings and a marker; it does not move the aircraft.
+
+Look for **Mutant Brutes** (24 m / 3500 HP) and **Colossal Mutants** (125 m / 24000 HP).
+They do not attack, but colliding with their bodies crashes the aircraft. Brutes
+pay $600 / 900 XP; colossi pay $4000 / 6000 XP before reward bonuses. Damage and
+kills persist; the money and XP remain unbanked until a safe landing and stop.
+A health panel and marker help track nearby bosses.
+
+The hangar's **Pilot skill tree** has 18 skills across Flight, Gunnery and
+Operations, with three ranks each and prerequisites. Every 300 banked XP grants
+one skill point. The **Equipment shop** offers 18 unlocks across engine, weapon,
+airframe and utility slots; equip one per slot. Purchases and skills affect actual
+flight, weapons and rewards. Training and equipment changes require a safe base.
+Existing money, XP and the original cash upgrades migrate to the new pilot save.
+
 There is no decorative mountain annulus. Four worker terrain LODs (49 residents,
 two outstanding jobs/results), a reused 4 km coarse horizon underlay, near authored
 settlement kits/distant building proxies, and three horde tiers bound presentation.

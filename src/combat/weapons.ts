@@ -6,7 +6,7 @@ export const WEAPONS:Readonly<Record<WeaponId,WeaponDefinition>> = Object.freeze
   autocannon:Object.freeze({name:'Autocannon',intervalTicks:12,range:240,damage:22,radius:0,sound:'cannon'}),
   shell:Object.freeze({name:'Explosive shell',intervalTicks:60,range:240,damage:150,radius:16,sound:'explosion'}),
 });
-export interface Target { readonly id:string; readonly position:Point; readonly radius:number; readonly maxHealth:number; health:number }
+export interface Target { readonly id:string; readonly position:Point; readonly radius:number; readonly maxHealth:number; health:number;hitSpheres?:readonly {position:Point;radius:number}[] }
 const CELL=32;
 const key=(x:number,y:number,z:number)=>`${x},${y},${z}`;
 export type BlockerQuery=(origin:Point,direction:Point,range:number)=>number|undefined;
@@ -41,10 +41,12 @@ export function raycast(index:TargetQuery,origin:Point,direction:Point,range:num
   const obstacle=blocker?.(origin,direction,range);if(obstacle!==undefined&&(closest===undefined||obstacle<closest))closest=obstacle;
   for(const candidate of index.query({x:Math.min(origin.x,end.x),y:Math.min(origin.y,end.y),z:Math.min(origin.z,end.z)},{x:Math.max(origin.x,end.x),y:Math.max(origin.y,end.y),z:Math.max(origin.z,end.z)})) {
     if(candidate.health<=0)continue;
-    const p=candidate.position,x=origin.x-p.x,y=origin.y-p.y,z=origin.z-p.z,b=x*direction.x+y*direction.y+z*direction.z,c=x*x+y*y+z*z-candidate.radius**2,disc=b*b-c;
-    if(disc<0)continue;
-    const near=c<=0?0:-b-Math.sqrt(disc);
-    if(near>=0&&near<=range&&(closest===undefined||near<closest)){closest=near;target=candidate;}
+    for(const sphere of candidate.hitSpheres??[candidate]){
+      const p=sphere.position,x=origin.x-p.x,y=origin.y-p.y,z=origin.z-p.z,b=x*direction.x+y*direction.y+z*direction.z,c=x*x+y*y+z*z-sphere.radius**2,disc=b*b-c;
+      if(disc<0)continue;
+      const near=c<=0?0:-b-Math.sqrt(disc);
+      if(near>=0&&near<=range&&(closest===undefined||near<closest)){closest=near;target=candidate;}
+    }
   }
   return closest===undefined?undefined:{distance:closest,position:along(origin,direction,closest),target};
 }
@@ -54,21 +56,23 @@ export class Combat {
   readonly index:TargetQuery;
   readonly effects:CombatEffect[];
   ticks=0;shots=0;hits=0;damage=0;kills=0;blasts=0;droppedEffects=0;
-  lastWeapon:WeaponId='minigun';damageMultiplier=1;
+  lastWeapon:WeaponId='minigun';damageMultiplier=1;fireRateMultiplier=1;rangeMultiplier=1;blastMultiplier=1;mutantMultiplier=1;
   private readonly nextFire:Record<WeaponId,number>={minigun:0,autocannon:0,shell:0};
-  constructor(readonly targets:readonly Target[],private readonly ground:(x:number,z:number)=>number,effectCapacity=128,private readonly options:{index?:TargetQuery;blocker?:BlockerQuery;onDamage?:(target:Target)=>void}={}) {
+  constructor(readonly targets:readonly Target[],private readonly ground:(x:number,z:number)=>number,effectCapacity=128,private readonly options:{index?:TargetQuery;blocker?:BlockerQuery;onDamage?:(target:Target)=>void;onKill?:(target:Target)=>void}={}) {
     if(!Number.isInteger(effectCapacity)||effectCapacity<0||effectCapacity>128)throw new Error('Invalid effect capacity');
     this.index=options.index??new TargetIndex(targets);
     this.effects=Array.from({length:effectCapacity},()=>({active:false,kind:'tracer',from:{x:0,y:0,z:0},to:{x:0,y:0,z:0},age:0,lifetime:0,radius:0}));
   }
   reset(){this.ticks=this.shots=this.hits=this.damage=this.kills=this.blasts=this.droppedEffects=0;for(const t of this.targets)t.health=t.maxHealth;for(const e of this.effects)e.active=false;for(const id of Object.keys(WEAPONS) as WeaponId[])this.nextFire[id]=0;this.lastWeapon='minigun';}
   private effect(kind:EffectKind,from:Point,to:Point,lifetime:number,radius=1){const e=this.effects.find(e=>!e.active);if(!e){this.droppedEffects++;return;}e.active=true;e.kind=kind;Object.assign(e.from,from);Object.assign(e.to,to);e.age=0;e.lifetime=lifetime;e.radius=radius;}
-  private damageTarget(target:Target,amount:number){const dealt=Math.min(target.health,Math.max(0,amount));if(!dealt)return;target.health-=dealt;this.damage+=dealt;this.hits++;if(target.health===0)this.kills++;this.options.onDamage?.(target);}
+  private damageTarget(target:Target,amount:number){const dealt=Math.min(target.health,Math.max(0,amount*(target.id.startsWith('mutant:')?this.mutantMultiplier:1)));if(!dealt)return;target.health-=dealt;this.damage+=dealt;this.hits++;if(target.health===0){this.kills++;this.options.onKill?.(target);}this.options.onDamage?.(target);}
   explode(centre:Point,radius:number,damage:number) {
     if(![centre.x,centre.y,centre.z,radius,damage].every(Number.isFinite)||Math.max(Math.abs(centre.x),Math.abs(centre.y),Math.abs(centre.z))>920000000||radius<=0||radius>32||damage<0)throw new Error('Invalid explosion');
     this.blasts++;this.effect('blast',centre,centre,.7,radius);
     for(const t of this.index.query({x:centre.x-radius,y:centre.y-radius,z:centre.z-radius},{x:centre.x+radius,y:centre.y+radius,z:centre.z+radius})) {
-      if(t.health<=0)continue;const p=t.position,dx=p.x-centre.x,dy=p.y-centre.y,dz=p.z-centre.z,distance=Math.hypot(dx,dy,dz);if(distance>=radius)continue;
+      if(t.health<=0)continue;let p=t.position;
+      if(t.hitSpheres){const sphere=[...t.hitSpheres].sort((a,b)=>(Math.hypot(a.position.x-centre.x,a.position.y-centre.y,a.position.z-centre.z)-a.radius)-(Math.hypot(b.position.x-centre.x,b.position.y-centre.y,b.position.z-centre.z)-b.radius))[0];const l=Math.hypot(sphere.position.x-centre.x,sphere.position.y-centre.y,sphere.position.z-centre.z),w=l?Math.max(0,l-sphere.radius)/l:0;p={x:centre.x+(sphere.position.x-centre.x)*w,y:centre.y+(sphere.position.y-centre.y)*w,z:centre.z+(sphere.position.z-centre.z)*w};}
+      const dx=p.x-centre.x,dy=p.y-centre.y,dz=p.z-centre.z,distance=Math.hypot(dx,dy,dz);if(distance>=radius)continue;
       if(distance>0){const direction={x:dx/distance,y:dy/distance,z:dz/distance};if(terrainDistance(centre,direction,distance,this.ground)!==undefined||this.options.blocker?.(centre,direction,distance)!==undefined)continue;}
       this.damageTarget(t,damage*(1-distance/radius));
     }
@@ -81,10 +85,10 @@ export class Combat {
     for(const e of this.effects)if(e.active){e.age+=1/60;if(e.age+1e-9>=e.lifetime)e.active=false;}
     this.ticks++;if(!fire||this.ticks<this.nextFire[weapon])return;
     const definition=WEAPONS[weapon],d={x:direction.x/length,y:direction.y/length,z:direction.z/length};
-    this.nextFire[weapon]=this.ticks+definition.intervalTicks;this.shots++;this.lastWeapon=weapon;
-    const hit=raycast(this.index,origin,d,definition.range,this.ground,this.options.blocker),end=hit?.position??along(origin,d,definition.range);
+    this.nextFire[weapon]=this.ticks+Math.max(1,Math.round(definition.intervalTicks/this.fireRateMultiplier));this.shots++;this.lastWeapon=weapon;
+    const hit=raycast(this.index,origin,d,Math.min(480,definition.range*this.rangeMultiplier),this.ground,this.options.blocker),end=hit?.position??along(origin,d,Math.min(480,definition.range*this.rangeMultiplier));
     this.effect('tracer',origin,end,.09);this.effect('muzzle',origin,origin,.05,.7);
-    if(hit){this.effect('impact',end,end,.2,1.5);if(definition.radius>0)this.explode(hit.target?end:{x:end.x-d.x*.05,y:Math.max(end.y-d.y*.05,this.ground(end.x,end.z)+.3),z:end.z-d.z*.05},definition.radius,definition.damage*this.damageMultiplier);else if(hit.target)this.damageTarget(hit.target,definition.damage*this.damageMultiplier);}
+    if(hit){this.effect('impact',end,end,.2,1.5);if(definition.radius>0)this.explode(hit.target?end:{x:end.x-d.x*.05,y:Math.max(end.y-d.y*.05,this.ground(end.x,end.z)+.3),z:end.z-d.z*.05},Math.min(32,definition.radius*this.blastMultiplier),definition.damage*this.damageMultiplier);else if(hit.target)this.damageTarget(hit.target,definition.damage*this.damageMultiplier);}
   }
 }
 export function rangeTargets(ground:(x:number,z:number)=>number):Target[] {

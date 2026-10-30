@@ -54,6 +54,6 @@ export function generateTerrain(spec: ChunkSpec): TerrainData {
   }
   const structures=spec.generator && spec.structures;
   if (spec.generator) decorateRegion(spec,positions,normals,colors,spec.airbase||structures?(x,z)=>(!!spec.airbase&&airbaseReserved(x,z))||!!structures&&settlementWorld(spec.seed).reserved(x,z):undefined);
-  const buildings=structures ? appendRoads(spec.seed,spec.x,spec.z,positions,normals,colors,spec.airbase?airbaseReserved:undefined) : undefined;
+  const buildings=structures ? appendRoads(spec.seed,spec.x,spec.z,positions,normals,colors,spec.airbase?airbaseReserved:undefined,!spec.airbase) : undefined;
   return { positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors),...(buildings?{buildings}: {}) };
 }

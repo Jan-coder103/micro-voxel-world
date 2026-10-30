@@ -13,7 +13,7 @@ it('shares filtered world-anchored detail across ground LODs and rebasing withou
   surface.updateFields(20,30);expect(atlas.version).toBe(version);
   surface.updateFields(5000,-3000);expect(atlas.version).toBeGreaterThan(version);
   const [bx,bz]=shader.uniforms.farmOrigin.value.toArray();
-  for(const f of cropFields(103,bx+6,bz+6))expect(atlas.image.data![(6*26+6*2)*4+4+f.slot]).toBe(f.crop+(f.rowsAlongX?.25:0));
+  for(const f of cropFields(103,bx+6,bz+6))expect(atlas.image.data![(6*117+6*9)*4+8+f.slot*8]).toBe(f.crop+(f.rowsAlongX?.25:0));
   let disposed=0;atlas.addEventListener('dispose',()=>disposed++);surface.dispose();expect(disposed).toBe(1);
   material.dispose();
 });

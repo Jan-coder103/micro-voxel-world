@@ -4,19 +4,23 @@ import { DataTexture,FloatType,RGBAFormat,Vector2,type MeshStandardMaterial } fr
 /** World-anchored, filtered soil/grass grain, shared by streamed terrain and its underlay. */
 export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number){
   const origin={value:new Vector2()},farmOrigin={value:new Vector2()},size=13;
-  const pixels=new Float32Array(size*size*8),farms=new DataTexture(pixels,size*2,size,RGBAFormat,FloatType);
+  const pixels=new Float32Array(size*size*36),farms=new DataTexture(pixels,size*9,size,RGBAFormat,FloatType);
   let anchor='';
   const updateFields=(x:number,z:number)=>{
     const bx=Math.floor(x/FARM_BLOCK_SIZE)-6,bz=Math.floor(z/FARM_BLOCK_SIZE)-6,key=`${bx},${bz}`;if(anchor===key)return;anchor=key;
     farmOrigin.value.set(bx,bz);pixels.fill(-1);
     for(let dz=0;dz<size;dz++)for(let dx=0;dx<size;dx++){
-      const i=(dz*size*2+dx*2)*4;
+      const i=(dz*size*9+dx*9)*4;
       pixels.set([...farmLayout(seed,bx+dx,bz+dz),0],i);
-      for(const f of cropFields(seed,bx+dx,bz+dz))pixels[i+4+f.slot]=f.crop+(f.rowsAlongX?.25:0);
+      for(const f of cropFields(seed,bx+dx,bz+dz)){
+        const at=i+4+f.slot*8;
+        pixels.set([f.minX-(bx+dx)*384,f.maxX-(bx+dx)*384,f.minZ-(bz+dz)*384,f.maxZ-(bz+dz)*384],at);
+        pixels.set([f.crop+(f.rowsAlongX?.25:0),f.crop2,f.diagonal,0],at+4);
+      }
     }
     farms.needsUpdate=true;
   };updateFields(0,0);
-  material.customProgramCacheKey=()=> 'frontier-ground-v3';
+  material.customProgramCacheKey=()=> 'frontier-ground-v4';
   material.onBeforeCompile=shader=>{
     shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
     shader.uniforms.terrainSeed={value:seed%65536};
@@ -48,22 +52,27 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
       float variation=groundPatch*.24+soil*.16+grain*.16;
       diffuseColor.rgb*=1.0+variation*land*vTerrainTop;
       diffuseColor.rgb+=vec3(.025,.012,-.018)*soil*land*vTerrainTop;
-      // Two tiny nearest-filtered atlas reads keep parcel edges exact at every LOD.
+      // Analytic field edges and diagonals survive every terrain LOD.
       vec2 block=floor(vTerrainPosition/384.0),local=vTerrainPosition-block*384.0,index=block-farmOrigin;
       if(all(greaterThanEqual(index,vec2(0.0)))&&all(lessThan(index,vec2(13.0)))){
-        vec4 parcelLayout=texture2D(farmAtlas,vec2((index.x*2.0+.5)/26.0,(index.y+.5)/13.0));
-        vec4 crops=texture2D(farmAtlas,vec2((index.x*2.0+1.5)/26.0,(index.y+.5)/13.0));
+        vec4 parcelLayout=texture2D(farmAtlas,vec2((index.x*9.0+.5)/117.0,(index.y+.5)/13.0));
         bool right=local.x>=parcelLayout.x;float cut=right?parcelLayout.z:parcelLayout.y;bool upper=local.y>=cut;
-        float code=right?(upper?crops.w:crops.z):(upper?crops.y:crops.x);
-        vec2 lo=vec2(right?parcelLayout.x:0.0,upper?cut:0.0)+9.0;
-        vec2 hi=vec2(right?384.0:parcelLayout.x,upper?384.0:cut)-9.0;
+        float slot=(right?2.0:0.0)+(upper?1.0:0.0);
+        vec4 bounds=texture2D(farmAtlas,vec2((index.x*9.0+slot*2.0+1.5)/117.0,(index.y+.5)/13.0));
+        vec4 codes=texture2D(farmAtlas,vec2((index.x*9.0+slot*2.0+2.5)/117.0,(index.y+.5)/13.0));
+        vec2 lo=bounds.xz,hi=bounds.yw,uv=(local-lo)/max(hi-lo,vec2(1.0));
+        float diagonal=codes.z>0.0?uv.x+uv.y-abs(codes.z):uv.x-uv.y+abs(codes.z)-1.0;
+        float code=abs(codes.z)>.5&&diagonal>0.0?codes.y+fract(codes.x):codes.x;
         float edge=min(min(local.x-lo.x,hi.x-local.x),min(local.y-lo.y,hi.y-local.y));
         float aa=max(fwidth(edge),.01),coverage=smoothstep(-aa,aa,edge)*step(0.0,code)*land*vTerrainTop*vTerrainCultivable;
         float rowPosition=fract(code)>.1?vTerrainPosition.y:vTerrainPosition.x;
         float rowFade=1.0-smoothstep(.5,2.0,fwidth(rowPosition));
         float rows=cos(rowPosition*3.14159265)*.055*rowFade;
+        if(abs(codes.z)>.5){float seam=abs(diagonal)*min(hi.x-lo.x,hi.y-lo.y)*.7;coverage*=smoothstep(.6,.6+max(fwidth(seam),.1),seam);}
         float headland=smoothstep(0.0,3.0,edge);
-        vec3 crop=cropColor(floor(code))*(.88+.12*headland+rows*headland+soil*.08);
+        float flowers=step(4.5,floor(code));
+        float petals=terrainGrain(vTerrainPosition,.45)*.35;
+        vec3 crop=cropColor(floor(code))*(.88+.12*headland+rows*headland+soil*.08+flowers*petals);
         diffuseColor.rgb=mix(diffuseColor.rgb,crop,coverage);
       }`);
   };

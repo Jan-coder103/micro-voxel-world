@@ -1,7 +1,7 @@
 import { expect,it } from 'vitest';
-import { cropFields,cropFieldAt,regionalSample,regionalHeightCeiling,regionTrees } from '../../src/world/regional-terrain';
+import { fieldCropAt,cropFields,cropFieldAt,regionalSample,regionalHeightCeiling,regionTrees } from '../../src/world/regional-terrain';
 
-it('generates varied repeatable rectangular fields with flat interiors and clear vegetation',()=>{
+it('generates varied repeatable connected fields with flat interiors and clear vegetation',()=>{
   const crops=new Set<number>(),shapes=new Set<string>();let count=0;
   for(const seed of [103,12012,0])for(let bz=-4;bz<2;bz++)for(let bx=-2;bx<4;bx++)for(const f of cropFields(seed,bx,bz)){
     count++;crops.add(f.crop);shapes.add(`${Math.round(f.maxX-f.minX)},${Math.round(f.maxZ-f.minZ)}`);
@@ -16,7 +16,7 @@ it('generates varied repeatable rectangular fields with flat interiors and clear
     // The headland meets the flat plateau continuously, including at negative blocks.
     expect(Math.abs(regionalSample(seed,f.minX-.001,z).height-f.height)).toBeLessThan(.001);
   }
-  expect(count).toBeGreaterThan(40);expect(crops.size).toBe(5);expect(shapes.size).toBeGreaterThan(20);
+  expect(count).toBeGreaterThan(40);expect(crops.size).toBe(8);expect(shapes.size).toBeGreaterThan(20);
 });
 
 it('raises mountain peaks while retaining a traversable ceiling and more foothill coverage',()=>{
@@ -25,4 +25,14 @@ it('raises mountain peaks while retaining a traversable ceiling and more foothil
   for(const seed of [0,103,12012])for(let x=0;x<3000;x+=100)for(let z=300;z<2000;z+=100){
     const s=regionalSample(seed,x,z);expect(s.height).toBeLessThan(235);
   }
+});
+
+
+it('subdivides connected flat parcels diagonally and grows smaller colorful flower plots',()=>{
+  let triangles=0,flowers=0;
+  for(let z=-4;z<0;z++)for(let x=-1;x<6;x++)for(const f of cropFields(103,x,z)){
+    if(f.diagonal){triangles++;expect(f.crop2).not.toBe(f.crop);const a=fieldCropAt(f,f.minX+(f.maxX-f.minX)*.2,f.minZ+(f.maxZ-f.minZ)*.7),b=fieldCropAt(f,f.minX+(f.maxX-f.minX)*.8,f.minZ+(f.maxZ-f.minZ)*.3);if(f.diagonal<0)expect(a).not.toBe(b);}
+    if(f.flower){flowers++;expect(f.maxX-f.minX).toBeLessThanOrEqual(68);expect(f.maxZ-f.minZ).toBeLessThanOrEqual(62);expect(f.crop).toBeGreaterThanOrEqual(5);}
+  }
+  expect(triangles).toBeGreaterThan(8);expect(flowers).toBeGreaterThan(8);
 });
