@@ -6,7 +6,9 @@ test('frontier player starts at the runway, gates tools, pauses and fits narrow 
   const menu=page.getByRole('dialog',{name:'Hangar and upgrades'}),host=page.getByLabel('Aircraft flight scene',{exact:true}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');
   await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).grounded).toBe(true);expect((await read()).speed).toBe(0);expect((await read()).money).toBe(0);
   await page.getByText('Settings and developer tools',{exact:true}).click();
-  await expect(page.getByRole('link',{name:'Terrain explorer',exact:true})).toBeHidden();await page.getByLabel('Enable developer tools').check();await expect(page.getByRole('link',{name:'Terrain explorer',exact:true})).toBeVisible();await page.getByLabel('Enable developer tools').uncheck();
+  await expect(page.getByRole('link',{name:'Voxel workshop',exact:true})).toBeHidden();await page.getByLabel('Enable developer tools').check();await expect(page.getByRole('link',{name:'Voxel workshop',exact:true})).toBeVisible();await page.getByLabel('Enable developer tools').uncheck();
+  await expect(page.locator('a[href^="/tools/"]').filter({hasNotText:'Voxel workshop'})).toHaveCount(0);
+  await expect(page.locator('a[href="/play/"]')).toHaveCount(0);
   await page.getByLabel('Flying mode',{exact:true}).selectOption('direct');await expect.poll(async()=>(await read()).assisted).toBe(false);
   await page.getByRole('button',{name:'Start engine / Take off',exact:true}).click();await expect(menu).not.toBeVisible();await page.keyboard.press('Escape');await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).paused).toBe(true);
   await expect.poll(async()=>(await read()).settled,{timeout:20000}).toBe(true);expect((await read()).distantTrees).toBeGreaterThan(0);expect((await read()).residents).toBeLessThanOrEqual(49);expect((await read()).hordes).toBeLessThanOrEqual(49);expect((await read()).lods.every((n:number)=>n>0)).toBe(true);

@@ -883,3 +883,33 @@ awaiting user visual/device verification.
   /tmp/mvw-frontier-expansion/. Human visual,
   balance and physical-GPU acceptance remain open. Retained heat restriction excludes
   heavy browser/flight/load runs. No push/deployment.
+
+## 30 October 2026 — Remove obsolete development pages
+
+Removed the legacy `/play/` prototype and outdoor, flight/regional-flight, hordes,
+weapons, streaming/terrain-explorer pages and their exclusive page controllers,
+old player shell, demo mount, helicopter/mount and legacy horde presentation.
+Frontier and the voxel workshop are the only build entries. Frontier links only
+to the retained workshop; its simulation/rendering/landing/progression code is
+unchanged. Archived retired browser checks and original affected unit files;
+kept shared-model tests and extracted the depot workshop check.
+
+Preserved every source asset, legacy environment/vegetation implementation,
+editor/export support, all benchmark/generation scripts and their headless model
+dependencies (including Sortie/campaign/missions/metrics), development artifacts,
+archives and historical documentation. Old README route descriptions are marked
+historical. Verification results follow below.
+
+Verification: Node 24 typecheck, lint, production build and all 23 source asset
+validations pass. All 271 unit tests across 37 files pass in the final serial run
+(80.45 s), including preserved benchmark/asset CLIs. Eleven focused browser checks
+pass across final runs: Frontier start/pause/narrow/WebGL fallback, workshop entry
+and navigation, depot import, GLB export/error recovery, actual crop/forest/shore
+and navy/mutant rendering, and saved skill/shop progression. The last hangar case
+exhausted the default 30 s in the combined run and passed alone in 21.6 s with a
+60 s limit. Initial sandbox subprocess-output failures passed outside the sandbox;
+the browser preview also required unsandboxed local execution. Generated test
+screenshots were refreshed; Playwright disposable output now uses a nested
+folder so future runs preserve the screenshot collection. No sustained flight/
+load checks or hardware FPS claim under the retained heat restriction. No assets,
+benchmark/generation scripts or existing historical docs were deleted. No push.

@@ -1,14 +1,11 @@
 import { expect, it, vi } from 'vitest';
-import { Box3, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Raycaster, Vector3 } from 'three';
+import { InstancedMesh, Mesh, MeshStandardMaterial, Raycaster, Vector3 } from 'three';
 import { createBattlefieldView, vegetationLod } from '../../src/rendering/battlefield-view';
 import { battlefieldColor, createBattlefieldGround, woodland } from '../../src/rendering/battlefield-surface';
 import { heightAt } from '../../src/streaming/terrain-data';
-import { createHordeView } from '../../src/rendering/horde-view';
 import { createVoxelMesh } from '../../src/rendering/voxel-mesh';
-import { Sortie } from '../../src/game/sortie';
 import { parseSource, serializeSource } from '../../src/assets/voxel-source';
 import treeSource from '../../assets/source/ref-field-tree.voxel.json';
-import depotSource from '../../assets/source/clearpass-depot.voxel.json';
 
 it('reproduces a bounded woodland outside encounters and the home approach', () => {
   const trees=woodland(12012);
@@ -38,27 +35,6 @@ it('owns only seven scenic geometries, follows the camera without moving woods, 
   expect(view.sun.target.position.toArray()).toEqual([128,0,-80]);
   const highCount=view.treeCount;view.setQuality(true);expect(view.quality).toBe('low');expect(view.treeCount).toBeLessThan(highCount);expect(view.treeCount).toBeGreaterThan(1000);view.setQuality(false);expect(view.treeCount).toBe(highCount);
   view.dispose();view.dispose();view.update(new Vector3());for(const spy of spies)expect(spy).toHaveBeenCalledOnce();expect(sun).toHaveBeenCalledOnce();expect(view.group.children).toHaveLength(0);
-});
-
-it('keeps detailed depots exactly inside legacy collision bounds and retains casualties across visual LODs', () => {
-  const source=parseSource(JSON.stringify(depotSource));expect(source.size).toEqual([40,30,120]);expect(parseSource(serializeSource(source))).toEqual(source);
-  const sortie=new Sortie(),view=createHordeView(sortie.hordes,true);view.update();
-  const walls=view.group.children[3] as InstancedMesh;walls.geometry.computeBoundingBox();
-  expect(walls.geometry.boundingBox).toEqual(new Box3(new Vector3(-2,0,-6),new Vector3(2,3,6)));
-  const health=[...sortie.store.groups.values()].map(g=>[...g.health]);
-  expect(view.counts.near+view.counts.medium+view.counts.far).toBe(sortie.hordes.counts.residentAlive);
-  view.update(false);expect([...sortie.store.groups.values()].map(g=>g.health)).toEqual(health);
-  const released=vi.spyOn(walls.geometry,'dispose');view.dispose();view.dispose();expect(released).toHaveBeenCalledOnce();
-});
-
-it('shows every existing city depot before its horde enters the simulation radius, without loading populations',()=>{
-  const sortie=new Sortie(),records=sortie.store.groups.size,view=createHordeView(sortie.hordes,true);view.update();
-  const walls=view.group.children[3] as InstancedMesh,matrix=new Matrix4(),original=walls.instanceMatrix.array.slice();
-  expect(view.counts.walls).toBe(81);expect(sortie.hordes.resident.size).toBeLessThan(81);expect(sortie.store.groups.size).toBe(records);
-  // The north-west depot is ~340 m away on the initial approach and not simulated yet.
-  walls.getMatrixAt(0,matrix);const position=new Vector3().setFromMatrixPosition(matrix);expect(position.x).toBe(-112);expect(position.z).toBe(-112);expect(position.y).toBeCloseTo(heightAt(sortie.seed,-112,-112),5);
-  sortie.hordes.update({x:256,y:40,z:-256});view.update();
-  expect(view.counts.walls).toBe(81);expect(walls.instanceMatrix.array).toEqual(original);view.dispose();
 });
 
 it('grounds the whole city beyond detail streaming and overlaps the mountain foothills across anchor changes',()=>{

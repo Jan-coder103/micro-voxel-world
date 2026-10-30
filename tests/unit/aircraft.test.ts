@@ -3,7 +3,6 @@ import { Matrix4,Vector3,Euler } from 'three';
 import { AircraftSetup } from '../../src/flight/aircraft';
 import { Flight } from '../../src/flight/flight';
 import { Sortie,BASE } from '../../src/game/sortie';
-import { createRotorcraft,createWeaponMount } from '../../src/rendering/rotorcraft';
 const neutral={pitch:0,bank:0,throttle:0};
 const tick=(f:Flight,seconds:number,input=neutral)=>{for(let i=0;i<seconds*60;i++)f.advance(1/60,input);};
 it('helicopter hovers, yaws, climbs/descends and recovers without minimum forward speed',()=>{
@@ -43,11 +42,6 @@ it('helicopter return assistance physically reaches base without teleporting',()
   const s=new Sortie(12012);s.setAircraft('helicopter');s.state='returning';s.flight.position={x:BASE.x,y:s.ground(BASE.x,BASE.z)+40,z:BASE.z-200};s.returnAssist=true;s.start();
   for(let i=0;i<60*45&&(s.state as string)!=='complete';i++)s.advance(1/60,{...neutral,fire:false,weapon:'minigun'});
   expect(s.state).toBe('complete');expect(Math.hypot(s.flight.position.x-BASE.x,s.flight.position.z-BASE.z)).toBeLessThanOrEqual(20);
-});
-it('rotorcraft/mount resources dispose once and rotor geometry fits an 8 m envelope',()=>{
-  const view=createRotorcraft(),mount=createWeaponMount(),geometries=new Set<import('three').BufferGeometry>();let radius=0;
-  view.group.updateMatrixWorld(true);view.group.traverse(object=>{if('geometry' in object){const mesh=object as import('three').Mesh;geometries.add(mesh.geometry);const positions=mesh.geometry.getAttribute('position');for(let i=0;i<positions.count;i++){const p=new Vector3().fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld);radius=Math.max(radius,p.length());}}});
-  expect(radius).toBeLessThan(8);const spies=[...geometries].map(g=>vi.spyOn(g,'dispose'));view.update(30);view.dispose();view.dispose();mount.dispose();mount.dispose();for(const spy of spies)expect(spy).toHaveBeenCalledOnce();
 });
 it('hovering helicopter attacks real persistent members through the shared mounted combat path',()=>{
   const s=new Sortie(12012);s.setAircraft('helicopter');s.setup.setMount('starboard');const position={...s.flight.position};s.start();

@@ -48,9 +48,23 @@ npm run dev
 
 Open [http://localhost:5173/](http://localhost:5173/) to play. Sound starts muted. Pilot progression and world changes save in your browser; reloading starts a new sortie at home.
 
-## Developer workbenches
+## Developer tools and cleanup status
 
-Frontier is the main game. Optional settings links lead to the terrain explorer, regional flight lab, horde lab, weapons lab and voxel workshop. The legacy combat prototype remains at `/play/`. These tools are documented below.
+Frontier (`/`) and the Voxel workshop (`/tools/voxel-editor/`) are the two supported
+pages. The workshop remains available through the hangar’s developer tools.
+
+The legacy combat prototype, environment lab, flight/regional flight labs, horde
+lab, weapons lab, streaming lab and terrain explorer were removed on 30 October
+2026. Their page controllers and exclusive presentation code are no longer built.
+The headless legacy sortie model remains because `combat:benchmark` uses it.
+Legacy environment/vegetation code, every source asset, editor/export support,
+benchmarks, generation scripts, archives and development records are retained.
+
+The sections below preserve historical development documentation. References to
+removed pages and their browser benchmark modes are historical, not current run
+instructions. Retired browser checks are preserved in `tests/archive/` with an
+`.archived` suffix and are excluded from test discovery; shared-model unit tests
+and checks for Frontier and the workshop remain active.
 
 ## Technical references and development tools
 
@@ -144,7 +158,7 @@ See [the visual decision](docs/decisions/0021-autumn-valley.md).
 - `npm run assets:validate -- path/to/asset.voxel.json` — validate one or more named source files; failures return nonzero.
 - `npm run assets:export` — regenerate all optimized GLBs into assets/generated/ (ignored by Git); pass source paths after `--` for selected assets.
 - `npm run assets:benchmark` — measure reference geometry reduction and CPU meshing time.
-- `npm run build` — typecheck and build all seven entry points into dist/.
+- `npm run build` — typecheck and build Frontier and the voxel workshop into dist/.
 - `npm run preview` — serve the production build locally.
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).

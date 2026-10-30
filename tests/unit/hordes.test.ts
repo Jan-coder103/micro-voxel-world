@@ -2,7 +2,6 @@ import { describe,it,expect,vi } from 'vitest';
 import { Combat } from '../../src/combat/weapons';
 import { Hordes,blocked,hordeTier } from '../../src/hordes/hordes';
 import { HordeStore,HEALTH,TOTAL_POPULATION,patrol,validateHordeSave,groupId,initialGroup } from '../../src/hordes/state';
-import { createHordeView } from '../../src/rendering/horde-view';
 const observer={x:16,y:0,z:16};
 function memory(){const data=new Map<string,string>();return {data,getItem:(key:string)=>data.get(key)??null,setItem:(key:string,value:string)=>{data.set(key,value);}};}
 const world=(seed=103)=>{const storage=memory(),store=new HordeStore(seed,storage),hordes=new Hordes(store,()=>0);hordes.update(observer);return {storage,store,hordes};};
@@ -41,10 +40,6 @@ describe('bounded horde simulation',()=>{
     const {hordes}=world(),old=hordes.firstSurvivor()!;for(let i=0;i<100;i++)hordes.step(observer);const next=hordes.firstSurvivor()!;expect(next.position).not.toEqual(old.position);
     const distance=hordes.blocker({x:5,y:1,z:16},{x:1,y:0,z:0},30);expect(distance).toBe(9);expect(hordes.blocker({x:5,y:4,z:16},{x:1,y:0,z:0},30)).toBeUndefined();
     const target={id:'behind',position:{x:24,y:1,z:16},radius:1,maxHealth:100,health:100},combat=new Combat([target],()=>0,128,{blocker:hordes.blocker});combat.step(true,'autocannon',{x:5,y:1,z:16},{x:1,y:0,z:0});expect(target.health).toBe(100);combat.explode({x:10,y:1,z:16},20,150);expect(target.health).toBe(100);
-  });
-  it('instanced renderer preserves resource identities across tier changes and disposes once',()=>{
-    const {hordes}=world(),view=createHordeView(hordes),children=[...view.group.children];const geometries=new Set(children.map(c=>(c as import('three').InstancedMesh).geometry)),spies=[...geometries].map(g=>vi.spyOn(g,'dispose'));
-    view.update();expect(view.counts.near).toBe(160);for(const x of [80,120,272,16]){hordes.update({...observer,x});view.update();expect(view.group.children).toEqual(children);expect(view.counts.walls).toBeLessThanOrEqual(49);}view.dispose();view.dispose();spies.forEach(s=>expect(s).toHaveBeenCalledOnce());expect(view.group.children).toHaveLength(0);
   });
 });
 describe('horde persistence validation',()=>{
