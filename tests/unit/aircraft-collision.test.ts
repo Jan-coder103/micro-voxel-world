@@ -6,7 +6,7 @@ import { ATTACK_AIRCRAFT_BOXES } from '../../src/flight/attack-aircraft-hull';
 import { PLAYER_FIXED_HULL,HELICOPTER_HULL } from '../../src/flight/aircraft-hulls';
 import { boxContact,axes,transform,prepareHull,sweepAircraft,type Bounds,type CollisionBox } from '../../src/flight/collision';
 import type { FlightPose } from '../../src/flight/flight';
-import { Sortie } from '../../src/game/sortie';
+import { Sortie } from '../../tools/benchmarks/legacy/sortie';
 const pose=(x=0,y=10,z=0,heading=0,pitch=0,bank=0):FlightPose=>({position:{x,y,z},heading,pitch,bank});
 const box:CollisionBox=[0,0,0,2,2,2],hull=prepareHull([box]);
 const wall:Bounds={minX:5,maxX:5.1,minY:0,maxY:20,minZ:-2,maxZ:2};

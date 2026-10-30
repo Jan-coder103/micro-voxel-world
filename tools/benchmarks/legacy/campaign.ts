@@ -1,4 +1,4 @@
-import type { StorageLike } from '../persistence/chunk-deltas.ts';
+import type { StorageLike } from '../../../src/persistence/chunk-deltas.ts';
 import { MISSIONS,missionId,type MissionId } from './missions.ts';
 const LIMIT=4096;
 function decode(text:string):MissionId[]{

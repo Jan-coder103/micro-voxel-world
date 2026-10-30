@@ -2,7 +2,7 @@ import { it,expect,vi } from 'vitest';
 import { Matrix4,Vector3,Euler } from 'three';
 import { AircraftSetup } from '../../src/flight/aircraft';
 import { Flight } from '../../src/flight/flight';
-import { Sortie,BASE } from '../../src/game/sortie';
+import { Sortie,BASE } from '../../tools/benchmarks/legacy/sortie';
 const neutral={pitch:0,bank:0,throttle:0};
 const tick=(f:Flight,seconds:number,input=neutral)=>{for(let i=0;i<seconds*60;i++)f.advance(1/60,input);};
 it('helicopter hovers, yaws, climbs/descends and recovers without minimum forward speed',()=>{

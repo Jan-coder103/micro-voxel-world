@@ -913,3 +913,33 @@ screenshots were refreshed; Playwright disposable output now uses a nested
 folder so future runs preserve the screenshot collection. No sustained flight/
 load checks or hardware FPS claim under the retained heat restriction. No assets,
 benchmark/generation scripts or existing historical docs were deleted. No push.
+
+## 30 October 2026 — Documentation, workshop CSS and benchmark organization
+
+Moved retired lab/prototype/phase instructions from README into
+`docs/development-history.md`, preserving their text except heading levels and
+relative links. README covers Frontier and the workshop; current workshop editing,
+asset, command and repository instructions live in `docs/development.md`.
+
+Moved the workshop's sole base stylesheet from `src/ui/style.css` to
+`tools/voxel-editor/base.css`, removing only six unused `.controls` lab rules.
+All remaining rules are byte-identical. Moved Sortie, Campaign, mission definitions
+and measurement helpers from `src/game/` into `tools/benchmarks/legacy/`, updated
+benchmark/test imports, and documented their benchmark/regression-only role.
+Verified all four modules are identical except relative import paths; Frontier
+imports none of them. No gameplay, save keys, assets or benchmark scenarios changed.
+
+Verification results follow below. No sustained flight/load checks or hardware FPS
+claim under the retained heat restriction. No push/deployment.
+
+Verification: Node 24 types, lint and production build pass. Frontier's game JS,
+CSS and terrain-worker content hashes match the preceding cleanup build. Local
+links in README and the three new guides resolve. All 271 unit cases pass across
+final runs: the full serial run passed 270/271, with only the asset-export CLI
+exceeding its 5 s test limit under concurrent browser work; its unchanged five-case
+file passed alone in 4.28 s. The preserved combat benchmark CLI invariants pass.
+All 14 focused browser checks passed in 49.6 s: workshop editing/history/palette,
+imports/invalid edits, GLB export/failure, viewer navigation/toggles, allocation
+limits, unavailable WebGL, resize/navigation and paused/narrow Frontier smoke.
+Browser and CLI subprocess checks used approved execution outside the sandbox.
+No gameplay or asset edits. Local commit follows; no push.

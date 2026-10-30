@@ -1,6 +1,6 @@
 import { expect,it } from 'vitest';
-import { Campaign } from '../../src/game/campaign';
-import { Sortie,BASE } from '../../src/game/sortie';
+import { Campaign } from '../../tools/benchmarks/legacy/campaign';
+import { Sortie,BASE } from '../../tools/benchmarks/legacy/sortie';
 const neutral={pitch:0,bank:0,throttle:0,fire:false,weapon:'shell' as const};
 function memory(){const data=new Map<string,string>();let writes=0;return {data,get writes(){return writes;},getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{writes++;data.set(k,v);}};}
 function campaignReady(){const storage=memory(),campaign=new Campaign(storage);campaign.complete('clearpass');return {storage,campaign};}

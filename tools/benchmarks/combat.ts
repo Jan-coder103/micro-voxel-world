@@ -1,6 +1,6 @@
 import { cpus } from 'node:os';
-import { Sortie } from '../../src/game/sortie.ts';
-import { distribution } from '../../src/game/metrics.ts';
+import { Sortie } from './legacy/sortie.ts';
+import { distribution } from './legacy/metrics.ts';
 const scenarios=[];
 for(const scenario of ['crowd','fire'] as const){
   const model=new Sortie(12012,undefined,true);model.flight.position={x:-40,y:model.ground(-40,16)+36,z:16};model.flight.bank=.85;model.flight.assisted=false;model.start();

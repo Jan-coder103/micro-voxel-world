@@ -2,7 +2,7 @@ import { expect,it,vi } from 'vitest';
 import { CombatFeedback,comfortDefaults } from '../../src/game/feedback';
 import { Combat } from '../../src/combat/weapons';
 import { createCombatView } from '../../src/rendering/combat-view';
-import { Sortie } from '../../src/game/sortie';
+import { Sortie } from '../../tools/benchmarks/legacy/sortie';
 const neutral={pitch:0,bank:0,throttle:0,fire:true,weapon:'shell' as const};
 it('feedback confirms authoritative hits/kills even with no cosmetics, expires on ticks and rebases safely',()=>{
   const c=new Combat([{id:'t',position:{x:0,y:10,z:-10},radius:1,health:1,maxHealth:1}],()=>0,0),f=new CombatFeedback();

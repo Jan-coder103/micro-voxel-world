@@ -1,10 +1,10 @@
 import aircraftSource from '../../assets/source/ref-attack-aircraft.voxel.json';
 import { spawnSync } from 'node:child_process';
 import {it,expect,describe,vi} from 'vitest';
-import {Sortie,BASE,OBJECTIVE_GROUPS} from '../../src/game/sortie';
+import {Sortie,BASE,OBJECTIVE_GROUPS} from '../../tools/benchmarks/legacy/sortie';
 import {createTerrainFallback} from '../../src/rendering/terrain-fallback';
 import {heightAt} from '../../src/streaming/terrain-data';
-import {FrameMetrics} from '../../src/game/metrics';
+import {FrameMetrics} from '../../tools/benchmarks/legacy/metrics';
 const neutral={pitch:0,bank:0,throttle:0,fire:false,weapon:'shell' as const};
 function memory(){const data=new Map<string,string>();return {data,getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v);}};}
 describe('combat sortie',()=>{

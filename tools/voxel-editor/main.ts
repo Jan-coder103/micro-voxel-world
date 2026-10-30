@@ -1,5 +1,5 @@
 import { mountWorkshop } from './workshop';
-import '../../src/ui/style.css';
+import './base.css';
 import './workshop.css';
 
 const dispose = mountWorkshop();
