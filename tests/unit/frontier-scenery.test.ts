@@ -36,7 +36,11 @@ describe('streamed atmosphere and dense distant forest',()=>{
       }}
       expect(selected).toBeDefined();const {tile,x,z,index}=selected!,cx=Math.floor(x/32),cz=Math.floor(z/32),before=tile.instanceMatrix.array.slice(index*16,index*16+16);
       expect(regionTrees({seed:103,x:cx,z:cz,lod:0,generator:'regional-v2'}).some(t=>Math.abs(t.x-x)<.001&&Math.abs(t.z-z)<.001)).toBe(true);
-      view.update(p.x,40,p.z,[{spec:{seed:103,x:cx,z:cz,lod:1}}]);expect(tile.instanceMatrix.array[index*16]).toBe(0);
+      const count=tile.count,original=tile.instanceMatrix.array.slice(0,count*16),spec={seed:103,x:cx,z:cz,lod:1 as const};
+      view.update(p.x,40,p.z,[{spec}]);expect(tile.count).toBeLessThan(count);
+      for(let i=0;i<tile.count;i++){const a=tile.instanceMatrix.array;expect(a[i*16]).toBeGreaterThan(0);expect(Math.floor((a[i*16+12]+tile.position.x)/32)===cx&&Math.floor((a[i*16+14]+tile.position.z)/32)===cz).toBe(false);}
+      const version=tile.instanceMatrix.version;view.update(p.x,40,p.z,[{spec}]);expect(tile.instanceMatrix.version).toBe(version);
+      view.update(p.x,40,p.z);expect(tile.count).toBe(count);expect(tile.instanceMatrix.array.slice(0,count*16)).toEqual(original);
       view.update(p.x,40,p.z);expect(tile.instanceMatrix.array.slice(index*16,index*16+16)).toEqual(before);
     }finally{view.dispose();vi.useRealTimers();}
   });

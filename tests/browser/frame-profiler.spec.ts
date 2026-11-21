@@ -6,12 +6,12 @@ test('profiler collects bounded timings, exports and restores toggles',async({pa
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');
   await expect(page.locator('#hangar')).toBeVisible();await page.keyboard.press('F8');
   const panel=page.locator('.frame-profiler');await expect(panel).toBeVisible();
-  await expect(panel.locator('[data-summary]')).toContainText('CPU frame callback',{timeout:30000});
+  await expect(panel.locator('[data-summary]')).toContainText('CPU frame callback',{timeout:30000});await expect(panel.locator('[data-summary]')).toContainText('Forest:');
   await panel.getByLabel('Trees',{exact:true}).uncheck();
   const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Export JSON'}).click();const file=await download;expect(file.suggestedFilename()).toBe('frontier-profile.json');const report=JSON.parse(await readFile((await file.path())!,'utf8'));expect(report.visuals.Trees).toBe(false);expect(report.budgetMs).toBeCloseTo(16.67,2);
   expect(report.schemaVersion).toBe(2);expect(report.draws.some((d:{name:string;calls:{mean:number}})=>d.name.startsWith('Color / ')&&d.calls.mean>0)).toBe(true);
   expect(report.cpu['Scene transform propagation']).toBeTruthy();expect(report.cpu['Render traversal + setup (exclusive)']).toBeTruthy();expect(report.cpu['Shadow cache scan']).toBeTruthy();
-  expect(report.sceneState.shadowCache.fallback).toBe(false);expect(report.gpuSupported||report.gpuRender===null).toBe(true);
+  expect(report.sceneState.shadowCache.fallback).toBe(false);expect(report.sceneState.forest.submitted).toBeLessThanOrEqual(report.sceneState.forest.generated);expect(report.gpuSupported||report.gpuRender===null).toBe(true);
   await expect(panel.locator('[data-draws]')).toContainText('Color /');await panel.screenshot({path:'test-results/frame-profiler.png'});
   await panel.getByRole('button',{name:'Stop / close'}).click();await expect(panel).toBeHidden();
   await page.keyboard.press('F8');await expect(panel.getByLabel('Trees',{exact:true})).toBeChecked();
@@ -33,7 +33,7 @@ test('detailed hooks attribute instanced work, preserve pixels and restore rende
   const color=report.draws.filter((d:{name:string})=>d.name.startsWith('Color / '));expect(color.reduce((sum:number,d:{calls:{mean:number}})=>sum+d.calls.mean,0)).toBe(2);
   expect(color.find((d:{name:string})=>d.name==='Color / Trees').triangles.mean).toBe(24);
   expect(report.draws.find((d:{name:string})=>d.name==='Shadow / Trees').triangles.mean).toBe(6);
-  expect(report.cpu['Shadow static rebuild (inclusive)']).toBeTruthy();expect(report.cpuCalls['Shadow static rebuild (inclusive)'].mean).toBe(.25);
+  expect(report.cpu['Shadow static rebuild (inclusive)']).toBeTruthy();expect(report.cpuCalls['Shadow static rebuild (inclusive)'].mean).toBe(.25);expect(report.events['Shadow rebuild'].total).toBe(1);expect(report.events['Shadow invalidation / Caster added'].total).toBe(1);
   expect(await page.evaluate(()=>(window as unknown as {profilerDetail:{stop:()=>unknown}}).profilerDetail.stop())).toEqual({draw:true,shadow:true,render:true,buffer:true,command:true,sink:true});
   await page.evaluate(()=>(window as unknown as {profilerDetail:{dispose:()=>void}}).profilerDetail.dispose());expect(errors).toEqual([]);
 });

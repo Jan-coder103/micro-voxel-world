@@ -1,3 +1,39 @@
+## 21 November 2026 — Compact forest proxies and explain shadow rebuilds
+
+Implemented Jan's profiler-driven follow-up. Forest tile buffers now compact
+only visible canonical cells into the submitted prefix rather than retaining
+zero-scale proxies under resident detailed chunks. Canonical tree records/order
+restore exact transforms on eviction; generated treeCount stays compatible.
+Recompact changed tiles once, skip unchanged/empty cells and hidden generation,
+and avoid unnecessary instance-buffer version changes. No additional GPU buffers
+or draws. sceneState.forest and F8 overview expose generated/submitted/omitted
+counts; existing conservative LOD/shadow guard and collision remain intact.
+
+Shadow diagnostics classify initial/anchor/rebase/map/context and each stamp
+change, count each reason once per successful build, and identify forest versus
+settlement/other caster changes. Constant-space lifetime counters and up to eight
+last caster labels export under shadowCache.invalidations. F8 separately shows
+capture-window event totals; reset/toggles clear those and stop restores both
+sinks. Multiple reasons can apply to a build; sums are not rebuild counts.
+Decision 0046 documents algorithms, semantics, tradeoffs and verification.
+
+Verification: build/typecheck, lint and whitespace pass; existing bundle warning.
+Full serial subprocess-enabled unit suite passes 359/359 (54 files, 109.73 s).
+Five focused browser checks pass in 47.9 s, including new compact/reference forest
+color+shadow pixel parity through hide/restore/rebase, profiler events/sink
+restoration, prior shader/culling/shadow parity and game worker integration.
+Fixture removes 1,099 hidden instances; triangles 625,502 → 546,374 (12.65%), draws
+69 → 67, with identical pixels. Savings depend on view/residency, not a device
+FPS claim. Retained report docs/performance/2026-11-21-forest-compaction.json;
+inspected forest capture. Final F8 overview/events rerun passes both checks in
+14.6 s. Full browser suite/npm check not claimed.
+
+The user's live Firefox game is not exposed by the browser connection (only
+empty in-app surfaces). Same-device/view Trees-off, Shadows-off and 75%-scale FPS
+comparisons therefore remain open; instructions are in the profiler guide. No
+sustained physical-GPU work under the retained heat restriction. No hardware
+FPS or 60 FPS acceptance claimed. Local commit follows; no push/deployment.
+
 ## 21 November 2026 — Detailed F8 rendering attribution
 
 Implemented Jan's requested granular profiler; decision 0045 documents semantics.

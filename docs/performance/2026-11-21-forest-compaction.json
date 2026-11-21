@@ -1,0 +1,70 @@
+{
+  "ready": true,
+  "comparisons": [
+    {
+      "phase": "hidden",
+      "max": 0,
+      "referenceTriangles": 625502,
+      "compactTriangles": 546374,
+      "referenceCalls": 69,
+      "compactCalls": 67,
+      "stats": {
+        "generated": 22715,
+        "submitted": 21616,
+        "omitted": 1099,
+        "tiles": 97,
+        "compactions": 330,
+        "pending": false
+      }
+    },
+    {
+      "phase": "restored",
+      "max": 0,
+      "referenceTriangles": 625502,
+      "compactTriangles": 625502,
+      "referenceCalls": 69,
+      "compactCalls": 69,
+      "stats": {
+        "generated": 22715,
+        "submitted": 22715,
+        "omitted": 0,
+        "tiles": 97,
+        "compactions": 339,
+        "pending": false
+      }
+    },
+    {
+      "phase": "hidden again",
+      "max": 0,
+      "referenceTriangles": 625502,
+      "compactTriangles": 546374,
+      "referenceCalls": 69,
+      "compactCalls": 67,
+      "stats": {
+        "generated": 22715,
+        "submitted": 21616,
+        "omitted": 1099,
+        "tiles": 97,
+        "compactions": 348,
+        "pending": false
+      }
+    },
+    {
+      "phase": "rebased",
+      "max": 0,
+      "referenceTriangles": 625502,
+      "compactTriangles": 546374,
+      "referenceCalls": 69,
+      "compactCalls": 67,
+      "stats": {
+        "generated": 22715,
+        "submitted": 21616,
+        "omitted": 1099,
+        "tiles": 97,
+        "compactions": 348,
+        "pending": false
+      }
+    }
+  ],
+  "notes": "Short software-WebGL parity/submitted-work comparison; not a device FPS benchmark. Fixture hides 225 detailed cells; savings vary with actual residency/view."
+}

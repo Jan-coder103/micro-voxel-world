@@ -138,7 +138,7 @@ function mount(){
   let compassHeading=-Infinity,bossMarkup='';
   const sunShadows=createCachedSunShadows(renderer,scene,sun,[airframe,mutantView.group,rescue.group]);
   const profiler=createFrontierProfiler(renderer,app.querySelector('.settings')!,()=>wake());
-  profiler.context(()=>({shadowCache:{enabled:sunShadows.enabled,staticBuilds:sunShadows.staticBuilds,depthCopies:sunShadows.depthCopies,fallback:sunShadows.fallback,error:sunShadows.lastError},streaming:{residents:stream?.resident.size??0,jobs:stream?.pending??0,ready:stream?.completed??0,coveragePending:fallback.pending,coverageWorkerFailed:fallback.workerFailed},resources:{geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,programs:renderer.info.programs?.length??0}}));
+  profiler.context(()=>({shadowCache:{enabled:sunShadows.enabled,staticBuilds:sunShadows.staticBuilds,depthCopies:sunShadows.depthCopies,fallback:sunShadows.fallback,error:sunShadows.lastError,invalidations:sunShadows.invalidationStats},forest:scenery.forest.stats,streaming:{residents:stream?.resident.size??0,jobs:stream?.pending??0,ready:stream?.completed??0,coveragePending:fallback.pending,coverageWorkerFailed:fallback.workerFailed},resources:{geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,programs:renderer.info.programs?.length??0}}));
   profiler.observe(sunShadows.diagnostics);
   profiler.instrument(renderer,'render','Render traversal + setup (exclusive)',true);
   profiler.instrument(scene,'updateMatrixWorld','Scene transform propagation');

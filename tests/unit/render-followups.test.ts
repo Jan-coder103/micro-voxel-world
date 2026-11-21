@@ -30,7 +30,7 @@ it('off-region static changes do not rebuild depth, entering and leaving casters
   const renderer={domElement:new EventTarget(),shadowMap:{autoUpdate:true,enabled:true,needsUpdate:false,render:original},clear:vi.fn()} as unknown as WebGLRenderer;
   const cache=createCachedSunShadows(renderer,scene,sun,[dynamic]),camera=new PerspectiveCamera();
   const render=()=>{cache.update(0,0,0,0);scene.updateMatrixWorld();renderer.shadowMap.render([sun],scene,camera);};
-  render();expect(cache.staticBuilds).toBe(1);fixed.position.x+=1;render();expect(cache.staticBuilds).toBe(1);
-  fixed.position.set(0,0,0);render();expect(cache.staticBuilds).toBe(2);fixed.position.x=10000;render();expect(cache.staticBuilds).toBe(3);
+  render();expect(cache.staticBuilds).toBe(1);expect(cache.invalidationStats.lastReasons).toEqual(['Initial depth']);fixed.position.x+=1;render();expect(cache.staticBuilds).toBe(1);
+  fixed.position.set(0,0,0);render();expect(cache.staticBuilds).toBe(2);expect(cache.invalidationStats.lastReasons).toEqual(['Caster added']);fixed.position.x=10000;render();expect(cache.staticBuilds).toBe(3);expect(cache.invalidationStats.lastReasons).toEqual(['Caster removed']);
   cache.dispose();box.dispose();material.dispose();sun.dispose();
 });

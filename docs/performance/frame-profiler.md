@@ -104,3 +104,25 @@ callback time is not a GPU estimate. Deep hooks add overhead; compare F8 on/off.
 JSON schema v2 adds gpuPasses, draws, per-frame cpuCalls, and sceneState cache/
 streaming/resource context. Histories stay bounded; no automatic upload. See
 [decision 0045](../decisions/0045-detailed-frame-profiler.md) for exact semantics.
+
+## Forest and shadow-rebuild follow-up
+
+F8 now has **Shadow rebuild reasons**. `events["Shadow rebuild"].total` is the
+number of successful static rebuilds in the current capture. Reason entries
+count builds affected by anchor movement, buffers, membership, transforms, etc.;
+several reasons can apply to one build. Changed-caster groups help identify forest
+versus settlement updates. Reset and visual toggles clear capture events.
+`sceneState.shadowCache.invalidations` instead contains lifetime reason counts,
+last reasons, up to eight caster labels and pending reasons.
+
+`sceneState.forest` reports generated, submitted and omitted instance counts.
+Hidden proxies covered by resident detailed chunks are now removed from the
+active instance prefix rather than submitted at zero scale. Omitted counts
+measure residency compaction, not camera frustum culling. See
+[decision 0046](../decisions/0046-forest-compaction-shadow-reasons.md).
+
+For the device comparison, hold the same warmed view and export a baseline, then
+separate captures with only Trees off, only Shadow maps off, and render scale at
+75% with both enabled. Restore 100% afterwards. Compare pacing and triangle counts,
+not only CPU submission. Repeat with F8 closed using external browser tooling to
+check observer overhead; unsupported GPU timing remains unknown.
