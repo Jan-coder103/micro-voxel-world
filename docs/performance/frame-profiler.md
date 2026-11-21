@@ -30,7 +30,7 @@ small aircraft ground-shadow placement update.
 
 GPU render uses EXT_disjoint_timer_query_webgl2 when supported. It measures the
 whole render including shadow maps, arrives asynchronously, uses at most eight
-pending queries, discards disjoint/context-invalid timing and never waits with
+pending frames (24 sequential query segments), discards disjoint/context-invalid timing and never waits with
 finish/readPixels. Unsupported means unknown, never zero. GPU and CPU overlap;
 **do not add their times**. Visibility comparisons estimate marginal costs, not
 an additive GPU breakdown: shadows, overdraw, batching and occlusion interact.
@@ -70,3 +70,37 @@ shadow-region invalidation, real single-box far tree geometry, texture-backed
 cloud noise, and one explicit scene matrix traversal. Noise changes fine cloud
 detail slightly; the other changes preserve tested pixels. Re-capture a warmed,
 identical view on the target device; work reductions do not establish 60 FPS.
+
+## Detailed rendering breakdown (F8)
+
+The overview now puts CPU callback, unattributed outside-callback time, drawing
+buffer and GPU results first. GPU timing, when supported, separates **Render
+setup**, **Shadow depth**, and **Main color**. These sequential GPU passes sum to
+GPU render; CPU and GPU still overlap. Unsupported remains unknown. Pacing now
+excludes idle wakeups/first frames rather than averaging them as zero intervals.
+
+Open **Draw submission by category** for color/shadow CPU mean/p95/max and mean
+calls/triangles per frame: terrain chunks/coverage, trees, clouds, settlements,
+roads, naval, aircraft, enemies, base, effects, sky and other. It is sorted by CPU
+cost; instanced triangle totals come from actual renderer counters. Trees baked
+into terrain meshes count under Terrain chunks; the Trees row/toggle covers
+the separate forest batches. These CPU
+rows include nested GL calls, so do not sum the tables and parent totals.
+
+CPU rows now separate cache scan, caster flags, static rebuild, dynamic depth,
+depth-copy submission and uncached shadows. GL rows expose buffer allocations/
+updates, 2D/3D texture uploads, shader compile/link submission and draw submission.
+Scene transforms, shadow matrices, tree geometry selection, terrain-plan and
+camera work also have child rows. Observed height queries cover direct calls
+through model.ground, not every cached reference or independent sampler.
+
+Interpret a high **Main color GPU** time with tree/cloud/terrain comparisons;
+a high **Shadow depth GPU** time with shadows/cache toggles. High draw CPU plus
+many calls suggests batching/state work. Upload or shader spikes point to
+streaming or warm-up. **Render traversal + setup (exclusive)** is the remaining
+CPU render work after measured child calls, not a pure traversal timer. Outside
+callback time is not a GPU estimate. Deep hooks add overhead; compare F8 on/off.
+
+JSON schema v2 adds gpuPasses, draws, per-frame cpuCalls, and sceneState cache/
+streaming/resource context. Histories stay bounded; no automatic upload. See
+[decision 0045](../decisions/0045-detailed-frame-profiler.md) for exact semantics.

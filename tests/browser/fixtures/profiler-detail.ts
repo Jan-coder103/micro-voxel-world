@@ -1,0 +1,16 @@
+import { AmbientLight,BoxGeometry,DirectionalLight,Group,InstancedMesh,Matrix4,Mesh,MeshStandardMaterial,PerspectiveCamera,PlaneGeometry,Scene,WebGLRenderer } from 'three';
+import { createFrontierProfiler } from '../../../src/performance/frontier-profiler';
+import { createCachedSunShadows } from '../../../src/rendering/cached-sun-shadows';
+const renderer=new WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(160,120);renderer.shadowMap.enabled=true;document.body.append(renderer.domElement);
+const settings=document.createElement('div');document.body.append(settings);
+const scene=new Scene(),camera=new PerspectiveCamera(60,4/3,.1,5000);camera.position.set(45,60,70);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+const sun=new DirectionalLight('#ffffff',3);sun.castShadow=true;sun.shadow.camera.far=1600;scene.add(sun,sun.target,new AmbientLight('#ffffff',.5));
+const material=new MeshStandardMaterial({color:'#d4c7a2'}),box=new BoxGeometry(8,15,8),plane=new PlaneGeometry(100,100),floor=new Mesh(plane,material),trees=new InstancedMesh(box,material,2),dynamic=new Group();floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;
+trees.castShadow=true;trees.setMatrixAt(0,new Matrix4().makeTranslation(-12,7.5,0));trees.setMatrixAt(1,new Matrix4().makeTranslation(12,7.5,0));scene.add(floor,trees,dynamic);
+const cache=createCachedSunShadows(renderer,scene,sun,[dynamic]);sun.shadow.mapSize.set(128,128);
+const gl=renderer.getContext(),original={draw:renderer.renderBufferDirect,shadow:renderer.shadowMap.render,render:renderer.render,buffer:gl.bufferSubData,command:gl.drawElements};
+const profiler=createFrontierProfiler(renderer,settings,()=>{});profiler.drawGroup(floor,'Terrain chunks');profiler.drawGroup(trees,'Trees');profiler.observe(cache.diagnostics);profiler.instrument(renderer,'render','Render traversal + setup (exclusive)',true);profiler.instrument(renderer.shadowMap,'render','Shadow depth passes (inclusive)');
+const read=()=>{const p=new Uint8Array(160*120*4);gl.readPixels(0,0,160,120,gl.RGBA,gl.UNSIGNED_BYTE,p);return p;};
+const prepare=()=>{cache.update(0,0,0,0);scene.updateMatrixWorld();};prepare();cache.enabled=false;renderer.render(scene,camera);const baseline=read();cache.enabled=true;
+function frame(continuous=true){profiler.begin(continuous);floor.geometry.getAttribute('position').needsUpdate=true;prepare();profiler.gpuBegin();renderer.render(scene,camera);profiler.gpuEnd();profiler.mark('Render CPU submission (inclusive)');profiler.end();}
+Object.assign(window,{profilerDetail:{async run(){window.dispatchEvent(new KeyboardEvent('keydown',{code:'F8'}));for(let i=0;i<4;i++){await new Promise(requestAnimationFrame);frame(i!==2);}const pixels=read();return {calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,pixelDifference:pixels.reduce((sum,v,i)=>sum+Math.abs(v-baseline[i]),0)};},stop(){window.dispatchEvent(new KeyboardEvent('keydown',{code:'F8'}));return {draw:renderer.renderBufferDirect===original.draw,shadow:renderer.shadowMap.render===original.shadow,render:renderer.render===original.render,buffer:gl.bufferSubData===original.buffer,command:gl.drawElements===original.command,sink:cache.diagnostics.timingSink===undefined};},dispose(){profiler.dispose();cache.dispose();renderer.dispose();box.dispose();plane.dispose();material.dispose();sun.dispose();}}});

@@ -1,3 +1,41 @@
+## 21 November 2026 — Detailed F8 rendering attribution
+
+Implemented Jan's requested granular profiler; decision 0045 documents semantics.
+Capture-only draw hooks split color/shadow CPU submission by bounded scene
+categories, with actual renderer.info call/triangle/line/point deltas including
+instancing. GL child rows time buffer and 2D/3D texture allocations/updates,
+shader compile/link submission and draw commands; cpuCalls exports per-frame
+operation counts. Exclusive render remainder removes measured child calls,
+while draw/shadow inclusive totals retain their children. Shadow sink separates
+scan, flag changes, static rebuild, dynamic depth, depth-copy CPU and uncached
+passes. Matrix, tree selection, camera, streaming-plan and observed ground-query
+rows added. Direct model.ground calls are observed, not every retained sampler.
+
+GPU queries now run sequential setup/shadow/main-color segments, publish whole
+frames atomically and sum to gpuRender. Eight pending frames/24 queries maximum,
+no nested queries, waits, readbacks or extra renders in production. Disjoint,
+reset, stop, context loss/restore and driver-error cleanup covered. Unsupported
+GPU time remains unknown. Schema v2 retains old fields, adds gpuPasses, draws,
+cpuCalls and sceneState cache/worker/resource context. Pacing excludes idle wakes
+and missing first samples, retaining long continuous stalls. Outside previous
+callback remains unattributed, not a GPU estimate. Overview precedes CPU detail;
+category table is separately expandable. Histories stay at 600 frames; deep
+hooks add observer overhead, requiring F8 on/off comparisons. Reverse-order
+restoration removes nested render/GL hooks and shadow timing sink on stop.
+
+Verification: production build/typecheck, lint and whitespace pass; existing
+bundle warning remains. Full serial subprocess-enabled unit suite passes 357/357
+(53 files, 104.37 s); focused 16-check rerun passes after GL/shadow detail changes.
+Four unique browser checks pass across batches: game profiler/export/restoration,
+known instanced draw and native-GL restoration fixture, rendered shadow/terrain/
+cloud parity, and worker/shadow integration. New fixture compares pixels exactly
+and verifies one static rebuild, actual instanced triangle counts and idle-aware
+pacing. Fixture initially invalidated tree matrices every frame; moved the upload
+test to the non-casting floor to test cache reuse correctly. Inspected compact
+profiler capture. Full browser suite/npm check and physical-GPU timing acceptance
+not claimed. No sustained GPU work under retained heat restriction. Local commit
+follows; no push/deployment. Next: same-device/view short F8 capture and JSON.
+
 ## 21 November 2026 — Shadow region, far trees, cloud noise and matrix ownership
 
 Implemented Jan's four requested rendering improvements; decision 0044 records

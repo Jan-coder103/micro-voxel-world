@@ -6,6 +6,10 @@ describe('bounded frame profiling',()=>{
     const p=new FrameProfile();p.add('simulation',2);p.add('simulation',3);p.finish();p.finish();
     expect(p.report().simulation).toEqual({mean:2.5,p95:5,max:5,samples:2});
   });
+  it('does not count missing pacing samples as zero milliseconds',()=>{
+    const p=new FrameProfile();p.finish();p.add('Frame interval',20);p.finish();p.finish();
+    expect(p.report(['Frame interval'])['Frame interval']).toEqual({mean:20,p95:20,max:20,samples:1});
+  });
   it('evicts old spikes, computes nearest-rank p95 and resets captures',()=>{
     const p=new FrameProfile(20);p.add('work',1000);p.finish();
     for(let i=1;i<=20;i++){p.add('work',i);p.finish();}

@@ -1,3 +1,4 @@
+import type { TimingSink } from '../performance/frontier-profiler';
 import { DirectionalLight,Matrix4,Mesh,Sphere,Vector3,type Camera,type Group,type Scene,type WebGLRenderer,type InstancedMesh } from 'three';
 import { SUN_DIRECTION } from './flight-effects';
 interface Stamp { matrix:number[];version:number;count:number;geometry:number;positionVersion:number }
@@ -6,6 +7,8 @@ interface Stamp { matrix:number[];version:number;count:number;geometry:number;po
  * The depth blit is GPU-to-GPU: no readback, second light or extra lighting samples.
  */
 export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:DirectionalLight,dynamicRoots:Group[]){
+  const diagnostics:{timingSink?:TimingSink}={};
+  const timed=<T>(name:string,work:()=>T):T=>{if(!diagnostics.timingSink)return work();const start=performance.now();try{return work();}finally{diagnostics.timingSink(name,performance.now()-start);}};
   const originalAuto=renderer.shadowMap.autoUpdate,originalRender=renderer.shadowMap.render;
   const cached=new DirectionalLight();cached.castShadow=true;cached.shadow=sun.shadow.clone();
   // 16 m of anchor slack preserves the original 240 m radius at every position.
@@ -37,31 +40,31 @@ export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:Di
     return dirty;
   };
   renderer.shadowMap.render=function(lights,renderScene,camera:Camera){
-      if(renderScene!==scene||!lights.includes(sun)||fallback||!enabled||!renderer.shadowMap.enabled){originalRender.call(renderer.shadowMap,lights,renderScene,camera);return;}
+      if(renderScene!==scene||!lights.includes(sun)||fallback||!enabled||!renderer.shadowMap.enabled){timed('Shadow uncached pass (inclusive)',()=>originalRender.call(renderer.shadowMap,lights,renderScene,camera));return;}
       if(disposed)return;
-      const dirty=scan();const size=sun.shadow.mapSize.x;if(size!==lastSize){lastSize=size;cached.shadow.mapSize.copy(sun.shadow.mapSize);cached.shadow.needsUpdate=true;}
+      const dirty=timed('Shadow cache scan',scan);const size=sun.shadow.mapSize.x;if(size!==lastSize){lastSize=size;cached.shadow.mapSize.copy(sun.shadow.mapSize);cached.shadow.needsUpdate=true;}
       const originalClear=renderer.clear;
       try{
         renderer.shadowMap.autoUpdate=true;
         if(dirty||cached.shadow.needsUpdate||!cached.shadow.map){
-          for(const o of casters)if(dynamic.has(o))o.castShadow=false;
-          try{originalRender.call(renderer.shadowMap,[cached],scene,camera);}finally{for(const o of casters)o.castShadow=true;}
+          timed('Shadow caster flag changes',()=>{for(const o of casters)if(dynamic.has(o))o.castShadow=false;});
+          try{timed('Shadow static rebuild (inclusive)',()=>originalRender.call(renderer.shadowMap,[cached],scene,camera));}finally{timed('Shadow caster flag changes',()=>{for(const o of casters)o.castShadow=true;});}
           staticBuilds++;
         }
-        for(const o of casters)if(!dynamic.has(o))o.castShadow=false;
+        timed('Shadow caster flag changes',()=>{for(const o of casters)if(!dynamic.has(o))o.castShadow=false;});
         // ShadowMap clears its target before drawing; seed it with cached depth instead.
-        renderer.clear=function(...args){const live=renderer.getRenderTarget();if(live===sun.shadow.map&&live?.depthTexture&&cached.shadow.map?.depthTexture){renderer.copyTextureToTexture(cached.shadow.map.depthTexture,live.depthTexture);renderer.setRenderTarget(null);renderer.setRenderTarget(live);depthCopies++;}else originalClear.apply(renderer,args);};
-        originalRender.call(renderer.shadowMap,[sun],scene,camera);
+        renderer.clear=function(...args){const live=renderer.getRenderTarget();if(live===sun.shadow.map&&live?.depthTexture&&cached.shadow.map?.depthTexture){timed('Shadow depth copy CPU',()=>{renderer.copyTextureToTexture(cached.shadow.map!.depthTexture!,live.depthTexture!);renderer.setRenderTarget(null);renderer.setRenderTarget(live);});depthCopies++;}else originalClear.apply(renderer,args);};
+        timed('Shadow dynamic pass (inclusive)',()=>originalRender.call(renderer.shadowMap,[sun],scene,camera));
       }catch(error){lastError=String(error);
         // Retain ordinary per-frame shadows if the driver rejects depth copying.
         fallback=true;
       }finally{
-        renderer.clear=originalClear;for(const o of casters)o.castShadow=true;
+        renderer.clear=originalClear;timed('Shadow caster flag changes',()=>{for(const o of casters)o.castShadow=true;});
         renderer.shadowMap.autoUpdate=fallback?originalAuto:false;renderer.shadowMap.needsUpdate=false;
       }
-      if(fallback)originalRender.call(renderer.shadowMap,lights,renderScene,camera);
+      if(fallback)timed('Shadow uncached pass (inclusive)',()=>originalRender.call(renderer.shadowMap,lights,renderScene,camera));
   };
-  return {get staticBuilds(){return staticBuilds;},get depthCopies(){return depthCopies;},get fallback(){return fallback;},get lastError(){return lastError;},get enabled(){return enabled;},set enabled(value:boolean){enabled=value;renderer.shadowMap.autoUpdate=value&&!fallback?false:originalAuto;},
+  return {diagnostics,get staticBuilds(){return staticBuilds;},get depthCopies(){return depthCopies;},get fallback(){return fallback;},get lastError(){return lastError;},get enabled(){return enabled;},set enabled(value:boolean){enabled=value;renderer.shadowMap.autoUpdate=value&&!fallback?false:originalAuto;},
     update(x:number,z:number,offsetX:number,offsetZ:number){
       const ax=Math.round(x/32)*32,az=Math.round(z/32)*32,next=`${ax},${az}:${offsetX},${offsetZ}`;
       target.set(ax+offsetX,0,az+offsetZ);

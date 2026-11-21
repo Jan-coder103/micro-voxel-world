@@ -138,6 +138,20 @@ function mount(){
   let compassHeading=-Infinity,bossMarkup='';
   const sunShadows=createCachedSunShadows(renderer,scene,sun,[airframe,mutantView.group,rescue.group]);
   const profiler=createFrontierProfiler(renderer,app.querySelector('.settings')!,()=>wake());
+  profiler.context(()=>({shadowCache:{enabled:sunShadows.enabled,staticBuilds:sunShadows.staticBuilds,depthCopies:sunShadows.depthCopies,fallback:sunShadows.fallback,error:sunShadows.lastError},streaming:{residents:stream?.resident.size??0,jobs:stream?.pending??0,ready:stream?.completed??0,coveragePending:fallback.pending,coverageWorkerFailed:fallback.workerFailed},resources:{geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,programs:renderer.info.programs?.length??0}}));
+  profiler.observe(sunShadows.diagnostics);
+  profiler.instrument(renderer,'render','Render traversal + setup (exclusive)',true);
+  profiler.instrument(scene,'updateMatrixWorld','Scene transform propagation');
+  profiler.instrument(sun.shadow,'updateMatrices','Shadow camera matrices');
+  profiler.instrument(scenery.forest,'selectGeometry','Tree geometry selection');
+  profiler.instrument(model,'terrainPlan','Terrain streaming plan');
+  profiler.instrument(model,'ground','Terrain height queries (observed)');
+  profiler.instrument(chase,'update','Flight camera update');
+  profiler.drawGroup(fallback.mesh,'Terrain coverage');profiler.drawGroup(scenery.forest.group,'Trees');profiler.drawGroup(scenery.clouds.group,'Clouds');
+  profiler.drawGroup(cities.group,'Settlements');profiler.drawGroup(roads.group,'Roads');profiler.drawGroup(naval.group,'Naval');
+  profiler.drawGroup(populationView.group,'Zombies');profiler.drawGroup(mutantView.group,'Mutants');profiler.drawGroup(airframe,'Aircraft');
+  profiler.drawGroup(fort.group,'Base');profiler.drawGroup(base,'Base');profiler.drawGroup(combatView.group,'Effects');
+  profiler.drawGroup(rescue.group,'Effects');profiler.drawGroup(shadow.mesh,'Effects');profiler.drawGroup(fire,'Effects');profiler.drawGroup(smoke,'Effects');profiler.drawGroup(scenery.group,'Sky');
   profiler.instrument(renderer.shadowMap,'render','Shadow depth passes (inclusive)');
   profiler.instrument(scenery.clouds,'cull','Cloud bank culling');
   profiler.instrument(model.flight,'advance','Plane + collision + tick glue',true);
@@ -154,8 +168,9 @@ function mount(){
   profiler.visual('Shadow maps',()=>renderer.shadowMap.enabled,v=>{renderer.shadowMap.enabled=v;scene.traverse(o=>{const mesh=o as Mesh;if(mesh.material)for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.needsUpdate=true;});});
   profiler.visualGroup('Trees',scenery.forest.group);profiler.visualGroup('Clouds',scenery.clouds.group);
   profiler.visualGroup('Zombies',populationView.group);profiler.visualGroup('Mutants',mutantView.group);
+  let continuousFrame=false;
   const scheduler=demandFrames(now=>{
-    if(disposed)return false;profiler.begin();const dt=previous===undefined?0:Math.max(0,(now-previous)/1000);previous=now;
+    if(disposed)return false;profiler.begin(continuousFrame);const dt=previous===undefined?0:Math.max(0,(now-previous)/1000);previous=now;
     if(!document.hidden)displaySeconds+=Math.min(dt,.1);
     if(!model.paused&&effects.checked)waterSeconds+=Math.min(dt,.1);terrainSurface.updateTime(waterSeconds);
     model.advance(dt,{pitch:held('KeyS','ArrowDown')-held('KeyW','ArrowUp'),bank:held('KeyD','ArrowRight')-held('KeyA','ArrowLeft'),throttle:held('KeyE')-held('KeyQ'),fire:keys.has('Space'),weapon,aim:aim.checked});
@@ -262,7 +277,7 @@ profiler.mark('Aircraft + camera + effects (inclusive)');
     if(hudLock&&hudLock.health>0&&!crashed)project('#target',hudLock.position);else app.querySelector<HTMLElement>('#target')!.hidden=true;
     if(hudHorde&&hudHorde.health>0)project('#horde-marker',hudHorde.position);else app.querySelector<HTMLElement>('#horde-marker')!.hidden=true;
     if(hudMutant&&hudMutant.health>0)project('#boss-marker',{x:hudMutant.position.x,y:hudMutant.ground+hudMutant.height+6,z:hudMutant.position.z});else app.querySelector<HTMLElement>('#boss-marker')!.hidden=true;
-    if(!continuing)previous=undefined;profiler.mark('HUD + diagnostics');profiler.end();return continuing;
+    if(!continuing)previous=undefined;profiler.mark('HUD + diagnostics');profiler.end();continuousFrame=continuing;return continuing;
   });wake=scheduler.invalidate;resize();openMenu();wake();
   return ()=>{if(disposed)return;disposed=true;profiler.dispose();sunShadows.dispose();model.pause();scheduler.dispose();observer.disconnect();releases.forEach(r=>r());stream?.dispose();workers?.dispose();audio.dispose();cockpitRequest++;cockpit?.dispose();vapor.dispose();exhaust.dispose();rescue.dispose();fort.dispose();glare.remove();aircraft.dispose();shadow.dispose();fallback.dispose();cities.dispose();populationView.dispose();combatView.dispose();scenery.dispose();roads.dispose();naval.dispose();mutantView.dispose();terrainSurface.dispose();terrainMaterial.dispose();cube.dispose();markerMaterial.dispose();runwayMaterial.dispose();paint.dispose();hangarMaterial.dispose();roofMaterial.dispose();crashGeometry.dispose();fireMaterial.dispose();smokeMaterial.dispose();sun.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();app.querySelector('#map-canvas')?.remove();};
 }
