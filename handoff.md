@@ -1,3 +1,46 @@
+## 21 November 2026 — Homing missiles, world map and expanded sortie presentation
+
+Implemented Jan's requested feature slice; decision 0040 records limits and costs.
+Weapon 4 acquires for 60 flight ticks, then launches a moving-target sine-loft
+missile (6,000 direct damage plus blast), with terrain/structure collision, reload
+feedback and bounded projectile/effect pools. M pauses and displays a cached 48²
+CPU terrain overview; WASD/arrows pan, +/− zoom, with center/close buttons. Terrain
+can be viewed across the full playable coordinate range without another chunk set;
+markers represent known contacts, clustered at large zoom levels.
+
+Added throttle-driven gas/afterburner, peripheral speed streaks, layered humanoid
+mutant anatomy, bounded slow pursuit and evadable one-second close strike windups.
+Clouds use denser 11×11 billboard cells (968 billows maximum) with extended distance
+fades and revised density lighting. Split hangar panels flank an orbiting runway
+showcase; four locked plane slots reserve future roster space. Narrow framing keeps
+the aircraft above service panels; reduced motion stops automatic orbit. Crash
+orbit includes two pooled rescue helicopters approaching/landing and a skip button.
+Base has instanced modular fortifications, towers, hangars, barracks, tents, supply
+crates and static tank guards; shared descriptions supply solid collision.
+Crashes bank ordinary earnings once; landing/stopping pays double money and XP.
+No save migration. Updated README/plan and reward regressions.
+
+Verification: all 321 unit tests / 46 files pass across the full run and affected
+reruns. The full subprocess-enabled run passed 320/321; its existing 30-second
+asset benchmark timed out during browser contention. Final isolated six-file
+rerun passed all 59 checks (35.73 s); final nine-feature rerun also passes (1.22 s).
+Initial sandbox CLI output failures were rerun with subprocess access. One approval
+review timed out; permitted retry succeeded. Build/types, lint, all 23 asset source
+validations and whitespace pass; existing bundle warning remains. Five focused
+browser checks pass (1.7 m): player shell/narrow/settings, unavailable WebGL,
+cockpit lifecycle, showroom/map controls, and four bounded static content views.
+Earlier active software-rendered menu checks exceeded time budgets; reduced-motion
+checks avoid continuous orbit while retaining an explicit animated showroom check.
+Final map marker/narrow showroom polish and static content rerun: both pass
+(51.7 s), including the initial narrow runway showcase capture.
+Inspected desktop showroom, map, narrow menu, detailed boss, base and rescue captures.
+No sustained flight/heavy GPU benchmark under retained heat restriction. Actual
+physical-device FPS, human handling/visual/balance acceptance remain open. Cloud
+overdraw increases; no measured FPS improvement is claimed. Rescue is cosmetic;
+tanks are static guards; map terrain is sampled and hostiles are known contacts.
+Playwright owns/stops its preview; user server untouched. Required local commit
+follows; no push/deployment.
+
 # Handoff — 21 November 2026
 
 ## 21 November 2026 — Stable coastline and auto-level off by default

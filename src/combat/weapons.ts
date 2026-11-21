@@ -1,9 +1,10 @@
 import type { Point } from '../flight/flight';
-export type WeaponId = 'minigun' | 'autocannon' | 'shell';
+export type WeaponId = 'minigun' | 'autocannon' | 'shell' | 'missile';
 export interface WeaponDefinition { readonly name:string; readonly intervalTicks:number; readonly range:number; readonly damage:number; readonly radius:number; readonly sound:'rapid'|'cannon'|'explosion' }
 export const WEAPONS:Readonly<Record<WeaponId,WeaponDefinition>> = Object.freeze({
   minigun:Object.freeze({name:'Minigun',intervalTicks:3,range:240,damage:4,radius:0,sound:'rapid'}),
   autocannon:Object.freeze({name:'Autocannon',intervalTicks:12,range:240,damage:22,radius:0,sound:'cannon'}),
+  missile:Object.freeze({name:'Homing missile',intervalTicks:180,range:480,damage:6000,radius:24,sound:'explosion'}),
   shell:Object.freeze({name:'Explosive shell',intervalTicks:60,range:240,damage:150,radius:16,sound:'explosion'}),
 });
 export interface Target { readonly id:string; readonly position:Point; readonly radius:number; readonly maxHealth:number; health:number;hitSpheres?:readonly {position:Point;radius:number}[] }
@@ -52,18 +53,24 @@ export function raycast(index:TargetQuery,origin:Point,direction:Point,range:num
 }
 export type EffectKind='tracer'|'muzzle'|'impact'|'blast';
 export interface CombatEffect { active:boolean; kind:EffectKind; from:Point; to:Point; age:number; lifetime:number; radius:number }
+export interface HomingMissile { position:Point; start:Point; target:Target; age:number; duration:number; damage:number }
 export class Combat {
+  readonly missiles:HomingMissile[]=[];
+  lockTicks=0;private lockId='';
+  get missileCooldown(){return Math.max(0,(this.nextFire.missile-this.ticks)/60);}
+  get lockReady(){return this.lockTicks>=60;}
+
   readonly index:TargetQuery;
   readonly effects:CombatEffect[];
   ticks=0;shots=0;hits=0;damage=0;kills=0;blasts=0;droppedEffects=0;
   lastWeapon:WeaponId='minigun';damageMultiplier=1;fireRateMultiplier=1;rangeMultiplier=1;blastMultiplier=1;mutantMultiplier=1;
-  private readonly nextFire:Record<WeaponId,number>={minigun:0,autocannon:0,shell:0};
+  private readonly nextFire:Record<WeaponId,number>={minigun:0,autocannon:0,shell:0,missile:0};
   constructor(readonly targets:readonly Target[],private readonly ground:(x:number,z:number)=>number,effectCapacity=128,private readonly options:{index?:TargetQuery;blocker?:BlockerQuery;onDamage?:(target:Target)=>void;onKill?:(target:Target)=>void}={}) {
     if(!Number.isInteger(effectCapacity)||effectCapacity<0||effectCapacity>128)throw new Error('Invalid effect capacity');
     this.index=options.index??new TargetIndex(targets);
     this.effects=Array.from({length:effectCapacity},()=>({active:false,kind:'tracer',from:{x:0,y:0,z:0},to:{x:0,y:0,z:0},age:0,lifetime:0,radius:0}));
   }
-  reset(){this.ticks=this.shots=this.hits=this.damage=this.kills=this.blasts=this.droppedEffects=0;for(const t of this.targets)t.health=t.maxHealth;for(const e of this.effects)e.active=false;for(const id of Object.keys(WEAPONS) as WeaponId[])this.nextFire[id]=0;this.lastWeapon='minigun';}
+  reset(){this.missiles.length=0;this.lockTicks=0;this.lockId='';this.ticks=this.shots=this.hits=this.damage=this.kills=this.blasts=this.droppedEffects=0;for(const t of this.targets)t.health=t.maxHealth;for(const e of this.effects)e.active=false;for(const id of Object.keys(WEAPONS) as WeaponId[])this.nextFire[id]=0;this.lastWeapon='minigun';}
   private effect(kind:EffectKind,from:Point,to:Point,lifetime:number,radius=1){const e=this.effects.find(e=>!e.active);if(!e){this.droppedEffects++;return;}e.active=true;e.kind=kind;Object.assign(e.from,from);Object.assign(e.to,to);e.age=0;e.lifetime=lifetime;e.radius=radius;}
   private damageTarget(target:Target,amount:number){const dealt=Math.min(target.health,Math.max(0,amount*(target.id.startsWith('mutant:')?this.mutantMultiplier:1)));if(!dealt)return;target.health-=dealt;this.damage+=dealt;this.hits++;if(target.health===0){this.kills++;this.options.onKill?.(target);}this.options.onDamage?.(target);}
   explode(centre:Point,radius:number,damage:number) {
@@ -78,14 +85,28 @@ export class Combat {
     }
   }
   /** Exactly one successful flight tick. Cosmetic capacity never gates authoritative fire. */
-  step(fire:boolean,weapon:WeaponId,origin:Point,direction:Point) {
+  step(fire:boolean,weapon:WeaponId,origin:Point,direction:Point,lock?:Target) {
     if(!Object.hasOwn(WEAPONS,weapon))throw new Error('Unknown weapon');
     const length=Math.hypot(direction.x,direction.y,direction.z);
     if(![origin.x,origin.y,origin.z,length].every(Number.isFinite)||Math.max(Math.abs(origin.x),Math.abs(origin.y),Math.abs(origin.z))>920000000||length<1e-8)throw new Error('Invalid muzzle pose');
     for(const e of this.effects)if(e.active){e.age+=1/60;if(e.age+1e-9>=e.lifetime)e.active=false;}
+    for(let i=this.missiles.length-1;i>=0;i--){
+      const m=this.missiles[i],old={...m.position};m.age+=1/60;
+      const u=Math.min(1,m.age/m.duration),p=m.target.position;
+      m.position={x:m.start.x+(p.x-m.start.x)*u,y:m.start.y+(p.y-m.start.y)*u+Math.sin(Math.PI*u)*Math.min(120,m.duration*40),z:m.start.z+(p.z-m.start.z)*u};
+      const dx=m.position.x-old.x,dy=m.position.y-old.y,dz=m.position.z-old.z,l=Math.hypot(dx,dy,dz);
+      const hit=l>0?raycast(this.index,old,{x:dx/l,y:dy/l,z:dz/l},Math.min(480,l),this.ground,this.options.blocker):undefined;
+      this.effect('tracer',old,m.position,.18,.4);
+      if(hit||u===1){const point=hit?.position??m.position;const victim=hit?.target??(u===1&&m.target.health>0?m.target:undefined);
+        if(victim)this.damageTarget(victim,m.damage);
+        this.explode({...point,y:Math.max(point.y,this.ground(point.x,point.z)+.3)},24,m.damage*.2);this.missiles.splice(i,1);}
+    }
+    if(weapon==='missile'&&lock&&lock.health>0){if(this.lockId!==lock.id){this.lockId=lock.id;this.lockTicks=0;}this.lockTicks=Math.min(60,this.lockTicks+1);}else{this.lockId='';this.lockTicks=0;}
     this.ticks++;if(!fire||this.ticks<this.nextFire[weapon])return;
+    if(weapon==='missile'&&(!this.lockReady||!lock||this.missiles.length>=8))return;
     const definition=WEAPONS[weapon],d={x:direction.x/length,y:direction.y/length,z:direction.z/length};
     this.nextFire[weapon]=this.ticks+Math.max(1,Math.round(definition.intervalTicks/this.fireRateMultiplier));this.shots++;this.lastWeapon=weapon;
+    if(weapon==='missile'&&lock){this.missiles.push({position:{...origin},start:{...origin},target:lock,age:0,duration:Math.max(1.2,Math.hypot(lock.position.x-origin.x,lock.position.y-origin.y,lock.position.z-origin.z)/150),damage:definition.damage*this.damageMultiplier});this.lockTicks=0;return;}
     const hit=raycast(this.index,origin,d,Math.min(480,definition.range*this.rangeMultiplier),this.ground,this.options.blocker),end=hit?.position??along(origin,d,Math.min(480,definition.range*this.rangeMultiplier));
     this.effect('tracer',origin,end,.09);this.effect('muzzle',origin,origin,.05,.7);
     if(hit){this.effect('impact',end,end,.2,1.5);if(definition.radius>0)this.explode(hit.target?end:{x:end.x-d.x*.05,y:Math.max(end.y-d.y*.05,this.ground(end.x,end.z)+.3),z:end.z-d.z*.05},Math.min(32,definition.radius*this.blastMultiplier),definition.damage*this.damageMultiplier);else if(hit.target)this.damageTarget(hit.target,definition.damage*this.damageMultiplier);}

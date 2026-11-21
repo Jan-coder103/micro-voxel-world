@@ -20,7 +20,7 @@ export function createFrontierScenery(seed:number,settlements:SettlementWorld,wa
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
     }`});
-  const skyGeometry=new SphereGeometry(2200,24,12),sky=new Mesh(skyGeometry,skyMaterial);sky.renderOrder=-10;sky.frustumCulled=false;group.add(sky);
+  const skyGeometry=new SphereGeometry(4400,24,12),sky=new Mesh(skyGeometry,skyMaterial);sky.renderOrder=-10;sky.frustumCulled=false;group.add(sky);
   const cube=new BoxGeometry(1,1,1),clouds=createFrontierClouds(seed);
   const forest=createFrontierForest(seed,settlements,cube,wake);group.add(clouds.group,forest.group);
   let disposed=false;

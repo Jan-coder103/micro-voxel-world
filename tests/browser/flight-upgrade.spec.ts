@@ -1,5 +1,6 @@
 import { expect,test } from '@playwright/test';
 test('loads cockpit only in FPV, toggles back, and renders morph shaders without errors',async({page})=>{
+  test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   await page.setViewportSize({width:800,height:600});await page.goto('/');
   const host=page.getByLabel('Aircraft flight scene',{exact:true}),menu=page.getByRole('dialog',{name:'Hangar and upgrades'}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');

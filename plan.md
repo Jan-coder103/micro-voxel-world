@@ -1015,3 +1015,12 @@ default, with assisted mode available in settings. Decision 0039 fixes coarse-gr
 half-cell rephasing and replaces LOD-dependent coastal color coverage with the
 world-position shoreline field; terrain/save/flight equations remain unchanged.
 Player defaults to Direct; assisted mode is opt-in for the session.
+
+## Expanded sortie presentation and combat — 21 November 2026
+
+Jan requested one-second homing missile locks and arcing high-damage rockets; a
+paused navigable whole-world map; exhaust/afterburner and speed streaks; detailed
+mutants and close attacks; denser realistic distant billboard clouds; split hangar
+showroom and locked aircraft slots; crash orbit/skip and two rescue helicopters;
+a fortified military base; and crash earnings / 100% safe-landing bonuses.
+Decision 0040 records bounded implementation and retained human/GPU acceptance.

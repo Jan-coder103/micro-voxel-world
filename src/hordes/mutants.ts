@@ -4,10 +4,10 @@ import type { Bounds } from '../flight/collision';
 import type { StorageLike } from '../persistence/chunk-deltas';
 import { airbaseReserved } from '../world/airbase';
 import { regionalHash,regionalSample } from '../world/regional-terrain';
-export interface Mutant extends Target { kind:'brute'|'colossus'|'spider';height:number;ground:number;cash:number;xp:number }
+export interface Mutant extends Target { kind:'brute'|'colossus'|'spider';height:number;ground:number;cash:number;xp:number;attackCharge?:number;attackCooldown?:number }
 export interface MutantPart { x:number;y:number;z:number;w:number;h:number;d:number;color:number;axis?:Point }
 /** Original block-built zombie silhouette, with colossal dorsal spines and a heavy tail. */
-export function mutantParts(t:Mutant):MutantPart[]{
+export function mutantParts(t:Mutant,detailed=true):MutantPart[]{
   const h=t.height,x=t.position.x,z=t.position.z,y=t.ground;
   const parts:MutantPart[]=[],box=(px:number,py:number,pz:number,w:number,ph:number,d:number,color:number)=>parts.push({x:x+px*h,y:y+py*h,z:z+pz*h,w:w*h,h:ph*h,d:d*h,color});
   if(t.kind==='spider'){
@@ -35,16 +35,43 @@ export function mutantParts(t:Mutant):MutantPart[]{
   box(0,.57,0,.34,.38,.23,0);box(0,.86,-.025,.23,.24,.25,1);
   for(const side of [-1,1]){box(side*.11,.21,0,.15,.42,.17,2);box(side*.245,.53,-.03,.14,.38,.15,1);box(side*.11,.04,-.06,.17,.08,.28,2);box(side*.068,.89,-.154,.045,.025,.015,3);}
   box(0,.82,-.155,.11,.04,.015,4);
+  if(detailed){
+    // Layered anatomy: clavicles, ribs, torn muscle, necrotic wounds and exposed jaw.
+    for(const side of [-1,1]){
+      box(side*.105,.67,-.129,.16,.10,.05,1);
+      box(side*.19,.70,0,.13,.14,.24,0);
+      box(side*.25,.57,-.115,.13,.21,.045,8);
+      box(side*.25,.39,-.06,.12,.13,.14,0);
+      for(let finger=0;finger<4;finger++)box(side*(.20+finger*.033),.30,-.12,.025,.11+finger*.008,.04,4);
+      for(let rib=0;rib<6;rib++)box(side*.11,.64-rib*.035,-.13,.12,.014,.035,rib%3===0?4:1);
+      box(side*.12,.23,-.095,.13,.12,.05,1);box(side*.11,.09,-.09,.12,.19,.04,8);
+      box(side*.075,.925,-.16,.075,.025,.032,0);
+      box(side*.105,.87,-.16,.045,.065,.032,8);
+      box(side*.125,.88,.015,.04,.065,.08,1);
+      for(let tooth=0;tooth<4;tooth++)box(side*(.012+tooth*.018),.816,-.169,.012,.028,.016,4);
+      for(let i=0;i<9;i++)box(side*(.15+i%3*.019),.52+Math.floor(i/3)*.043,.13,.024,.022,.034,8);
+      if((t.attackCharge??0)>0)box(side*.24,.62,-.25,.13,.12,.45,1);
+    }
+    for(const face of [-1,1])for(let row=0;row<10;row++)for(let col=0;col<6;col++){
+      const n=Math.sin(row*17.1+col*9.7+face*3),px=(col-2.5)*.048,py=.41+row*.029;
+      box(px,py,face*(.119+Math.abs(n)*.012),.035+Math.abs(n)*.012,.020,.023,n>.66?8:n<-.7?4:row%3===0?1:0);
+    }
+    for(const side of [-1,1])for(let toe=0;toe<4;toe++)box(side*.11+(toe-1.5)*.035,.043,-.205,.027,.04,.035,4);
+    box(0,.87,-.17,.035,.065,.05,1);box(0,.79,-.14,.16,.045,.09,1);
+    for(let i=0;i<8;i++)box(0,.40+i*.044,.135,.045,.028,.055,4);
+    for(let i=0;i<16;i++)box((i%4-1.5)*.06,.45+Math.floor(i/4)*.05,-.135,.037,.027,.025,i%3===0?8:0);
+    if(t.kind==='colossus')for(const side of [-1,1])for(let i=0;i<8;i++)box(side*(.16+i*.012),.77-i*.019,.04,.045,.12-i*.008,.06,4);
+  }
   if(t.kind==='colossus'){box(0,.27,.25,.16,.17,.5,0);box(0,.18,.53,.10,.13,.24,0);for(let i=0;i<5;i++)box(0,.42+i*.085,.15,.07,.1,.12,4);}
   return parts;
 }
-export function mutantBounds(t:Mutant):Bounds[]{return mutantParts(t).filter(p=>p.color!==3).map(p=>{
+export function mutantBounds(t:Mutant):Bounds[]{return mutantParts(t,false).filter(p=>p.color!==3).map(p=>{
   const ex=p.axis?Math.abs(p.axis.x)*p.h/2+p.w*.71:p.w/2;
   const ey=p.axis?Math.abs(p.axis.y)*p.h/2+p.w*.71:p.h/2;
   const ez=p.axis?Math.abs(p.axis.z)*p.h/2+p.w*.71:p.d/2;
   return {minX:p.x-ex,maxX:p.x+ex,minY:p.y-ey,maxY:p.y+ey,minZ:p.z-ez,maxZ:p.z+ez};
 });}
-export function mutantHitSpheres(t:Mutant){return mutantParts(t).filter(p=>p.color!==3).flatMap(p=>{
+export function mutantHitSpheres(t:Mutant){return mutantParts(t,false).filter(p=>p.color!==3).flatMap(p=>{
   if(!p.axis)return [{position:{x:p.x,y:p.y,z:p.z},radius:Math.min(p.w,p.h,p.d)*.55}];
   const axis=p.axis,n=Math.ceil(p.h/p.w);
   return Array.from({length:n},(_,i)=>{const offset=((i+.5)/n-.5)*p.h;
@@ -98,12 +125,25 @@ export class Mutants implements TargetQuery {
       let roam=this.roaming.get(t.id);if(!roam){roam={x:t.position.x,z:t.position.z,time:0};this.roaming.set(t.id,roam);if(this.roaming.size>128)this.roaming.delete(this.roaming.keys().next().value!);}
       roam.time+=dt;
       const phase=regionalHash(this.seed,Math.floor(roam.x),Math.floor(roam.z),1810)*Math.PI*2;
-      const speed=t.kind==='colossus'?.9:t.kind==='spider'?1.4:.6,angle=phase+roam.time*.018;
+      const speed=t.kind==='colossus'?.9:t.kind==='spider'?1.4:.6,angle=Math.hypot(player.x-t.position.x,player.z-t.position.z)<t.height*2+100?Math.atan2(player.z-t.position.z,player.x-t.position.x):phase+roam.time*.018;
       const x=t.position.x+Math.cos(angle)*speed*dt,z=t.position.z+Math.sin(angle)*speed*dt;
       if(Math.hypot(x-roam.x,z-roam.z)>90)continue;
       const candidate=this.spawn(t.id,x,z,t.kind);if(!candidate)continue;
       Object.assign(t,{position:candidate.position,ground:candidate.ground,hitSpheres:candidate.hitSpheres});this.revision++;
     }
+  }
+  /** Telegraph a close-range strike for one second; leaving reach evades it. */
+  attack(player:Point,dt:number){
+    let struck=false;
+    for(const t of this.nearby(player,320)){
+      t.attackCooldown=Math.max(0,(t.attackCooldown??0)-dt);
+      const close=Math.hypot(player.x-t.position.x,player.z-t.position.z)<t.height*.65+24&&player.y>t.ground&&player.y<t.ground+t.height*1.15;
+      if(!close||t.attackCooldown>0){if(t.attackCharge){t.attackCharge=0;this.revision++;}continue;}
+      if(!t.attackCharge)this.revision++;
+      t.attackCharge=(t.attackCharge??0)+dt;
+      if(t.attackCharge>=1){struck=true;t.attackCharge=0;t.attackCooldown=4;this.revision++;}
+    }
+    return struck;
   }
   query(min:Point,max:Point){return this.nearby({x:(min.x+max.x)/2,y:0,z:(min.z+max.z)/2},Math.max(max.x-min.x,max.z-min.z)/2+200).filter(t=>t.position.x+t.radius>=min.x&&t.position.x-t.radius<=max.x&&t.position.y+t.radius>=min.y&&t.position.y-t.radius<=max.y&&t.position.z+t.radius>=min.z&&t.position.z-t.radius<=max.z);}
   obstacles(b:Bounds){return this.query({x:b.minX,y:b.minY,z:b.minZ},{x:b.maxX,y:b.maxY,z:b.maxZ}).flatMap(t=>mutantBounds(t));}

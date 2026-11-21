@@ -1,9 +1,9 @@
 import { Group,InstancedMesh,Object3D,PlaneGeometry,ShaderMaterial,Vector2 } from 'three';
 import { regionalHash } from '../world/regional-terrain';
-export const CLOUD_CELL=768,CLOUD_RADIUS=3,CLOUD_CAPACITY=392;
+export const CLOUD_CELL=768,CLOUD_RADIUS=5,CLOUD_CAPACITY=968;
 /** Stable cloud banks; only their bounded residency follows the player. */
 export function cloudCell(seed:number,cx:number,cz:number){
-  if(regionalHash(seed,cx,cz,2100)<.24)return [];
+  if(regionalHash(seed,cx,cz,2100)<.12)return [];
   const x=(cx+.2+regionalHash(seed,cx,cz,2101)*.6)*CLOUD_CELL,z=(cz+.2+regionalHash(seed,cx,cz,2102)*.6)*CLOUD_CELL;
   const y=330+regionalHash(seed,cx,cz,2103)*330;
   return Array.from({length:8},(_,i)=>{
@@ -17,7 +17,7 @@ export function createFrontierClouds(seed:number){
   const material=new ShaderMaterial({transparent:true,depthWrite:false,uniforms:{cloudPlayer:player,cloudAnchor:anchor},
     vertexShader:`varying vec2 vUv; varying vec3 vCloud; varying float vFade; uniform vec2 cloudPlayer;uniform vec2 cloudAnchor;
       void main(){vUv=uv;vec3 centre=instanceMatrix[3].xyz;vCloud=centre+vec3(cloudAnchor.x,0.,cloudAnchor.y);
-        vFade=1.-smoothstep(1650.,2150.,distance(centre.xz,cloudPlayer));
+        vFade=1.-smoothstep(2800.,3900.,distance(centre.xz,cloudPlayer));
         vec4 p=modelViewMatrix*vec4(centre,1.);
         p.xy+=position.xy*vec2(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz));
         gl_Position=projectionMatrix*p;}`,
@@ -34,8 +34,8 @@ export function createFrontierClouds(seed:number){
         float alpha=(1.-exp(-density*4.2))*smoothstep(.05,.32,mass)*vFade;
         if(alpha<.008)discard;
         float rim=pow(1.-depth,3.);
-        float light=clamp(.28+p.y*.48+n*.26,0.,1.);
-        vec3 color=mix(vec3(.14,.085,.055),vec3(.72,.48,.26),light);
+        float light=clamp(.48+p.y*.35+n*.22-depth*.12,0.,1.);
+        vec3 color=mix(vec3(.25,.22,.21),vec3(.95,.79,.60),light);
         color+=vec3(.16,.085,.025)*rim;
         gl_FragColor=vec4(color,alpha);
         #include <tonemapping_fragment>

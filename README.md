@@ -12,9 +12,9 @@ Frontier is an arcade aircraft combat game set in a huge, procedurally generated
 
 Every run starts on the home runway. Take off and head for a horde, explore a new region, or follow the hangar’s navigation marker toward **Carrier Resolute** and the sparse battleship groups in the ocean. Airfields and carrier decks both support the same landing, reward banking, shopping and takeoff loop.
 
-Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. Giant Siege Spiders stand on eight jointed legs, with 12,000 HP and a $2,200 / 3,200 XP base reward. These bosses never attack the aircraft, but their bodies are solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
+Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. Giant Siege Spiders stand on eight jointed legs, with 12,000 HP and a $2,200 / 3,200 XP base reward. Giants roam slowly, turn toward nearby aircraft and wind up a close-range strike for one second. Climb or fly clear to evade them; their bodies are also solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
 
-A kill earns money and XP, but the rewards stay at risk until you land and bring the aircraft to a full stop. A crash loses the unbanked haul. A successful landing opens the hangar, where you can train a pilot skill, buy and equip gear, or launch the next sortie. A carrier you land on becomes your recovery base for the rest of the session; reloading starts you back at home.
+Kills earn money and XP. A crash pays the run’s earnings; a safe landing and full stop pays a **100% bonus** on both money and XP. A successful landing opens the hangar, where you can train a pilot skill, buy and equip gear, or launch the next sortie. A carrier you land on becomes your recovery base for the rest of the session; reloading starts you back at home.
 
 ## A world worth exploring
 
@@ -31,7 +31,8 @@ Boss rewards before bonuses:
 
 - **E / Q:** increase / reduce throttle. Hold Q to idle and brake on a runway or carrier deck.
 - **W / S:** push / pull around the aircraft’s wing axis. Bank first, then pull to tighten the turn. **A / D:** roll.
-- **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit. **V:** cockpit / chase view.
+- **Space:** fire. **1 / 2 / 3 / 4:** minigun, autocannon, explosive shell, homing missile. **C:** toggle camera orbit. **V:** cockpit / chase view.
+- **M:** open the paused top-down world map. Pan with WASD or arrows, zoom with +/− or the buttons. M or Esc closes it.
 - **Esc:** pause and open the hangar.
 
 To take off, hold E to full power, accelerate to 32–35 m/s, then hold S to rotate. Release S about one second after liftoff and use short inputs to adjust the climb. Direct mode is the default: auto-level is off and aerodynamic trim is fixed. Enable Assisted mode in Settings for automatic leveling and airspeed trim. Holding full elevator commands an increasingly steep maneuver.
@@ -86,3 +87,25 @@ Cloud banks now occupy seeded world positions and stream around the aircraft wit
 soft translucent edges. Rivers have animated currents and ripples; coastlines have
 wet sand and breaking white foam. Pausing or disabling Combat effects freezes
 water animation.
+
+Homing missiles require one continuous second with the target inside the forward
+18° lock cone (up to 480 m). Press Space after locking; missiles loft toward moving
+targets and deal 6,000 direct damage plus a blast. Each launcher reloads for three
+seconds. Losing the target or switching weapons resets acquisition.
+
+The hangar places controls beside the aircraft and automatically orbits the runway
+showcase. Four locked aircraft slots reserve space for a future roster. Reduced
+motion keeps the showcase camera still. The base includes fortified walls, watch
+towers, hangars, barracks, tents, supplies and armored guards with solid collision.
+After a crash the camera orbits the wreck as two rescue helicopters approach and
+land; **Skip rescue** returns immediately. Rescue flight is cosmetic.
+
+At 90% throttle the rear exhaust becomes an afterburner flame; below that it shows
+a faint gas plume. Fast flight adds peripheral wind streaks. These obey Combat
+effects, and wind animation respects reduced motion. Clouds now extend farther
+into the distance with brighter sunlit tops and shaded, noise-shaped billows.
+
+The procedural world has no small finite overview. The map can pan and zoom over
+the full playable coordinate range using a cached 48×48 top-down terrain grid,
+without loading another set of world chunks. It marks bases and nearby known
+hostiles; distant encounters are not generated merely by opening the map.

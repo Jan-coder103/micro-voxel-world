@@ -28,7 +28,7 @@ it('lands, stops, banks, shops, takes off and recovers at an ocean carrier using
   expect(g.selectBase(carrier.id)).toBe(true);expect(g.flight.position.x).toBe(0);
   g.launch();g.departed=true;const f=g.flight;f.grounded=false;f.position={x:carrier.x,y:carrier.height+1.84,z:carrier.z+90};f.speed=32;f.throttle=.32;f.pitch=-.055;
   g.combat.kills=7;tick(g,120);expect(f.grounded).toBe(true);expect(g.currentBase.id).toBe(carrier.id);
-  tick(g,300,{...idle,throttle:-1});expect(g.state).toBe('hangar');expect(g.progress.data.money).toBe(70);expect(g.progress.data.xp).toBe(105);expect(g.flight.position.x).toBe(carrier.x);expect(g.flight.position.z).toBe(baseSpawn(carrier).z);
+  tick(g,300,{...idle,throttle:-1});expect(g.state).toBe('hangar');expect(g.progress.data.money).toBe(140);expect(g.progress.data.xp).toBe(210);expect(g.flight.position.x).toBe(carrier.x);expect(g.flight.position.z).toBe(baseSpawn(carrier).z);
   g.progress.bank(1000,300);expect(g.purchase('engine-1')).toBe(true);expect(g.equip('engine','engine-1')).toBe(true);
   g.launch();for(let i=0;i<600&&g.flight.speed<33;i++)tick(g,1,{...idle,throttle:1});tick(g,120,{...idle,pitch:1});expect(g.flight.grounded).toBe(false);expect(g.flight.state).toBe('running');tick(g,180);expect(g.flight.state).toBe('running');expect(g.flight.position.y-carrier.height).toBeGreaterThan(20);
   g.state='crashed';g.crashSeconds=.1;tick(g,7);expect(g.currentBase.id).toBe(carrier.id);expect(g.flight.grounded).toBe(true);expect(baseContains(carrier,g.flight.position.x,g.flight.position.z,10)).toBe(true);
@@ -50,11 +50,11 @@ it('persists mutant wounds and deaths and raycasts their bodies rather than a gi
   combat.damageMultiplier=10000;combat.step(true,'autocannon',origin,direction);expect(t.health).toBe(0);expect(new Mutants(103,storage).nearby(t.position).some(m=>m.id===t.id)).toBe(false);
 });
 
-it('gives mutant kills larger unbanked rewards exactly once and loses them after a crash',()=>{
+it('gives mutant kills larger unbanked rewards exactly once and retains their value during rescue',()=>{
   const g=new Frontier(103,memory()),t=g.mutants.landmark,chest=t.hitSpheres![0];g.launch();g.combat.damageMultiplier=10000;
   const origin={x:chest.position.x,y:chest.position.y,z:chest.position.z-25};g.combat.step(true,'autocannon',origin,{x:0,y:0,z:1});
   expect(t.health).toBe(0);expect(g.pendingMoney).toBe(4000);expect(g.pendingXP).toBe(6000);expect(g.combat.kills).toBe(1);
-  g.combat.step(true,'shell',origin,{x:0,y:0,z:1});expect(g.pendingMoney).toBe(4000);g.state='crashed';expect(g.pendingMoney).toBe(0);expect(g.pendingXP).toBe(0);
+  g.combat.step(true,'shell',origin,{x:0,y:0,z:1});expect(g.pendingMoney).toBe(4000);g.state='crashed';expect(g.pendingMoney).toBe(4000);expect(g.pendingXP).toBe(6000);
 });
 
 it('migrates old pilot records and makes prerequisite skills, purchased loadouts and bonuses persistent',()=>{
@@ -78,7 +78,7 @@ it('generates dirt-surfaced rural roads and renders them beyond the near terrain
 });
 
 
-it('makes mutants passive collision hazards and keeps distant low flight safe',()=>{
+it('keeps distant flight outside mutant attack range and keeps distant low flight safe',()=>{
   const g=new Frontier(103,memory()),t=g.mutants.landmark;
   g.launch();g.flight.grounded=false;g.flight.position={x:t.position.x+180,y:t.ground+100,z:t.position.z};g.flight.speed=50;g.flight.throttle=.5;tick(g,60);expect(g.flight.state).toBe('running');expect(t.health).toBe(t.maxHealth);
   g.flight.position={...t.hitSpheres![0].position};tick(g,1);expect(g.state).toBe('crashed');expect(g.flight.reason).toBe('Obstacle collision');
@@ -89,8 +89,8 @@ it('banks a defeated colossus at a carrier and turns its XP into spendable skill
   const storage=memory(),g=new Frontier(103,storage),t=g.mutants.landmark,chest=t.hitSpheres![0];g.launch();g.combat.damageMultiplier=10000;
   g.combat.step(true,'autocannon',{x:chest.position.x,y:chest.position.y,z:chest.position.z-25},{x:0,y:0,z:1});
   const b=g.navy.carrierBase(g.navy.flagship.ships[0]),f=g.flight;g.departed=true;f.grounded=false;f.position={x:b.x,y:b.height+1.84,z:b.z+90};f.speed=32;f.throttle=.32;f.pitch=-.055;
-  tick(g,120);tick(g,300,{...idle,throttle:-1});expect(g.state).toBe('hangar');expect(g.progress.data.money).toBe(4000);expect(g.progress.skillPoints).toBe(20);expect(g.learn('ballistics')).toBe(true);expect(g.progress.skillPoints).toBe(19);
-  const loaded=new Frontier(103,storage);expect(loaded.mutants.landmark.health).toBe(0);expect(loaded.progress.data.money).toBe(4000);expect(loaded.progress.skillPoints).toBe(19);
+  tick(g,120);tick(g,300,{...idle,throttle:-1});expect(g.state).toBe('hangar');expect(g.progress.data.money).toBe(8000);expect(g.progress.skillPoints).toBe(40);expect(g.learn('ballistics')).toBe(true);expect(g.progress.skillPoints).toBe(39);
+  const loaded=new Frontier(103,storage);expect(loaded.mutants.landmark.health).toBe(0);expect(loaded.progress.data.money).toBe(8000);expect(loaded.progress.skillPoints).toBe(39);
 });
 
 

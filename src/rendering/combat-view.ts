@@ -9,6 +9,7 @@ export function createCombatView(combat:Combat) {
   const tracerMaterial=new MeshBasicMaterial({color:'#ffe3a0'}),impactMaterial=new MeshBasicMaterial({color:'#ffae48'}),blastMaterial=new MeshBasicMaterial({color:'#ed9d53',transparent:true,opacity:.2,depthWrite:false});
   const targetMeshes=combat.targets.map(t=>{const m=new Mesh(sphere,targetMaterial);m.position.set(t.position.x,t.position.y,t.position.z);m.scale.setScalar(t.radius);group.add(m);return m;});
   const effects=combat.effects.map(()=>{const mesh=new Mesh<BufferGeometry,MeshBasicMaterial>(box,tracerMaterial);mesh.visible=false;group.add(mesh);return mesh;});
+  const missileMeshes=Array.from({length:8},()=>{const m=new Mesh(box,impactMaterial);m.visible=false;group.add(m);return m;});
   const smoke=Array.from({length:16},()=>{const mesh=new Mesh(sphere,smokeMaterial);mesh.visible=false;group.add(mesh);return {mesh,age:2,radius:1};});
   const seen=new Float64Array(combat.effects.length).fill(-1);let previousTick=combat.ticks,previousBlasts=combat.blasts,droppedSmoke=0;
   const direction=new Vector3(),mid=new Vector3(),axis=new Vector3(0,0,1);
@@ -20,6 +21,7 @@ export function createCombatView(combat:Combat) {
     const elapsed=Math.max(0,combat.ticks-previousTick)/60;previousTick=combat.ticks;previousBlasts=combat.blasts;
     for(const p of smoke){p.age=smoking?p.age+elapsed:2;p.mesh.visible=smoking&&p.age<1.2;if(p.mesh.visible){p.mesh.position.y+=elapsed*3;p.mesh.scale.setScalar(p.radius*(.3+p.age*.7));}}
 
+    missileMeshes.forEach((mesh,i)=>{const m=combat.missiles[i];mesh.visible=!!m&&level!=='off';if(!m)return;mesh.position.set(m.position.x,m.position.y,m.position.z);mesh.scale.set(.6,.6,3);direction.set(m.target.position.x-m.position.x,m.target.position.y-m.position.y,m.target.position.z-m.position.z);if(direction.lengthSq()>0)mesh.quaternion.setFromUnitVectors(axis,direction.normalize());});
     targetMeshes.forEach((mesh,i)=>{const t=combat.targets[i];mesh.visible=t.health>0;});
     effects.forEach((mesh,i)=>{const e=combat.effects[i];
       const fresh=e.active&&e.kind==='blast'&&(seen[i]<0||e.age<seen[i]);seen[i]=e.active&&e.kind==='blast'?e.age:-1;
