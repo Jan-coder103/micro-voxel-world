@@ -45,3 +45,12 @@ on the target device for a real overhead estimate. No extra render passes or
 synchronous GPU reads are introduced. Storage is bounded; no persistent capture
 log or per-frame console output. Numbers from software rendering do not establish
 Pixel 10a hardware performance.
+
+The first profiler-driven fixes are documented in
+[decision 0042](../decisions/0042-frame-hotspots.md). Frontier now stages fallback
+recentering with cached absolute terrain samples, refreshes HUD text/compact
+telemetry at 10 Hz (with immediate input/state updates), builds verbose diagnostics
+only while visible, and uses 25 ground queries for its small blurred shadow.
+World marker projection and simulation still run each frame/tick respectively.
+Compare fresh captures of the same situation; the CPU-only benchmark report is
+not a substitute for measuring your device.

@@ -1,3 +1,49 @@
+## 21 November 2026 — Terrain, HUD and ground-shadow CPU fixes
+
+Implemented Jan's requested profiler-driven fixes 1–3; decision 0042 documents
+algorithms, costs and limits. Frontier fallback caches absolute terrain samples,
+stages at most 128 new samples/update with a soft 2 ms sampling budget, and keeps
+the prior mesh until complete atomic publication. Initial construction stays
+synchronous. Normals/bounds/publication add work outside the sampling budget.
+Previous/next grids bound cache residency. Pending/latest-target work keeps demand
+rendering awake even when paused; teleports abandon obsolete builds. The late
+latest-target check caught a pending-flag edge case; final terrain/shadow rerun
+passes after keeping work pending until the latest requested anchor publishes.
+Collision, water fields and stable world lattice are preserved.
+
+HUD text/target discovery/compact data-sample telemetry run at 10 Hz plus input,
+state changes and final idle frames. Marker projection remains per-frame; text,
+compass and boss markup update only when changed. Projection reuses resize-cached
+viewport dimensions. Menu discovery runs only with an open hangar. Verbose JSON
+is generated only with visible developer diagnostics. Compact telemetry remains
+available for browser checks. No flight, weapons, progression or save changes.
+The blurred ground-shadow grid drops from 289 to 25 vertices, reuses its center
+height and retains exact sampled vertex heights: 25 queries vs 290 per moving
+frame. Coarser triangle conformance needs human visual acceptance on rough ground.
+
+CPU-only warmed comparison: tools/benchmarks/frame-hotspots.ts reads original
+implementations from 29f8759; report docs/performance/2026-11-21-frame-hotspots.json.
+Six recenters: terrain samples 47,526 → 4,272; maximum update CPU 39.84 → 4.95 ms;
+mean total recenter CPU 33.11 → 9.54 ms spread across updates. Shadow mean CPU
+0.805 → 0.088 ms over 120 moving frames. Excludes startup/browser/GPU/device FPS;
+no improvement to actual device FPS is claimed. Sample budget is soft, not a
+hard callback deadline. Reprofile the same laggy scene on Jan's device next.
+
+Verification: build/types/lint and whitespace pass; existing bundle warning.
+Full serial subprocess-enabled unit run passes 342/343; final terrain/shadow
+rerun passes 13/13 after the latest-target fix, covering all 343 checks across
+runs. Five unique focused browser checks pass across batches: player shell,
+no-WebGL, profiler, keyboard takeoff and final HUD cadence. Initial artificial-RAF
+HUD test blocked Playwright click waiting; switched fixture interaction to direct
+DOM events. Stationary marker styles did not mutate; final test moves the camera
+and verifies marker changes every frame while text/telemetry refresh 2–3 times in
+18 simulated frames. It also verifies hidden diagnostics, immediate pause and
+visible dev diagnostics. Final cadence check passes in 13 s. Inspected runway
+capture. Full browser suite/npm check not claimed. One automatic approval review
+timed out; permitted retry succeeded. Playwright stopped its preview. No sustained
+physical-GPU benchmark under retained heat restriction; hardware FPS and human
+visual/long-travel acceptance stay open. No push/deployment. Local commit follows.
+
 ## 21 November 2026 — Opt-in frame profiler
 
 Implemented requested makeshift profiling without sustained GPU stress. F8 or

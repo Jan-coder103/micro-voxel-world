@@ -82,4 +82,15 @@ describe('flight presentation',()=>{
     let geometries=0,materials=0,textures=0;shadow.mesh.geometry.addEventListener('dispose',()=>geometries++);shadow.mesh.material.addEventListener('dispose',()=>materials++);shadow.mesh.material.map!.addEventListener('dispose',()=>textures++);
     shadow.dispose();shadow.dispose();expect([geometries,materials,textures]).toEqual([1,1,1]);
   });
+  it('bounds ground-shadow terrain queries and skips unchanged or disposed geometry',()=>{
+    const shadow=createAircraftShadow(),p=pose();let queries=0;
+    const ground=(x:number,z:number)=>{queries++;return Math.sin(x/8)+Math.cos(z/8);};
+    shadow.update(p,ground);expect(queries).toBe(25);
+    const positions=shadow.mesh.geometry.attributes.position;
+    for(let i=0;i<positions.count;i++)expect(positions.getY(i)+shadow.mesh.position.y).toBeCloseTo(Math.sin((p.position.x+positions.getX(i))/8)+Math.cos((p.position.z+positions.getZ(i))/8)+.18,5);
+    queries=0;shadow.update(p,ground);expect(queries).toBe(0);
+    p.position.x+=1;shadow.update(p,ground);expect(queries).toBe(25);
+    shadow.dispose();queries=0;shadow.update(p,ground);expect(queries).toBe(0);
+  });
+
 });

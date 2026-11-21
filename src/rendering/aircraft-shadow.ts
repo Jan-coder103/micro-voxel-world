@@ -9,13 +9,15 @@ export function createAircraftShadow() {
     data[i]=data[i+1]=data[i+2]=12;data[i+3]=Math.round(Math.pow(Math.max(0,1-radius*radius),1.3)*150);
   }
   const texture=new DataTexture(data,size,size);texture.needsUpdate=true;
-  const geometry=new PlaneGeometry(1,1,16,16);geometry.rotateX(-Math.PI/2);
+  // A blurred 20 m footprint needs 5 m terrain spacing, not 1.25 m.
+  const geometry=new PlaneGeometry(1,1,4,4);geometry.rotateX(-Math.PI/2);
   const local=geometry.attributes.position.array.slice();
   const material=new MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,toneMapped:false});
   const mesh=new Mesh(geometry,material);mesh.name='aircraft-ground-shadow';
   let disposed=false;
   let lastX=NaN,lastZ=NaN,lastHeading=NaN,lastHelicopter=false,lastGround:((x:number,z:number)=>number)|undefined;
   return {mesh,update(pose:FlightPose,ground:(x:number,z:number)=>number,helicopter=false) {
+    if(disposed)return;
     const p=pose.position,width=helicopter?11:20,length=helicopter?12:18,c=Math.cos(pose.heading),s=Math.sin(pose.heading);
     if(p.x===lastX&&p.z===lastZ&&pose.heading===lastHeading&&helicopter===lastHelicopter&&ground===lastGround)return;
     lastX=p.x;lastZ=p.z;lastHeading=pose.heading;lastHelicopter=helicopter;lastGround=ground;
@@ -23,7 +25,7 @@ export function createAircraftShadow() {
     const positions=geometry.attributes.position;
     for(let i=0;i<positions.count;i++) {
       const x=local[i*3]*width,z=local[i*3+2]*length,dx=x*c-z*s,dz=x*s+z*c;
-      positions.setXYZ(i,dx,ground(p.x+dx,p.z+dz)+.18-mesh.position.y,dz);
+      positions.setXYZ(i,dx,(x===0&&z===0?mesh.position.y-.18:ground(p.x+dx,p.z+dz))+.18-mesh.position.y,dz);
     }
     positions.needsUpdate=true;geometry.computeBoundingSphere();
   },dispose(){if(disposed)return;disposed=true;mesh.removeFromParent();geometry.dispose();material.dispose();texture.dispose();}};

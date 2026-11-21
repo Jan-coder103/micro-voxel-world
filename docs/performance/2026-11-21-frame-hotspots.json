@@ -1,0 +1,57 @@
+{
+  "baselineCommit": "29f8759",
+  "scenario": "seed 103, six 128 m recenterings; 120 moving shadow frames",
+  "scope": "CPU only; excludes initial construction, GPU and browser work; not hardware FPS evidence",
+  "terrain": {
+    "before": {
+      "terrainSamples": 47526,
+      "updateCpuMs": {
+        "mean": 33.105896833333304,
+        "p95": 39.83779900000013,
+        "max": 39.83779900000013,
+        "count": 6
+      },
+      "recenterCpuMs": {
+        "mean": 33.111899833333304,
+        "p95": 39.84231799999998,
+        "max": 39.84231799999998,
+        "count": 6
+      }
+    },
+    "after": {
+      "terrainSamples": 4272,
+      "updateCpuMs": {
+        "mean": 1.5879113888888885,
+        "p95": 4.8532249999998385,
+        "max": 4.945930000000089,
+        "count": 36
+      },
+      "recenterCpuMs": {
+        "mean": 9.542650333333313,
+        "p95": 13.510849000000007,
+        "max": 13.510849000000007,
+        "count": 6
+      }
+    }
+  },
+  "shadow": {
+    "before": {
+      "terrainSamples": 34800,
+      "updateCpuMs": {
+        "mean": 0.8048515000000198,
+        "p95": 1.1050849999999173,
+        "max": 1.460198999999875,
+        "count": 120
+      }
+    },
+    "after": {
+      "terrainSamples": 3000,
+      "updateCpuMs": {
+        "mean": 0.08798616666667651,
+        "p95": 0.12852999999995518,
+        "max": 0.5108840000000328,
+        "count": 120
+      }
+    }
+  }
+}
