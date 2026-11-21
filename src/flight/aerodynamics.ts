@@ -1,5 +1,5 @@
 import type { Point } from './flight.ts';
-export const AIRFRAME={mass:2000,area:28,chord:2.2,pitchInertia:12000,gravity:9.81,thrust:12000,stallAngle:.28,trimAngle:.035};
+export const AIRFRAME={mass:2000,area:28,chord:2.2,pitchInertia:12000,gravity:9.81,thrust:30000,stallAngle:.28,trimAngle:.035};
 const dot=(a:Point,b:Point)=>a.x*b.x+a.y*b.y+a.z*b.z;
 export function bodyAxes(heading:number,pitch:number,bank:number){
   const sh=Math.sin(heading),ch=Math.cos(heading),sp=Math.sin(pitch),cp=Math.cos(pitch),sb=Math.sin(bank),cb=Math.cos(bank);

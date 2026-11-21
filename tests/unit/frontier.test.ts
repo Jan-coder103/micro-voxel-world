@@ -11,7 +11,7 @@ function approach(game:Frontier,overrides:Partial<{x:number;z:number;pitch:numbe
 }
 describe('frontier runway runs',()=>{
   it('starts stationary, takes off manually, and never banks by merely flying over home',()=>{
-    const game=new Frontier(103,memory());expect(game.flight.grounded).toBe(true);expect(game.flight.speed).toBe(0);expect(game.flight.position.z).toBe(AIRBASE.spawnZ);game.launch();tick(game,450,{...idle,throttle:1});expect(game.flight.speed).toBeGreaterThan(28);expect(game.flight.grounded).toBe(true);tick(game,120,{...idle,pitch:1});expect(game.flight.grounded).toBe(false);expect(game.departed).toBe(true);expect(game.flight.state).toBe('running');expect(game.state).toBe('flying');expect(game.progress.data.money).toBe(0);
+    const game=new Frontier(103,memory());expect(game.flight.grounded).toBe(true);expect(game.flight.speed).toBe(0);expect(game.flight.position.z).toBe(AIRBASE.spawnZ);game.launch();for(let i=0;i<600&&game.flight.speed<33;i++)tick(game,1,{...idle,throttle:1});expect(game.flight.speed).toBeGreaterThan(28);expect(game.flight.grounded).toBe(true);tick(game,120,{...idle,pitch:1});expect(game.flight.grounded).toBe(false);expect(game.departed).toBe(true);expect(game.flight.state).toBe('running');expect(game.state).toBe('flying');expect(game.progress.data.money).toBe(0);
   });
   it('accepts a gentle aligned touchdown, brakes to a stop, banks exactly once, and reopens the hangar',()=>{
     const storage=memory(),game=new Frontier(103,storage);approach(game);game.combat.kills=7;tick(game,120);expect(game.flight.grounded).toBe(true);expect(game.state).toBe('flying');expect(game.progress.data.money).toBe(0);

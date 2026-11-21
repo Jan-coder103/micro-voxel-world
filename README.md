@@ -30,7 +30,7 @@ Boss rewards before bonuses:
 ## Controls and landing
 
 - **E / Q:** increase / reduce throttle. Hold Q to idle and brake on a runway or carrier deck.
-- **W / S:** pitch down / up. **A / D:** bank and turn.
+- **W / S:** push / pull around the aircraft’s wing axis. Bank first, then pull to tighten the turn. **A / D:** roll.
 - **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit. **V:** cockpit / chase view.
 - **Esc:** pause and open the hangar.
 
@@ -78,3 +78,6 @@ a loop, and ease off the elevator when the STALL warning appears. Stalling depen
 raise the stall speed. The cockpit loads only in first person. Combat effects
 also controls turn rumble, wing condensation and directional sun glare. Detailed
 trees extend to 420 m and morph into distant silhouettes through 700 m.
+
+Elevator pull follows the banked aircraft, including sideways at knife-edge and
+downward while inverted. Base thrust is 30 kN (2.5× the earlier 12 kN tuning).

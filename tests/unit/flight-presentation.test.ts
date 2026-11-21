@@ -22,10 +22,15 @@ describe('flight presentation',()=>{
   });
   it('moves continuously at 144 Hz even on frames without a simulation tick',()=>{
     const flight=new Flight(()=>0),out=pose();flight.start();
-    const positions:number[]=[];const tickCounts:number[]=[];const speeds:number[]=[];
-    for(let i=0;i<144;i++){flight.advance(1/144,neutral);flight.samplePose(out);positions.push(out.position.z);tickCounts.push(flight.ticks);speeds.push(-flight.velocity.z);}
+    const positions:number[]=[];const tickCounts:number[]=[];const speeds:number[]=[];const accelerations:number[]=[];
+    for(let i=0;i<144;i++){flight.advance(1/144,neutral);flight.samplePose(out);positions.push(out.position.z);tickCounts.push(flight.ticks);speeds.push(-flight.velocity.z);accelerations.push(speeds.length>1?Math.abs(speeds.at(-1)!-speeds.at(-2)!):0);}
     expect(flight.ticks).toBe(60);
-    for(let i=4;i<positions.length;i++)expect(positions[i-1]-positions[i]).toBeCloseTo(speeds[i]/144,3);
+    // Interpolation is one tick behind current velocity; acceleration bounds that lag.
+    for(let i=4;i<positions.length;i++){
+      const lagBound=Math.max(...accelerations.slice(Math.max(0,i-4),i+1))*2/144+1e-8;
+      expect(Math.abs(positions[i-1]-positions[i]-speeds[i]/144)).toBeLessThanOrEqual(lagBound);
+      expect(positions[i-1]-positions[i]).toBeGreaterThan(0);
+    }
     expect(tickCounts.some((v,i)=>i>4&&v===tickCounts[i-1])).toBe(true);
     expect(out.position.z-flight.position.z).toBeCloseTo(flight.speed/60,2);
   });

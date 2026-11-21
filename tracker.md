@@ -1,5 +1,45 @@
 # Progress tracker
 
+## 21 November 2026 — Banked elevator axis and 2.5× thrust
+
+Jan reported elevator pull still rotated toward the world sky during a bank, and
+requested 2–3× thrust. Fixed the remaining world-Euler attitude shortcut; see
+0036. `flight/attitude.ts` rotates the basis about aircraft-local wing, fuselage
+and fin axes, then chooses continuous equivalent Euler coordinates for existing
+rendering/collision/weapons. Elevator now pulls toward the banked canopy, sideways
+at knife-edge and downward inverted. Yaw stabilization uses body sideslip/local
+fin axis; automatic recovery uses local roll. Full rolls/loops are supported.
+Ground pitch reaction applies only to level-wing rotation. Force integration,
+stall curves, saves, assets and streaming budgets remain unchanged.
+
+Base thrust is 30 kN, up from 12 kN (2.5×), retaining throttle/upgrade scaling.
+Higher climb/acceleration and equilibrium speed follow the physical force model.
+README and decision 0036 document the change; plan records requested scope.
+
+Verification: final full serial run passes all 304 tests / 41 files (102.38 s),
+with subprocess access and a 15 s CLI timeout. Fourteen new checks cover banked
+wing-axis rotation, knife-edge/inverted pull, exact local roll/yaw, repeated
+vertical/compound rotations, actual knife-edge flight, mirrored tighter banked
+turns at 30/60/144 Hz and thrust/throttle/upgrade forces. Existing stall, loop,
+landing, collision and reward regressions pass. Departure tests now rotate at
+measured 33 m/s instead of a stale fixed acceleration duration; the stronger
+engine can naturally lift off before that old duration. The no-launch-jump check
+now measures ground/liftoff rather than later fast climb. Carrier climb regression
+retains three seconds of neutral climb after rotation; separate airfield tests
+still cover 20 s at three update rates. Presentation tests bound one-tick velocity
+lag using acceleration; direct mode no longer assumes Euler bank is immutable
+while pitching/yawing about local axes.
+
+Final build/types/lint, 23 asset validations and whitespace checks pass; existing
+bundle warning remains. Three browser checks pass (33.9 s): player shell, no-WebGL,
+and actual keyboard takeoff/climb-out (15.6 s test) at 320×200 render resolution,
+effects disabled. Inspected final capture: 70 m/s, 25 m AGL, +19.5 m/s climb.
+No sustained/heavy flight benchmark or physical-GPU claim under retained heat
+restriction. Human handling acceptance and sustained higher-speed travel remain
+open. Playwright owned/stopped its preview; user server untouched. Required local
+commit follows; consult git log. No push/deployment.
+
+
 ## 21 November 2026 — Flight correction after failed user takeoff acceptance
 
 Jan rejected the previous flight handling after reporting inability to take off.

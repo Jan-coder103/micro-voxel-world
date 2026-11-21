@@ -1,3 +1,4 @@
+import { rotateBody } from './attitude.ts';
 import { AIRFRAME,aerodynamicForces,bodyAxes,elevatorAcceleration } from './aerodynamics.ts';
 import { sweepAircraft,type FlightGeometry } from './collision.ts';
 import { HELICOPTER_HULL,LAB_FIXED_HULL } from './aircraft-hulls.ts';
@@ -51,9 +52,11 @@ export class Flight {
     const trim=this.assisted&&!this.grounded?clamp((AIRFRAME.mass*AIRFRAME.gravity/(Math.max(1,forces.q)*AIRFRAME.area*Math.max(.35,Math.cos(this.bank)))-.25)/4.8,-.04,.18):AIRFRAME.trimAngle;
     this.pitchRate+=elevatorAcceleration(forces.alpha,this.pitchRate,control*this.handling,forces.q,forces.speed,trim)*dt;
     this.pitchRate=clamp(this.pitchRate,-2,2);
-    this.pitch+=this.pitchRate*dt;
-    this.bank=clamp(this.bank+roll*1.3*this.handling*dt,-1.48,1.48);
-    if(this.assisted&&!roll)this.bank*=Math.exp(-dt*2.5);
+    if(this.grounded){this.pitch+=this.pitchRate*dt;}
+    else {
+      const leveling=this.assisted&&!roll?-Math.atan2(Math.sin(this.bank),Math.cos(this.bank))*2.5:0;
+      Object.assign(this,rotateBody(this,this.pitchRate*dt,(roll*1.3*this.handling+leveling)*dt));
+    }
     if(runway&&this.grounded){
       // Ground reaction supports the hull during rotation, until aerodynamic lift unloads it.
       this.pitch=clamp(this.pitch,-.03,.20);this.bank=0;
@@ -72,7 +75,7 @@ export class Flight {
     }
     // Tire/tail contact opposes further rotation before the underside has ground clearance.
     // It supplies an angular reaction, never an upward teleport or extra aerodynamic lift.
-    if(runway&&runway.contains(this.position.x,this.position.z,10)&&this.pitch>this.previousPose.pitch&&this.pitch<.3&&this.position.y<runway.height+20&&this.position.y<runway.height+this.supportClearance()+.02){
+    if(runway&&runway.contains(this.position.x,this.position.z,10)&&Math.abs(this.bank)<.1&&this.pitch>this.previousPose.pitch&&this.pitch<.3&&this.position.y<runway.height+20&&this.position.y<runway.height+this.supportClearance()+.02){
       this.pitch=this.previousPose.pitch;this.pitchRate=0;
     }
     // Bank tilts the actual lift vector; lateral acceleration, rather than a scripted yaw, turns the aircraft.
@@ -80,8 +83,11 @@ export class Flight {
     this.angleOfAttack=forces.alpha;this.loadFactor=forces.loadFactor;this.stalled=forces.stalled;
     for(const axis of ['x','y','z'] as const)this.velocity[axis]+=forces.acceleration[axis]*dt;
     this.speed=Math.hypot(this.velocity.x,this.velocity.y,this.velocity.z);this.verticalSpeed=this.velocity.y;
-    const horizontal=Math.hypot(this.velocity.x,this.velocity.z);
-    if(horizontal>2){const sign=Math.cos(this.pitch)<0?-1:1,target=Math.atan2(this.velocity.x*sign,-this.velocity.z*sign),error=Math.atan2(Math.sin(target-this.heading),Math.cos(target-this.heading));this.heading+=error*Math.min(1,dt*2)*Math.abs(Math.cos(this.pitch));}
+    const axes=bodyAxes(this.heading,this.pitch,this.bank);
+    const forwardSpeed=this.velocity.x*axes.forward.x+this.velocity.y*axes.forward.y+this.velocity.z*axes.forward.z;
+    const sideSpeed=this.velocity.x*axes.right.x+this.velocity.y*axes.right.y+this.velocity.z*axes.right.z;
+    // Weathercock stability is yaw around the local fin axis, including in a bank or inverted flight.
+    if(forwardSpeed>2)Object.assign(this,rotateBody(this,0,0,Math.atan2(sideSpeed,forwardSpeed)*2*dt));
     this.move({x:this.position.x+this.velocity.x*dt,y:this.position.y+this.velocity.y*dt,z:this.position.z+this.velocity.z*dt});
   }
   private supportClearance(){

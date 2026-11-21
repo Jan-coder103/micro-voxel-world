@@ -30,7 +30,7 @@ it('lands, stops, banks, shops, takes off and recovers at an ocean carrier using
   g.combat.kills=7;tick(g,120);expect(f.grounded).toBe(true);expect(g.currentBase.id).toBe(carrier.id);
   tick(g,300,{...idle,throttle:-1});expect(g.state).toBe('hangar');expect(g.progress.data.money).toBe(70);expect(g.progress.data.xp).toBe(105);expect(g.flight.position.x).toBe(carrier.x);expect(g.flight.position.z).toBe(baseSpawn(carrier).z);
   g.progress.bank(1000,300);expect(g.purchase('engine-1')).toBe(true);expect(g.equip('engine','engine-1')).toBe(true);
-  g.launch();tick(g,450,{...idle,throttle:1});tick(g,120,{...idle,pitch:1});expect(g.flight.grounded).toBe(false);expect(g.flight.state).toBe('running');tick(g,600);expect(g.flight.state).toBe('running');expect(g.flight.position.y-carrier.height).toBeGreaterThan(20);
+  g.launch();for(let i=0;i<600&&g.flight.speed<33;i++)tick(g,1,{...idle,throttle:1});tick(g,120,{...idle,pitch:1});expect(g.flight.grounded).toBe(false);expect(g.flight.state).toBe('running');tick(g,180);expect(g.flight.state).toBe('running');expect(g.flight.position.y-carrier.height).toBeGreaterThan(20);
   g.state='crashed';g.crashSeconds=.1;tick(g,7);expect(g.currentBase.id).toBe(carrier.id);expect(g.flight.grounded).toBe(true);expect(baseContains(carrier,g.flight.position.x,g.flight.position.z,10)).toBe(true);
 });
 

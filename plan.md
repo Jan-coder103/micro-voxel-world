@@ -985,3 +985,10 @@ plus aerodynamic elevator moments and physical runway load release. Acceptance
 requires sustained actual-airfield departures and full velocity-vector loops, not
 only a brief airborne flag or unbounded attitude. Decision 0035 supersedes 0034's
 flight model.
+
+## Banked elevator and thrust correction — 21 November 2026
+
+Jan requested elevator pull about the banked aircraft wing axis and roughly 2–3×
+more thrust. Decision 0036 selects local-axis attitude integration and 2.5× base
+thrust. Acceptance includes banked/knife-edge/inverted pull, mirrored flight turns,
+retained loops and safe takeoff under the stronger engine.

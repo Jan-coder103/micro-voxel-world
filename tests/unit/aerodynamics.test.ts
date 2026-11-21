@@ -39,12 +39,12 @@ describe('force-based fixed-wing aerodynamics',()=>{
       // Ordinary keyboard input: rotate, then release the elevator after the first second airborne.
       game.advance(1/hz,{...controls,throttle:1,pitch:airborneTime<1?1:0});
       if(!f.grounded){airborneTime+=1/hz;if(wasGrounded)liftoffZ=f.position.z;}
-      maxJump=Math.max(maxJump,f.position.y-oldY);
+      if(wasGrounded)maxJump=Math.max(maxJump,f.position.y-oldY);
       expect(game.state).toBe('flying');
     }
     expect(liftoffZ).toBeGreaterThan(130);expect(liftoffZ).toBeLessThan(548);expect(game.flight.grounded).toBe(false);
     expect(game.flight.position.y-game.ground(game.flight.position.x,game.flight.position.z)).toBeGreaterThan(30);
-    expect(game.flight.speed).toBeGreaterThan(45);expect(maxJump).toBeLessThan(1);expect(game.progress.data.money).toBe(0);
+    expect(game.flight.speed).toBeGreaterThan(45);expect(maxJump).toBeLessThan(.1);expect(game.progress.data.money).toBe(0);
   });
   it('can rotate later at 35 m/s without a tail collision',()=>{
     const game=new Frontier();game.launch();let airborne=0;
