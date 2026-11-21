@@ -1,0 +1,97 @@
+{
+  "scope": "Native Node TypeScript; CPU-only generator counterfactual, identical 6208 cells around home; includes JSON hashing; unshipped cache prototypes; not GPU or user-device FPS",
+  "reports": [
+    {
+      "name": "baseline",
+      "runs": [
+        {
+          "ms": 626.053882,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 452.913129,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 444.3719229999999,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    },
+    {
+      "name": "cacheLayout",
+      "runs": [
+        {
+          "ms": 485.19931699999984,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 421.5903119999998,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 410.95102700000007,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    },
+    {
+      "name": "cacheLayoutAndSites",
+      "runs": [
+        {
+          "ms": 386.47448600000007,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 325.02940899999976,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 331.1182629999994,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    },
+    {
+      "name": "rejectBeforeSlope",
+      "runs": [
+        {
+          "ms": 234.09500300000036,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 190.96024399999988,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 194.5403639999995,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    }
+  ]
+}

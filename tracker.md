@@ -1,3 +1,21 @@
+## 22 November 2026 — Capture 5 generation investigation
+
+New capture is detailed and ~31.2 FPS. Background forest jobs now directly
+measure 3.975 ms mean / 10 ms p95 / 26 ms max; roads reach 69 ms. Forest changes
+involved 216 of 233 static shadow rebuilds. This establishes generation and
+publication churn as real contributors; no sole root cause or GPU attribution.
+
+Traced repeated terrain/slope/site generation. Added CPU-only temporary-variant
+benchmark tools/benchmarks/scenery-generation.mjs and retained results/analysis
+under docs/performance/2026-11-22-*. Current game code unchanged. Bounded caches
+plus rejection before slope sampling reduced warm 6,208-cell generation from
+~449 to ~193 ms in the exploratory run; all 12 output hashes match (19,706 trees).
+One seed and ordered runs limit inference; not a hardware FPS result. Next work:
+optimize generation, yield/offload road tiles and stabilize shadow caster groups.
+Further steady-view attribution requires lightweight/detailed comparison or a
+Firefox Performance trace. No browser/hardware workloads run in this turn.
+Local investigation commit follows; no push.
+
 ## 22 November 2026 — Image quality restoration and pacing investigation
 
 Restored MSAA, the 1.5 DPR cap and default 100% render scale at Jan's request;
