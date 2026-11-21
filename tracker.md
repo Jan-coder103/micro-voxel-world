@@ -1,5 +1,34 @@
 # Progress tracker
 
+## 21 November 2026 — Stable coastline and auto-level off by default
+
+Investigated/reproduced the reported moving coast. At seed 103 / z=-700, the same
+coarse shore alternated x=-704 / -768 on 64 m recenterings of its 128 m grid, then
+changed again at the inner detail tier. Decision 0039 fixes origin alignment and
+makes the coastal wet/dry boundary, sand/depth and foam placement use an absolute
+world-position basin field rather than changing triangle wet-color interpolation.
+Deep sea/inland fast paths bound extra fragment work. No new GPU resources/draws;
+terrain/collision/save fields and streaming residency are retained. GPU mirror
+must track future generator changes; physical-GPU cost remains unverified.
+
+Frontier alone defaults to assisted=false; Direct is the initial settings option,
+labeled auto-level off. Assisted mode enables auto-level/automatic trim. Rearm
+preserves an explicit user choice; historical Flight/lab defaults are retained.
+README updated. No flight-force tuning or saved preference change.
+
+Verification: 312 unit tests / 45 files pass (129.59 s); final browser: all five checks pass (56.1 s), including manual-default keyboard climb-out. New browser check compares CPU/GPU heights/wetness for
+four seeds (including UINT_MAX), then holds a fixed camera while moving coverage
+25 times and swapping all four incoming LODs. Nonempty water and land masks are
+required; at most two boundary-pixel differences allowed. Inspected stable-coastline
+capture. Unit checks cover negative-coordinate grid alignment/reuse and default /
+rearm assistance choice. Browser shell covers Direct startup and assisted on/off;
+keyboard departure checks the new manual default. Build/types/lint, assets and
+whitespace: pass (23 source assets); existing bundle-size warning remains. One browser permission review timed out; permitted retry
+succeeded. No hardware/heavy flight benchmark under retained heat restriction.
+Human visual/flight and physical-GPU acceptance remain open. Required local commit
+follows; no push/deployment. Playwright owns/stops its preview, user server untouched.
+
+
 ## 21 November 2026 — Procedural clouds, waterways, surf and siege spiders
 
 Implemented Jan's follow-up visual/content slice; decision 0038. Clouds now occupy

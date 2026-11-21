@@ -1,9 +1,10 @@
+import { SHORELINE_FIELD_GLSL } from './shoreline-field';
 import { SUN_DIRECTION } from './flight-effects';
 import { cropFields,farmLayout,FARM_BLOCK_SIZE,CROP_COLORS,regionLayout,regionalHash } from '../world/regional-terrain';
 import { DataTexture,FloatType,RGBAFormat,Vector2,type MeshStandardMaterial } from 'three';
 
 /** World-anchored, filtered soil/grass grain, shared by streamed terrain and its underlay. */
-export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number,options:{waterEffects?:boolean}={}){
+export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number,options:{waterEffects?:boolean;stableShoreline?:boolean}={}){
   const time={value:0},presentation={value:options.waterEffects===false?0:1};
   const origin={value:new Vector2()},farmOrigin={value:new Vector2()},size=13;
   const pixels=new Float32Array(size*size*36),farms=new DataTexture(pixels,size*9,size,RGBAFormat,FloatType);
@@ -22,8 +23,11 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
     }
     farms.needsUpdate=true;
   };updateFields(0,0);
-  material.customProgramCacheKey=()=> 'frontier-ground-v6-water';
+  material.customProgramCacheKey=()=> 'frontier-ground-v7-stable-shore';
   material.onBeforeCompile=shader=>{
+    const layout=regionLayout(seed);
+    shader.uniforms.shorelineSeed={value:seed>>>0};shader.uniforms.shorelineLayout={value:new Vector2(layout.coast,layout.lakeX)};
+    shader.uniforms.shorelinePhase={value:regionalHash(seed,0,0,99)*6.28};shader.uniforms.stableShoreline={value:options.stableShoreline===false?0:1};
     shader.uniforms.riverShape={value:new Vector2(regionLayout(seed).coast+1400,regionalHash(seed,0,0,99)*6.28)};shader.uniforms.waterTime=time;shader.uniforms.waterPresentation=presentation;shader.uniforms.waterSun={value:SUN_DIRECTION};shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
     shader.uniforms.terrainSeed={value:seed%65536};
     shader.vertexShader=shader.vertexShader.replace('#include <common>',`#include <common>
@@ -38,6 +42,8 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
     shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
       varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable; varying float vSurfaceHeight; varying float vWaterDepth; uniform float terrainSeed; uniform float waterTime; uniform float waterPresentation; uniform vec3 waterSun; uniform vec2 riverShape;
       uniform sampler2D farmAtlas; uniform vec2 farmOrigin;
+      ${SHORELINE_FIELD_GLSL}
+      uniform float stableShoreline;
       vec3 cropColor(float crop){${CROP_COLORS.map((c,i)=>`if(crop<${i+.5})return vec3(${c.join(',')});`).join('')}return vec3(.4,.4,.2);}
       float terrainHash(vec2 cell){vec3 p=fract(vec3(cell.xyx)*.1031+terrainSeed*.001);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
       float terrainGrain(vec2 p,float size){float fade=1.0-smoothstep(.35,1.2,max(fwidth(p.x),fwidth(p.y))/size);return (terrainHash(floor(p/size))-.5)*fade;}`)
@@ -49,14 +55,24 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
       vec3 dryColor=max(vec3(0.0),(vColor.rgb-waterColor*wet)/max(1.0-wet,.0001));
       float shorelineAA=max(fwidth(wet)*.5,.00001);
       float waterCoverage=smoothstep(.5-shorelineAA,.5+shorelineAA,wet);
+      float shoreField=10000.;
+      if(stableShoreline>.5&&vTerrainPosition.x<shorelineLayout.x+1400.)shoreField=vTerrainPosition.x<shorelineLayout.x-400.?-55.:shorelineHeight(vTerrainPosition);
+      float coastField=stableShoreline*(1.-smoothstep(2.,4.,shoreField));
+      float fieldAA=max(fwidth(shoreField)*.5,.00001);
+      float oceanCoverage=1.-smoothstep(-fieldAA,fieldAA,shoreField);
+      waterCoverage=mix(waterCoverage,oceanCoverage,coastField);
+      dryColor=mix(dryColor,vec3(.62,.57,.37),coastField);
       vec3 sharpColor=mix(dryColor,waterColor,waterCoverage);
       diffuseColor.rgb*=sharpColor/max(vColor.rgb,vec3(.0001));
       float land=1.0-waterCoverage;
       // Convert interpolated wetness into a local distance in metres, independent of LOD.
       float worldPixel=max(length(dFdx(vTerrainPosition)),length(dFdy(vTerrainPosition)));
       float shoreDistance=clamp((wet-.5)*worldPixel/max(fwidth(wet),.000001),-1000.,1000.);
-      float sea=1.-smoothstep(.5,2.,vSurfaceHeight);
-      float shoreMetres=min(max(0.,shoreDistance),max(0.,vWaterDepth)*18.);
+      // Shore foam and damp sand use the same world field, not screen derivatives.
+      float fieldDistance=clamp(-shoreField*18.,-1000.,1000.);
+      shoreDistance=mix(shoreDistance,fieldDistance,coastField);
+      float sea=max(coastField,1.-smoothstep(.5,2.,vSurfaceHeight));
+      float shoreMetres=min(max(0.,shoreDistance),max(0.,mix(vWaterDepth,-shoreField,coastField))*18.);
       float shallows=exp(-shoreMetres*.045);
       vec3 deep=mix(vec3(.035,.14,.16),vec3(.025,.12,.20),sea);
       vec3 shallow=mix(vec3(.16,.35,.29),vec3(.18,.48,.43),sea);

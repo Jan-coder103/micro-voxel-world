@@ -1007,3 +1007,11 @@ rework, animated white beach breakers/wet sand and giant spiders alongside exist
 mutants. Decision 0038 records bounded residency, material approximation and the
 spider's combat/persistence integration. Retain terrain/save/flight scopes and open
 human visual and hardware acceptance.
+
+## Coast stability and manual default — 21 November 2026
+
+Jan reported the coast jumping while approaching and selected auto-level off by
+default, with assisted mode available in settings. Decision 0039 fixes coarse-grid
+half-cell rephasing and replaces LOD-dependent coastal color coverage with the
+world-position shoreline field; terrain/save/flight equations remain unchanged.
+Player defaults to Direct; assisted mode is opt-in for the session.

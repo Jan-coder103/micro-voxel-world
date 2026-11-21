@@ -29,6 +29,7 @@ export class Frontier {
     this.trees=new FrontierTrees(seed,this.population.world);
     const clearance=.08-Math.min(...PLAYER_FIXED_HULL.points.map(p=>p.y));
     this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,maxGroundHeight:REGIONAL_HEIGHT_CEILING+1,groundCeiling:b=>Math.max(airbaseHeightCeiling(seed,b),b.minX<this.navy.oceanEdge?24:0),maxObstacleHeight:400,worldLimit:900000000,runway:{height:this.baseHeight+.16,clearance,contains:onRunway},runwayAt:(x,z)=>{const b=this.navy.landingAt(x,z);return b?{height:b.height,clearance,contains:(x,z,m=0)=>baseContains(b,x,z,m)}:undefined;},obstacles:b=>[...this.navy.obstacles(b),...this.mutants.obstacles(b),...this.trees.query(b),...airbaseObstacles(seed).filter(v=>v.minX<=b.maxX&&v.maxX>=b.minX&&v.minZ<=b.maxZ&&v.maxZ>=b.minZ),...this.population.world.buildings(b).filter(v=>!airbaseReserved(v.x,v.z,Math.max(v.width,v.depth)/2)).map(v=>({...v,minY:v.bottom,maxY:v.y+v.height}))]});
+    this.flight.assisted=false;
     this.combat=new Combat([],this.ground,128,{index:{query:(min,max)=>[...this.population.query(min,max),...this.mutants.query(min,max)]},blocker:(o,d,r)=>{
       // The cleared airfield has no procedural structures.
       if(airbaseReserved(o.x,o.z)&&airbaseReserved(o.x+d.x*r,o.z+d.z*r))return undefined;
