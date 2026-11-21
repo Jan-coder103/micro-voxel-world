@@ -1,5 +1,50 @@
 # Handoff — 21 November 2026
 
+## 21 November 2026 — Flight correction after failed user takeoff acceptance
+
+Jan rejected the previous flight handling after reporting inability to take off.
+Decision 0035 supersedes 0034's flight approximation. New rendering-independent
+`flight/aerodynamics.ts` supplies dynamic-pressure lift, profile/induced/separated
+flow drag, thrust, gravity and elevator pitching moments. Flight integrates a real
+velocity vector. Bank tilts lift; critical AoA drives stall; static stability and
+pitch-rate damping drive nose response. Assisted automatic trim changes elevator
+moment, not the trajectory. Direct mode uses fixed aerodynamic trim. Parameters
+are approximate for this fictional aircraft; reduced-order yaw/roll/contact models
+are explicit in the decision. No six-DOF/spin fidelity claim.
+
+Runway acceleration shares thrust/drag, rolling friction and braking. Ground
+reaction supports the rotated underside; near-contact angular reaction prevents
+rotation through the runway during initial wheel unloading. Lift-off follows net
+upward force. Removed fixed launch-speed/upward jump, pitch-following flight path,
+scripted stall sink and minimum airspeed. Landing/banking/carriers, saves, collision
+hull and visuals are retained. Updated UI/manual: full power, rotate at 32–35 m/s,
+ease S about a second after liftoff, then use short inputs. Stall advice says lower
+nose/add power. Existing maximum-speed upgrade scales available thrust.
+
+Verification: final full serial unit run passes all 290 checks / 40 files (78.99 s),
+with subprocess access and a 15 s CLI timeout. Includes 20-second actual-airfield
+departures at 30/60/144 Hz, delayed rotation, extended carrier climb-out, force
+scaling, bank/inversion, AoA stall/recovery, zero-speed gravity, dissipative work,
+and a full velocity-vector loop. Previous exact 4.84 m near-ground snapshot was
+obsolete under physical forces; replaced it with clear-flight bounds and exact
+single-tick/maximum-catch-up parity. It passed independently and in the final full
+run. Tests retain terrain/contact/work budgets and landing/reward coverage.
+
+Build/types/lint, all 23 source validations and whitespace checks pass; existing
+bundle warning remains. Three browser checks pass (49.9 s): player shell, no-WebGL,
+and actual keyboard takeoff/climb-out (26.9 s total test). Flight used 640×400 view
+at 50% scale (320×200 render) with effects disabled. Inspected climb-out capture:
+48 m/s, 24 m AGL, positive 9.7 m/s climb, no stall. Browser inputs accelerate to
+33 m/s, rotate, release elevator after one airborne second, then verify sustained
+climb and pause/cleanup. Earlier short takeoff tests had not covered this sequence.
+
+User flight feel/visual acceptance, physical-GPU FPS and sustained/heavy flight
+benchmarks remain open under the retained heat restriction. Playwright owned and
+stopped its preview; user server untouched. Required local commit follows; consult
+git log. No push/deployment.
+
+# Handoff — 21 November 2026
+
 ## 21 November 2026 — Energy flight and cockpit presentation
 
 Implemented Jan's requested flight/presentation slice; decision 0034 records scope

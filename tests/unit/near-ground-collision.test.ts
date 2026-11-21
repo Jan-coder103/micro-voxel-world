@@ -43,5 +43,9 @@ it('runs maximum catch-up frames at 5 m AGL with detailed terrain collision enab
   const game=new Frontier(103);game.launch();const f=game.flight;
   f.grounded=false;f.position={x:0,y:game.baseHeight+5,z:400};f.speed=60;f.throttle=.6;f.assisted=false;
   for(let frame=0;frame<8;frame++)game.advance(8/60,{pitch:0,bank:0,throttle:0,fire:false,weapon:'minigun',aim:false});
-  expect(f.ticks).toBe(64);expect(game.state).toBe('flying');expect(f.position.y-game.ground(f.position.x,f.position.z)).toBeCloseTo(4.84);
+  expect(f.ticks).toBe(64);expect(game.state).toBe('flying');const agl=f.position.y-game.ground(f.position.x,f.position.z);expect(agl).toBeGreaterThan(3);expect(agl).toBeLessThan(7);
+  const reference=new Frontier(103);reference.launch();const r=reference.flight;
+  r.grounded=false;r.position={x:0,y:reference.baseHeight+5,z:400};r.speed=60;r.throttle=.6;r.assisted=false;
+  for(let tick=0;tick<64;tick++)reference.advance(1/60,{pitch:0,bank:0,throttle:0,fire:false,weapon:'minigun',aim:false});
+  expect(f.position).toEqual(r.position);expect(f.velocity).toEqual(r.velocity);
 });

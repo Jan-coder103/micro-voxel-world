@@ -22,10 +22,10 @@ describe('flight presentation',()=>{
   });
   it('moves continuously at 144 Hz even on frames without a simulation tick',()=>{
     const flight=new Flight(()=>0),out=pose();flight.start();
-    const positions:number[]=[];const tickCounts:number[]=[];
-    for(let i=0;i<144;i++){flight.advance(1/144,neutral);flight.samplePose(out);positions.push(out.position.z);tickCounts.push(flight.ticks);}
+    const positions:number[]=[];const tickCounts:number[]=[];const speeds:number[]=[];
+    for(let i=0;i<144;i++){flight.advance(1/144,neutral);flight.samplePose(out);positions.push(out.position.z);tickCounts.push(flight.ticks);speeds.push(-flight.velocity.z);}
     expect(flight.ticks).toBe(60);
-    for(let i=4;i<positions.length;i++)expect(positions[i-1]-positions[i]).toBeCloseTo(flight.speed/144,2);
+    for(let i=4;i<positions.length;i++)expect(positions[i-1]-positions[i]).toBeCloseTo(speeds[i]/144,3);
     expect(tickCounts.some((v,i)=>i>4&&v===tickCounts[i-1])).toBe(true);
     expect(out.position.z-flight.position.z).toBeCloseTo(flight.speed/60,2);
   });

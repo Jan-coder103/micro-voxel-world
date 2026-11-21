@@ -34,6 +34,8 @@ Boss rewards before bonuses:
 - **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit. **V:** cockpit / chase view.
 - **Esc:** pause and open the hangar.
 
+To take off, hold E to full power, accelerate to 32–35 m/s, then hold S to rotate. Release S about one second after liftoff and use short inputs to adjust the climb. Assisted mode automatically trims for airspeed; direct mode retains a fixed aerodynamic trim. Holding full elevator commands an increasingly steep maneuver.
+
 To land, line up with the strip, level the wings and touch down below 48 m/s while descending less than 4 m/s. Keep the whole aircraft inside the marked strip, then hold Q until the aircraft stops for one second. The destination selector changes your bearing and marker; it does not teleport the aircraft.
 
 ## Run Frontier
@@ -72,7 +74,7 @@ Historical prototype/lab instructions are kept in [development history](docs/dev
 Benchmark-only legacy code is documented in [tools/benchmarks/legacy](tools/benchmarks/legacy/README.md).
 
 Flight now trades speed for altitude: use a dive and power to build energy before
-a loop, and ease off the elevator when the STALL warning appears. Tight banks
+a loop, and ease off the elevator when the STALL warning appears. Stalling depends on angle of attack, rather than a fixed speed threshold. Tight banks
 raise the stall speed. The cockpit loads only in first person. Combat effects
 also controls turn rumble, wing condensation and directional sun glare. Detailed
 trees extend to 420 m and morph into distant silhouettes through 700 m.

@@ -976,3 +976,12 @@ farther detailed trees with soft LOD transitions, load feedback/wing vapor, an
 on-demand detailed cockpit, directional sun glare and visual polish. Implement
 and regression-test together; see decision 0034. This does not close deferred
 physical-GPU, sustained-flight or human acceptance gates.
+
+## Flight correction — 21 November 2026
+
+Jan rejected the path-following approximation after reporting unusable takeoff.
+Replace it with velocity integrated from approximate lift, drag, thrust and gravity,
+plus aerodynamic elevator moments and physical runway load release. Acceptance
+requires sustained actual-airfield departures and full velocity-vector loops, not
+only a brief airborne flag or unbounded attitude. Decision 0035 supersedes 0034's
+flight model.

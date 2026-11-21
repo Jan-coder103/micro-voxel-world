@@ -1,3 +1,4 @@
+import { AIRFRAME,aerodynamicForces,bodyAxes,elevatorAcceleration } from './aerodynamics.ts';
 import { sweepAircraft,type FlightGeometry } from './collision.ts';
 import { HELICOPTER_HULL,LAB_FIXED_HULL } from './aircraft-hulls.ts';
 import { aircraftId, type AircraftId } from './aircraft.ts';
@@ -14,14 +15,16 @@ export class Flight {
   legacyHandling=false;
   grounded=false; enginePower=1;handling=1;brakePower=1;maxSpeed=100;
   verticalSpeed=0; angleOfAttack=0; loadFactor=1; stalled=false;
-  private pathPitch=0;
+  velocity:Point={x:0,y:0,z:-60};
+  private pitchRate=0;
+  private velocityReady=false;
   private accumulator=0;
   private previousPose:FlightPose|undefined;
   constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing',private readonly geometry:FlightGeometry={}) { this.kind=aircraftId(kind);this.reset(); }
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
-  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;this.verticalSpeed=this.angleOfAttack=this.pathPitch=0;this.loadFactor=1;this.stalled=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
-  start() { if(this.state==='ready'||this.state==='paused') { if(this.state==='ready')this.pathPitch=this.pitch;this.previousPose=undefined; this.state='running'; } }
+  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;this.verticalSpeed=this.angleOfAttack=this.pitchRate=0;this.velocityReady=false;this.loadFactor=1;this.stalled=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
+  start() { if(this.state==='ready'||this.state==='paused') { this.previousPose=undefined; this.state='running'; } }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
   advance(dt:number,input:FlightInput,onStep?:()=>void) {
     if(!Number.isFinite(dt)||dt<0) throw new Error('Invalid flight elapsed time');
@@ -38,43 +41,52 @@ export class Flight {
     if(this.kind==='helicopter'){this.rotorStep(input);return;}
     this.throttle=clamp(this.throttle+clamp(input.throttle,-1,1)*dt*.35,0,1);
     const runway=this.geometry.runwayAt?.(this.position.x,this.position.z)??this.geometry.runway;
+    if(this.legacyHandling){this.legacyStep(input,!!runway);return;}
+    if(!this.velocityReady){
+      const forward=bodyAxes(this.heading,this.pitch,0).forward;
+      this.velocity={x:forward.x*this.speed,y:forward.y*this.speed,z:forward.z*this.speed};this.velocityReady=true;
+    }
+    const control=clamp(input.pitch,-1,1),roll=clamp(input.bank,-1,1);
+    let forces=aerodynamicForces(this.velocity,this.heading,this.pitch,this.bank,this.position.y,this.throttle,this.enginePower,this.maxSpeed/100);
+    const trim=this.assisted&&!this.grounded?clamp((AIRFRAME.mass*AIRFRAME.gravity/(Math.max(1,forces.q)*AIRFRAME.area*Math.max(.35,Math.cos(this.bank)))-.25)/4.8,-.04,.18):AIRFRAME.trimAngle;
+    this.pitchRate+=elevatorAcceleration(forces.alpha,this.pitchRate,control*this.handling,forces.q,forces.speed,trim)*dt;
+    this.pitchRate=clamp(this.pitchRate,-2,2);
+    this.pitch+=this.pitchRate*dt;
+    this.bank=clamp(this.bank+roll*1.3*this.handling*dt,-1.48,1.48);
+    if(this.assisted&&!roll)this.bank*=Math.exp(-dt*2.5);
     if(runway&&this.grounded){
-      this.speed=clamp(this.speed+(this.throttle*12*this.enginePower-2-(input.throttle<0?8*this.brakePower:0))*dt,0,this.maxSpeed);
-      this.heading+=clamp(input.bank,-1,1)*dt*.25*this.handling*Math.min(1,this.speed/10);
-      const next={x:this.position.x+Math.sin(this.heading)*this.speed*dt,y:runway.height+runway.clearance,z:this.position.z-Math.cos(this.heading)*this.speed*dt};
+      // Ground reaction supports the hull during rotation, until aerodynamic lift unloads it.
+      this.pitch=clamp(this.pitch,-.03,.20);this.bank=0;
+      if(this.pitch===.20&&this.pitchRate>0||this.pitch===-.03&&this.pitchRate<0)this.pitchRate=0;
+      this.heading+=roll*dt*.25*this.handling*Math.min(1,this.speed/10);
+      forces=aerodynamicForces({x:Math.sin(this.heading)*this.speed,y:0,z:-Math.cos(this.heading)*this.speed},this.heading,this.pitch,0,this.position.y,this.throttle,this.enginePower,this.maxSpeed/100);
+      const rolling=.025*Math.max(0,AIRFRAME.gravity-forces.lift/AIRFRAME.mass),braking=input.throttle<0?10*this.brakePower:0;
+      this.speed=Math.max(0,this.speed+((forces.thrust*Math.cos(this.pitch)-forces.drag)/AIRFRAME.mass-rolling-braking)*dt);
+      this.velocity={x:Math.sin(this.heading)*this.speed,y:0,z:-Math.cos(this.heading)*this.speed};
+      this.verticalSpeed=0;this.loadFactor=forces.loadFactor;this.angleOfAttack=forces.alpha;this.stalled=forces.stalled;
+      const next={x:this.position.x+this.velocity.x*dt,y:runway.height+this.supportClearance(),z:this.position.z+this.velocity.z*dt};
       if(!runway.contains(next.x,next.z,10)){this.state='crashed';this.reason='Left the runway';return;}
-      this.pitch=this.bank=0;
-      if(input.pitch>0&&this.speed>=28){this.grounded=false;this.pitch=this.pathPitch=.06;next.y+=.8;this.move(next);}
-      else {this.position=next;this.ticks++;}
+      this.position=next;this.ticks++;
+      if(forces.acceleration.y>0){this.grounded=false;this.velocity.y=forces.acceleration.y*dt;}
       return;
     }
-    if(this.legacyHandling){this.legacyStep(input,!!runway);return;}
-    // Longitudinal point-mass aerodynamics: attitude and velocity direction are separate.
-    const control=clamp(input.pitch,-1,1), roll=clamp(input.bank,-1,1);
-    const authority=clamp(this.speed/38,.12,1.45)*this.handling;
-    const pitchRate=control*.78*authority*clamp((this.speed-20)/55,.12,1);
-    this.pitch+=pitchRate*dt;
-    this.bank=clamp(this.bank+roll*dt*1.3*this.handling,-1.48,1.48);
-    if(this.assisted) {
-      if(!control)this.pitch-=Math.sin(this.pitch)*Math.cos(this.pitch)*dt*.55;
-      if(!roll)this.bank*=Math.exp(-dt*2.5);
+    // Tire/tail contact opposes further rotation before the underside has ground clearance.
+    // It supplies an angular reaction, never an upward teleport or extra aerodynamic lift.
+    if(runway&&runway.contains(this.position.x,this.position.z,10)&&this.pitch>this.previousPose.pitch&&this.pitch<.3&&this.position.y<runway.height+20&&this.position.y<runway.height+this.supportClearance()+.02){
+      this.pitch=this.previousPose.pitch;this.pitchRate=0;
     }
-    const angle=(a:number)=>Math.atan2(Math.sin(a),Math.cos(a));
-    this.angleOfAttack=angle(this.pitch-this.pathPitch);
-    const turnLoad=1/Math.max(.2,Math.cos(this.bank));
-    const required=25*Math.sqrt(turnLoad+Math.abs(pitchRate)*this.speed/9.81);
-    this.stalled=this.speed<required||Math.abs(this.angleOfAttack)>.32;
-    const response=this.stalled?.55:3.8;
-    this.pathPitch+=angle(this.pitch-this.pathPitch)*response*dt;
-    if(this.stalled){this.pathPitch-=Math.cos(this.pathPitch)*.42*dt;this.pitch-=Math.cos(this.pitch)*.22*dt;}
-    this.loadFactor=clamp(Math.cos(this.pathPitch)*turnLoad+pitchRate*this.speed/9.81,-3,9);
-    const drag=.00115*this.speed*this.speed+.35+Math.abs(this.loadFactor-1)*.65+(this.stalled?2:0);
-    this.speed=clamp(this.speed+(this.throttle*12*this.enginePower-drag-9.81*Math.sin(this.pathPitch))*dt,8,this.maxSpeed*1.35);
-    this.heading+=Math.sin(this.bank)*9.81/Math.max(18,this.speed)*dt*2;
-    const old=this.position;
-    this.verticalSpeed=Math.sin(this.pathPitch)*this.speed;
-    const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pathPitch)*this.speed*dt,y:old.y+this.verticalSpeed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pathPitch)*this.speed*dt};
-    this.move(next);
+    // Bank tilts the actual lift vector; lateral acceleration, rather than a scripted yaw, turns the aircraft.
+    forces=aerodynamicForces(this.velocity,this.heading,this.pitch,this.bank,this.position.y,this.throttle,this.enginePower,this.maxSpeed/100);
+    this.angleOfAttack=forces.alpha;this.loadFactor=forces.loadFactor;this.stalled=forces.stalled;
+    for(const axis of ['x','y','z'] as const)this.velocity[axis]+=forces.acceleration[axis]*dt;
+    this.speed=Math.hypot(this.velocity.x,this.velocity.y,this.velocity.z);this.verticalSpeed=this.velocity.y;
+    const horizontal=Math.hypot(this.velocity.x,this.velocity.z);
+    if(horizontal>2){const sign=Math.cos(this.pitch)<0?-1:1,target=Math.atan2(this.velocity.x*sign,-this.velocity.z*sign),error=Math.atan2(Math.sin(target-this.heading),Math.cos(target-this.heading));this.heading+=error*Math.min(1,dt*2)*Math.abs(Math.cos(this.pitch));}
+    this.move({x:this.position.x+this.velocity.x*dt,y:this.position.y+this.velocity.y*dt,z:this.position.z+this.velocity.z*dt});
+  }
+  private supportClearance(){
+    const points=(this.geometry.fixedWing??LAB_FIXED_HULL).points,sp=Math.sin(this.pitch),cp=Math.cos(this.pitch);
+    let min=Infinity;for(const p of points)min=Math.min(min,p.y*cp-p.z*sp);return .08-min;
   }
   private legacyStep(input:FlightInput,runway:boolean){
     const dt=1/60;
@@ -121,7 +133,7 @@ export class Flight {
       const p=hit.pose.position,r=this.geometry.runwayAt?.(p.x,p.z)??this.geometry.runway,alignment=Math.abs(Math.sin(this.heading));
       const descent=(next.y-old.y)*60;
       if(hit.reason==='Terrain collision'&&r.contains(p.x,p.z,10)&&alignment<.16&&Math.abs(this.bank)<.10&&this.pitch>=-.12&&this.pitch<=.18&&descent>=-4&&this.speed<=48){
-        this.position={x:p.x,y:r.height+r.clearance,z:p.z};this.pitch=this.bank=0;this.grounded=true;this.ticks++;return;
+        this.position={x:p.x,y:r.height+r.clearance,z:p.z};this.pitch=this.bank=this.pitchRate=0;this.velocityReady=false;this.grounded=true;this.ticks++;return;
       }
     }
     if(hit){this.position=hit.pose.position;this.heading=hit.pose.heading;this.pitch=hit.pose.pitch;this.bank=hit.pose.bank;this.state='crashed';this.reason=hit.reason;this.accumulator=0;return;}
