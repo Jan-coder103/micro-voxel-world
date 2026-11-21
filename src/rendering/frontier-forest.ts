@@ -1,3 +1,4 @@
+import type { TimingSink } from '../performance/frontier-profiler';
 import { configureTreeSpriteFade,createTreeSpriteGeometry,createTreeSpriteMaterial,createTreeSpriteTexture,treeSpriteMode,TREE_SPRITE_START,TREE_SPRITE_END } from './tree-sprites';
 import { configureTreeMorph,createMorphTreeGeometry,createFarTreeGeometry,TREE_DETAIL_END } from './tree-morph';
 import { Color,DynamicDrawUsage,Group,InstancedMesh,MeshStandardMaterial,Sphere,Vector3,type Camera,type Frustum,type BufferGeometry } from 'three';
@@ -34,7 +35,8 @@ export function createFrontierForest(seed:number,world:SettlementWorld,_geometry
     // Do not dirty buffers on unrelated/empty membership changes or hidden growth.
     if(changed){compactions++;if(count)tile.mesh.instanceMatrix.needsUpdate=true;}
   };
-  const pump=()=>{
+  const diagnostics:{timingSink?:TimingSink}={};
+  const runPump=()=>{
     timer=undefined;if(disposed)return;
     const started=performance.now(),changed=new Set<Tile>();let jobs=0;
     while(queue.length&&jobs<16&&(jobs===0||performance.now()-started<3)){
@@ -48,7 +50,8 @@ export function createFrontierForest(seed:number,world:SettlementWorld,_geometry
     const now=performance.now();if(!queue.length||now-lastWake>=200){lastWake=now;wake();}
     if(queue.length)timer=setTimeout(pump,8);
   };
-  return {group,get spritesEnabled(){return spritesEnabled;},set spritesEnabled(value:boolean){spritesEnabled=value;},get treeCount(){let n=0;for(const t of tiles.values())n+=t.generated;return n;},get stats(){let generated=0,submitted=0,spriteInstances=0,transitionTiles=0;for(const t of tiles.values()){generated+=t.generated;submitted+=t.mesh.count;if(t.mesh.geometry===spriteGeometry||t.sprite.visible)spriteInstances+=t.mesh.count;if(t.sprite.visible)transitionTiles++;}return {generated,submitted,spriteInstances,transitionTiles,spritesEnabled,omitted:generated-submitted,tiles:tiles.size,compactions,pending:queue.length>0};},get pending(){return queue.length>0;},get rebuilds(){return rebuilds;},
+  const pump=()=>{if(!diagnostics.timingSink){runPump();return;}const start=performance.now();try{runPump();}finally{diagnostics.timingSink('Forest generation timer',performance.now()-start);}};
+  return {group,diagnostics,get spritesEnabled(){return spritesEnabled;},set spritesEnabled(value:boolean){spritesEnabled=value;},get treeCount(){let n=0;for(const t of tiles.values())n+=t.generated;return n;},get stats(){let generated=0,submitted=0,spriteInstances=0,transitionTiles=0;for(const t of tiles.values()){generated+=t.generated;submitted+=t.mesh.count;if(t.mesh.geometry===spriteGeometry||t.sprite.visible)spriteInstances+=t.mesh.count;if(t.sprite.visible)transitionTiles++;}return {generated,submitted,spriteInstances,transitionTiles,spritesEnabled,omitted:generated-submitted,tiles:tiles.size,compactions,pending:queue.length>0};},get pending(){return queue.length>0;},get rebuilds(){return rebuilds;},
     update(x:number,z:number,residents:Iterable<{spec:ChunkSpec}>=[]){
       if(disposed)return;
       const nextDetail=new Set<string>();for(const {spec} of residents)if(spec.lod<=1)nextDetail.add(`${spec.x},${spec.z}`);

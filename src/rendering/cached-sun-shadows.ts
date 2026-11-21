@@ -29,7 +29,8 @@ export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:Di
   const originalAuto=renderer.shadowMap.autoUpdate,originalRender=renderer.shadowMap.render;
   const cached=new DirectionalLight();cached.castShadow=true;cached.shadow=sun.shadow.clone();
   // 16 m of anchor slack preserves the original 240 m radius at every position.
-  for(const light of [sun,cached]){light.shadow.mapSize.set(1096,1096);Object.assign(light.shadow.camera,{left:-256,right:256,top:256,bottom:-256});light.shadow.camera.updateProjectionMatrix();}
+  // 896² lowers depth fill/bandwidth while retaining stable world-space filtering.
+  for(const light of [sun,cached]){light.shadow.mapSize.set(896,896);Object.assign(light.shadow.camera,{left:-256,right:256,top:256,bottom:-256});light.shadow.camera.updateProjectionMatrix();}
   const stamps=new Map<Mesh,Stamp>(),dynamic=new Set<Mesh>(),casters:Mesh[]=[];
   let lastError='',enabled=true;
   let anchor='',anchorX:number|undefined,anchorZ:number|undefined,rebaseX:number|undefined,rebaseZ:number|undefined,disposed=false,fallback=false,staticBuilds=0,depthCopies=0,lastSize=0;

@@ -144,3 +144,17 @@ does not remove instrumentation, layout or driver overhead. Reset/toggles refres
 immediately. The CPU-only reproducible comparison is
 `node --import tsx tools/benchmarks/profiler-report.ts`.
 See [decision 0047](../decisions/0047-distant-tree-cards-profiler-cost.md).
+
+## Pacing investigation modes
+
+F8 → uncheck **Detailed timings (draw / GL hooks)** for a lightweight capture.
+Changing mode resets history; compare the same warmed view. Lightweight retains
+frame/stage timing and the panel, restores detailed hooks and disables GPU queries.
+Export includes `captureMode`, `environment` (exposed WebGL backend and actual
+context attributes) and `sceneState.quality`.
+
+`backgroundCpu` measures main-thread forest/road timer jobs between continuous
+callbacks. These are included in outside-callback time, not CPU callback time.
+Do not add them to outside time or treat their separately aggregated samples as
+paired frames. Idle gaps are excluded. Worker execution remains untimed. See
+[decision 0048](../decisions/0048-frame-pacing-investigation.md).

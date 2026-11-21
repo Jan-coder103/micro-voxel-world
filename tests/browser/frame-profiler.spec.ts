@@ -34,6 +34,12 @@ test('detailed hooks attribute instanced work, preserve pixels and restore rende
   expect(color.find((d:{name:string})=>d.name==='Color / Trees').triangles.mean).toBe(24);
   expect(report.draws.find((d:{name:string})=>d.name==='Shadow / Trees').triangles.mean).toBe(6);
   expect(report.cpu['Shadow static rebuild (inclusive)']).toBeTruthy();expect(report.cpuCalls['Shadow static rebuild (inclusive)'].mean).toBe(.25);expect(report.events['Shadow rebuild'].total).toBe(1);expect(report.events['Shadow invalidation / Caster added'].total).toBe(1);
+  await page.getByLabel('Detailed timings (draw / GL hooks)').uncheck();
+  expect(await page.evaluate(()=>(window as unknown as {profilerDetail:{light:()=>Promise<unknown>}}).profilerDetail.light())).toEqual({draw:true,buffer:true,sink:true});
+  const lightDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Export JSON'}).click();const light=JSON.parse(await readFile((await (await lightDownload).path())!,'utf8'));
+  expect(light.captureMode).toBe('lightweight');expect(light.windowFrames).toBe(4);expect(light.cpu['Frame interval'].samples).toBe(3);
+  expect(light.backgroundCpu['Synthetic timer job']).toEqual({mean:3,p95:3,max:3,samples:3});expect(light.cpu['Synthetic timer job']).toBeUndefined();expect(light.cpuCalls).toEqual({});expect(light.draws).toEqual([]);expect(light.environment.attributes.antialias).toBe(false);
+  await page.getByLabel('Detailed timings (draw / GL hooks)').check();
   expect(await page.evaluate(()=>(window as unknown as {profilerDetail:{stop:()=>unknown}}).profilerDetail.stop())).toEqual({draw:true,shadow:true,render:true,buffer:true,command:true,sink:true});
   await page.evaluate(()=>(window as unknown as {profilerDetail:{dispose:()=>void}}).profilerDetail.dispose());expect(errors).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import { BufferGeometry,DataTexture,DoubleSide,Float32BufferAttribute,LinearMipmapLinearFilter,MeshStandardMaterial,NearestFilter,RGBAFormat,type Sphere,type Vector3 } from 'three';
-export const TREE_SPRITE_START=1000,TREE_SPRITE_END=1080;
+export const TREE_SPRITE_START=900,TREE_SPRITE_END=980;
 /** Crossed upright cards retain a silhouette from oblique views; steep views use geometry. */
 export function treeSpriteMode(camera:Vector3,bounds:Sphere,enabled:boolean,shadowed:boolean){
   const distance=camera.distanceTo(bounds.center),horizontal=Math.hypot(camera.x-bounds.center.x,camera.z-bounds.center.z);

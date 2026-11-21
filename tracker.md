@@ -1,3 +1,32 @@
+## 22 November 2026 — Image quality restoration and pacing investigation
+
+Restored MSAA, the 1.5 DPR cap and default 100% render scale at Jan's request;
+Auto remains optional. Retain 896² sun maps and preceding 900–980 m distant-tree
+transition. Removed the previous forest-only shadow throttle after the existing
+immediate-invalidation regression failed: stale shadows are not acceptable.
+Earlier claims of spatial forest groups were inaccurate; those were not built.
+
+Compared supplied profile(3)/(4): 27.62 → 28.49 ms intervals despite 44% fewer
+pixels; CPU callback 8.16 → 12.39 ms, p95 14 → 22 ms; settlement max 72 ms;
+static rebuilds 108 in each. Different moving views prevent causal comparison.
+No 30 Hz limiter in demandFrames; no GPU timings in either Firefox capture.
+No confirmed root cause or hardware FPS gain.
+
+Added F8 detailed/lightweight comparison, restoring deep hooks in lightweight,
+plus backgroundCpu timing for main-thread forest/road timers, backend/context
+metadata and actual quality settings. Histories bounded, sinks restored;
+background time is already part of outside-callback time. Decision 0048 and
+profiler guide describe next same-view captures and Firefox Performance trace.
+Physical GPU/heat acceptance and human visual checks remain open.
+
+Verification: build/typecheck, lint and whitespace pass. Fifteen focused unit
+checks pass (five files); two short software-WebGL profiler checks pass (24 s),
+including pixel parity, native hook restoration, capture mode reset and background
+sample accounting. Earlier regressions exposed shadow throttle and stale test
+transition coordinates; fixed and rerun clean. Initial sandbox browser run could
+not start its preview server; approved local run passed. Full npm check not run.
+Local commit follows; no push/deployment.
+
 ## 21 November 2026 — Distant cutout cards and cheaper F8 reports
 
 Implemented Jan's authorized next steps after the sprite discussion. Shared

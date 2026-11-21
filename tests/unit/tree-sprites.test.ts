@@ -1,6 +1,6 @@
 import { expect,it,vi } from 'vitest';
 import { BoxGeometry,Frustum,InstancedMesh,PerspectiveCamera,Sphere,Vector3 } from 'three';
-import { createTreeSpriteGeometry,createTreeSpriteTexture,createTreeSpriteMaterial,treeSpriteMode } from '../../src/rendering/tree-sprites';
+import { createTreeSpriteGeometry,createTreeSpriteTexture,createTreeSpriteMaterial,treeSpriteMode,TREE_SPRITE_START,TREE_SPRITE_END } from '../../src/rendering/tree-sprites';
 import { createFrontierForest } from '../../src/rendering/frontier-forest';
 import { SettlementWorld } from '../../src/world/settlements';
 it('uses four opaque cutout triangles and a shared bounded deterministic atlas',()=>{
@@ -11,7 +11,7 @@ it('uses four opaque cutout triangles and a shared bounded deterministic atlas',
 });
 it('selects transitions only at distance and restores geometry for steep views, shadows or comparison toggle',()=>{
   const b=new Sphere(new Vector3(),100);
-  expect(treeSpriteMode(new Vector3(0,0,700),b,true,false)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,0,1040),b,true,false)).toBe('transition');expect(treeSpriteMode(new Vector3(0,0,1300),b,true,false)).toBe('sprite');
+  expect(treeSpriteMode(new Vector3(0,0,700),b,true,false)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,0,(TREE_SPRITE_START+TREE_SPRITE_END)/2),b,true,false)).toBe('transition');expect(treeSpriteMode(new Vector3(0,0,1300),b,true,false)).toBe('sprite');
   expect(treeSpriteMode(new Vector3(0,0,1300),b,true,true)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,0,1300),b,false,false)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,1300,500),b,true,false)).toBe('geometry');
 });
 it('shares instance buffers, restores shadow-region geometry, toggles and disposes all sprite resources',()=>{

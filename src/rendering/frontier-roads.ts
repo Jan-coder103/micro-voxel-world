@@ -1,3 +1,4 @@
+import type { TimingSink } from '../performance/frontier-profiler';
 import { BufferAttribute,BufferGeometry,Group,Mesh,MeshStandardMaterial } from 'three';
 import { airbaseReserved,airbaseSample } from '../world/airbase';
 import { cropFields,FARM_BLOCK_SIZE } from '../world/regional-terrain';
@@ -27,8 +28,10 @@ export function createFrontierRoads(world:SettlementWorld,wake=()=>{}){
     const geometry=new BufferGeometry();geometry.setAttribute('position',new BufferAttribute(new Float32Array(positions),3));geometry.setAttribute('color',new BufferAttribute(new Float32Array(colors),3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
     const mesh=new Mesh(geometry,material);mesh.receiveShadow=true;mesh.position.set(ox,0,oz);group.add(mesh);tiles.set(`${tx},${tz}`,mesh);
   };
-  const pump=()=>{timer=undefined;if(disposed)return;const tile=queue.shift();if(tile)build(tile.x,tile.z);wake();if(queue.length)timer=setTimeout(pump,12);};
-  return {group,get pending(){return queue.length>0||timer!==undefined;},get count(){return tiles.size;},
+  const diagnostics:{timingSink?:TimingSink}={};
+  const runPump=()=>{timer=undefined;if(disposed)return;const tile=queue.shift();if(tile)build(tile.x,tile.z);wake();if(queue.length)timer=setTimeout(pump,12);};
+  const pump=()=>{if(!diagnostics.timingSink){runPump();return;}const start=performance.now();try{runPump();}finally{diagnostics.timingSink('Road generation timer',performance.now()-start);}};
+  return {group,diagnostics,get pending(){return queue.length>0||timer!==undefined;},get count(){return tiles.size;},
     update(x:number,z:number){if(disposed)return;const cx=Math.floor(x/512),cz=Math.floor(z/512),key=`${cx},${cz}`;if(key===anchor)return;anchor=key;
       const wanted=new Set<string>();queue=[];for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const key=`${cx+dx},${cz+dz}`;wanted.add(key);if(!tiles.has(key))queue.push({x:cx+dx,z:cz+dz});}
       queue.sort((a,b)=>Math.hypot(a.x-cx,a.z-cz)-Math.hypot(b.x-cx,b.z-cz));
