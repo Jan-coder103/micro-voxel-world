@@ -26,8 +26,8 @@ it('varies town spacing and adds bounded deterministic farm clusters beside fiel
   }
   expect(count).toBeGreaterThan(0);
 });
-it('uses static water waves and sun glints with low water roughness across LODs',()=>{
+it('uses animated water waves, coastal foam and shared sun glints with low water roughness across LODs',()=>{
   const material=new MeshStandardMaterial({vertexColors:true}),surface=configureFrontierMaterial(material,103);
   const shader={vertexShader:ShaderLib.standard.vertexShader,fragmentShader:ShaderLib.standard.fragmentShader,uniforms:{}} as Parameters<typeof material.onBeforeCompile>[0];material.onBeforeCompile(shader,undefined as never);
-  expect(shader.fragmentShader).toContain('waveNormal');expect(shader.fragmentShader).toContain('glint');expect(shader.fragmentShader).toContain('roughnessFactor,.30,waterCoverage');expect(shader.fragmentShader).not.toContain('uniform float time');surface.dispose();material.dispose();
+  expect(shader.fragmentShader).toContain('waveNormal');expect(shader.fragmentShader).toContain('glint');expect(shader.fragmentShader).toContain('roughnessFactor,.30,waterCoverage');expect(shader.fragmentShader).toContain('uniform float waterTime');expect(shader.fragmentShader).toContain('shoreDistance');expect(shader.fragmentShader).toContain('foam');surface.updateTime(2);expect(shader.uniforms.waterTime.value).toBe(2);surface.dispose();material.dispose();
 });

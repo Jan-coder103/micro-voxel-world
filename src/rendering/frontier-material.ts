@@ -1,8 +1,10 @@
-import { cropFields,farmLayout,FARM_BLOCK_SIZE,CROP_COLORS } from '../world/regional-terrain';
+import { SUN_DIRECTION } from './flight-effects';
+import { cropFields,farmLayout,FARM_BLOCK_SIZE,CROP_COLORS,regionLayout,regionalHash } from '../world/regional-terrain';
 import { DataTexture,FloatType,RGBAFormat,Vector2,type MeshStandardMaterial } from 'three';
 
 /** World-anchored, filtered soil/grass grain, shared by streamed terrain and its underlay. */
-export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number){
+export function configureFrontierMaterial(material:MeshStandardMaterial,seed:number,options:{waterEffects?:boolean}={}){
+  const time={value:0},presentation={value:options.waterEffects===false?0:1};
   const origin={value:new Vector2()},farmOrigin={value:new Vector2()},size=13;
   const pixels=new Float32Array(size*size*36),farms=new DataTexture(pixels,size*9,size,RGBAFormat,FloatType);
   let anchor='';
@@ -20,19 +22,21 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
     }
     farms.needsUpdate=true;
   };updateFields(0,0);
-  material.customProgramCacheKey=()=> 'frontier-ground-v5';
+  material.customProgramCacheKey=()=> 'frontier-ground-v6-water';
   material.onBeforeCompile=shader=>{
-    shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
+    shader.uniforms.riverShape={value:new Vector2(regionLayout(seed).coast+1400,regionalHash(seed,0,0,99)*6.28)};shader.uniforms.waterTime=time;shader.uniforms.waterPresentation=presentation;shader.uniforms.waterSun={value:SUN_DIRECTION};shader.uniforms.terrainOrigin=origin;shader.uniforms.farmOrigin=farmOrigin;shader.uniforms.farmAtlas={value:farms};
     shader.uniforms.terrainSeed={value:seed%65536};
     shader.vertexShader=shader.vertexShader.replace('#include <common>',`#include <common>
-      uniform vec2 terrainOrigin; varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable;`)
+      uniform vec2 terrainOrigin; varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable; varying float vSurfaceHeight; attribute float waterDepth; varying float vWaterDepth;`)
       .replace('#include <begin_vertex>',`#include <begin_vertex>
       vTerrainPosition=(modelMatrix*vec4(position,1.0)).xz+terrainOrigin;
+      vWaterDepth=waterDepth;
+      vSurfaceHeight=(modelMatrix*vec4(position,1.)).y;
       vTerrainTop=smoothstep(.5,.9,normal.y);
       vTerrainWater=step(color.r*1.5,color.b);
       vTerrainCultivable=step(.17,color.r)*step(color.b*1.5,color.g)*step(color.r*.7,color.g);`);
     shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
-      varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable; uniform float terrainSeed;
+      varying vec2 vTerrainPosition; varying float vTerrainTop; varying float vTerrainWater; varying float vTerrainCultivable; varying float vSurfaceHeight; varying float vWaterDepth; uniform float terrainSeed; uniform float waterTime; uniform float waterPresentation; uniform vec3 waterSun; uniform vec2 riverShape;
       uniform sampler2D farmAtlas; uniform vec2 farmOrigin;
       vec3 cropColor(float crop){${CROP_COLORS.map((c,i)=>`if(crop<${i+.5})return vec3(${c.join(',')});`).join('')}return vec3(.4,.4,.2);}
       float terrainHash(vec2 cell){vec3 p=fract(vec3(cell.xyx)*.1031+terrainSeed*.001);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
@@ -48,6 +52,30 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
       vec3 sharpColor=mix(dryColor,waterColor,waterCoverage);
       diffuseColor.rgb*=sharpColor/max(vColor.rgb,vec3(.0001));
       float land=1.0-waterCoverage;
+      // Convert interpolated wetness into a local distance in metres, independent of LOD.
+      float worldPixel=max(length(dFdx(vTerrainPosition)),length(dFdy(vTerrainPosition)));
+      float shoreDistance=clamp((wet-.5)*worldPixel/max(fwidth(wet),.000001),-1000.,1000.);
+      float sea=1.-smoothstep(.5,2.,vSurfaceHeight);
+      float shoreMetres=min(max(0.,shoreDistance),max(0.,vWaterDepth)*18.);
+      float shallows=exp(-shoreMetres*.045);
+      vec3 deep=mix(vec3(.035,.14,.16),vec3(.025,.12,.20),sea);
+      vec3 shallow=mix(vec3(.16,.35,.29),vec3(.18,.48,.43),sea);
+      vec3 waterTint=mix(deep,shallow,shallows);
+      vec2 flow=vTerrainPosition;flow.y-=riverShape.x+sin(flow.x/570.+riverShape.y)*100.;
+      float current=sin(flow.x*.24-waterTime*1.8+sin(flow.y*.15)*.8);
+      float ripples=sin(flow.x*.31+flow.y*.16-waterTime*1.3)*sin(flow.y*.24-waterTime*.7);
+      waterTint*=1.+current*.055+ripples*.045;
+      diffuseColor.rgb=mix(diffuseColor.rgb,waterTint,waterCoverage*waterPresentation);
+      float sand=step(.4,dryColor.r)*step(dryColor.b*1.3,dryColor.r)*step(dryColor.g*1.03,dryColor.r);
+      float damp=exp(-abs(shoreDistance)*.10)*land*sand*waterPresentation;
+      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.72,.63,.44),sand*land*vTerrainTop*.35*waterPresentation);
+      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.32,.27,.18),damp*.65);
+      // Broken moving breakers advance toward the bank, then dissolve into foam lace.
+      float breaker=sin(shoreMetres*.32+sin(vTerrainPosition.y*.026)*.9+waterTime*1.6);
+      float lace=.5+.5*sin(vTerrainPosition.x*.57+sin(vTerrainPosition.y*.49)*2.+waterTime*.3);
+      float foam=(smoothstep(.65,.96,breaker)*(.65+.35*lace)*exp(-shoreMetres*.045)
+        +exp(-abs(shoreDistance)*.8)*.6)*waterCoverage*sea*waterPresentation;
+      foam=clamp(foam,0.,.92);
       float groundPatch=terrainGrain(vTerrainPosition,12.0),soil=terrainGrain(vTerrainPosition,3.0),grain=terrainGrain(vTerrainPosition,.65);
       float variation=groundPatch*.24+soil*.16+grain*.16;
       diffuseColor.rgb*=1.0+variation*land*vTerrainTop;
@@ -78,10 +106,11 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
       .replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
         roughnessFactor=mix(roughnessFactor,.30,waterCoverage);`)
       .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
-        // Static multi-scale wave normals: no time uniform or moving geometry.
-        vec2 wp=vTerrainPosition;wp+=vec2(sin(wp.y*.017),sin(wp.x*.011))*9.0;
+        // Advected normals animate flow without displacing the collision surface.
+        vec2 wp=vTerrainPosition+vec2(-waterTime*1.8,waterTime*.7);wp+=vec2(sin(wp.y*.017),sin(wp.x*.011))*9.0;
         vec2 slope=vec2(cos(wp.x*.095+wp.y*.047)*.11+cos(wp.x*.33-wp.y*.19)*.045,
           cos(wp.x*.095+wp.y*.047)*.055-cos(wp.x*.33-wp.y*.19)*.03);
+        slope*=mix(.45,1.,sea);
         vec3 waveNormal=normalize(vec3(-slope.x,1.0,-slope.y));
         normal=normalize(mix(normal,normalize(mat3(viewMatrix)*waveNormal),waterCoverage));`)
       .replace('#include <opaque_fragment>',`
@@ -89,10 +118,11 @@ export function configureFrontierMaterial(material:MeshStandardMaterial,seed:num
         vec3 worldNormal=normalize(vec3(-slope.x,1.0,-slope.y));
         vec3 viewWorld=normalize(inverseTransformDirection(normalize(vViewPosition),viewMatrix));
         vec3 reflected=reflect(-viewWorld,worldNormal);
-        float glint=pow(max(dot(reflected,normalize(vec3(-.85,.38,-.35))),0.0),65.0);
+        float glint=pow(max(dot(reflected,waterSun),0.0),65.0);
         float fresnel=.08+.65*pow(1.0-max(dot(viewWorld,worldNormal),0.0),4.0);
         outgoingLight+=waterCoverage*(vec3(.13,.20,.36)*fresnel+vec3(1.8,.85,.32)*glint);
+        outgoingLight=mix(outgoingLight,vec3(.88,.94,.88),foam*.86);
         #include <opaque_fragment>`);
   };
-  return {updateFields,dispose(){farms.dispose();},updateOrigin(x:number,z:number){origin.value.set(x,z);}};
+  return {updateFields,updateTime(seconds:number){time.value=seconds;},dispose(){farms.dispose();},updateOrigin(x:number,z:number){origin.value.set(x,z);}};
 }

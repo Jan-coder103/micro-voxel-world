@@ -1,5 +1,54 @@
 # Progress tracker
 
+## 21 November 2026 — Procedural clouds, waterways, surf and siege spiders
+
+Implemented Jan's follow-up visual/content slice; decision 0038. Clouds now occupy
+seeded world cells and stream through a bounded 7×7 window, fading at distance.
+World positions/noise persist across recentering and revisits; only the sky follows
+the aircraft. Soft transparent density-shaded billboards replace opaque spheres;
+maximum 392 billows / 784 triangles in one draw. Transparent overlap is approximate;
+fragment noise/overdraw cost is unmeasured on physical GPU.
+
+Shared terrain water uses authoritative depth, near-bank tint, darker channels,
+flow bands aligned to the river, advected wave normals and the actual sun direction.
+Coasts add pale/damp sand and white broken breakers moving shoreward through the
+shallows. Depth adds one float/vertex (~11% terrain buffer overhead), transferred
+with workers and supplied by fallback terrain; no extra sampling or render pass.
+Watercourse paths and save scopes are retained. The home apron north plateau
+starts 12 m before the runway (previously 50 m) to reopen its river gap; analytic
+collision bounds match. Runway height/dryness are retained. Pausing or disabling
+Combat effects freezes water animation. Shore distance/foam are presentation
+approximations on the current LOD silhouette, not moving water collision.
+
+64 m siege spiders coexist with brutes/colossi: eight jointed legs, dark armored
+body, eyes/fangs; rotated render segments, conservative collision bounds and
+chains of hit spheres. One deterministic early-world spider plus regional spawns;
+12,000 HP / $2,200 / 3,200 XP, nearby slow roaming, existing passive combat/reward
+rules. V1 wounds accept the additive mutant:spider ID; old records remain valid.
+Some former regional brute slots now select spiders. Render capacity 4,096 shared
+primitive parts, no new external art/source assets. HUD and manual name spiders.
+
+Verification: final full unit run passes 310 tests / 44 files (120.33 s), including
+continuous river across the approach apron, dry runway and analytic terrain bounds.
+Four browser checks passed (1.5 m) before the apron correction: all six static
+views, coast/river animated pixel differences, isolated sharp edge and player shell /
+WebGL fallback. The hangar purchase/navigation check also passed in the earlier
+five-check run. Final apron-corrected scenery capture: passed (1.1 m), including both water pixel checks. Inspected cloud, spider, river and coastal captures.
+Cloud tests cover fixed world coordinates, retained overlap across cell boundaries,
+revisits, capacity, transparency and disposal. Spider checks cover 16 leg segments,
+hit geometry, damage/death persistence and once-only boss rewards. Browser coast/
+river checks compare pixels at two times; the isolated edge fixture disables water
+presentation to continue testing sharp LOD coverage. An intermediate new depth assertion caught slightly negative presentation depth
+from 0.1 m terrain rounding; clamping depth to zero fixed it without changing the
+height field. Initial browser run hit suite
+budgets while sharing CPU with unit regressions; static multi-view and hangar budgets
+now allow their actual sequential workload. Build/types/lint, 23 source validations
+and whitespace checks pass; existing bundle warning remains. No sustained flight
+or hardware benchmark under retained heat restriction. Human visual/handling and
+physical-GPU acceptance remain open. Required local commit follows; no push/deploy.
+Playwright owns/stops its preview; user server untouched.
+
+
 ## 21 November 2026 — Sunset combat reference presentation
 
 Implemented the requested screenshot-inspired presentation; decision 0037. Amber

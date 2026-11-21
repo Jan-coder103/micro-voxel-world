@@ -10,7 +10,7 @@ for(const sharp of [false,true]){
   const colors:number[]=[];
   for(let i=0;i<geometry.getAttribute('position').count;i++)colors.push(...(geometry.getAttribute('position').getX(i)<0?[.10,.36,.49]:[.62,.57,.37]));
   geometry.setAttribute('color',new BufferAttribute(new Float32Array(colors),3));
-  const material=new MeshStandardMaterial({vertexColors:true,roughness:1});if(sharp)configureFrontierMaterial(material,103);
+  const material=new MeshStandardMaterial({vertexColors:true,roughness:1});if(sharp)configureFrontierMaterial(material,103,{waterEffects:false});
   const scene=new Scene();scene.add(new AmbientLight('#ffffff',Math.PI),new Mesh(geometry,material));
   const camera=new OrthographicCamera(-1024,1024,256,-256,1,4000);camera.position.set(0,2000,0);camera.up.set(0,0,-1);camera.lookAt(0,0,0);
   renderer.render(scene,camera);

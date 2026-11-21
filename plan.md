@@ -999,3 +999,11 @@ Jan requested a closer visual match to an attached sunset air-combat screenshot.
 Decision 0037 selects amber atmosphere, shaded cloud banks, green flight instruments,
 a heading tape and real heading-up radar, retaining Frontier's voxel world and combat.
 Human visual and retained hardware acceptance remain separate.
+
+## Clouds, waterways, beach surf and spiders — 21 November 2026
+
+Jan selected procedural world-anchored translucent cloud banks, a river surface
+rework, animated white beach breakers/wet sand and giant spiders alongside existing
+mutants. Decision 0038 records bounded residency, material approximation and the
+spider's combat/persistence integration. Retain terrain/save/flight scopes and open
+human visual and hardware acceptance.

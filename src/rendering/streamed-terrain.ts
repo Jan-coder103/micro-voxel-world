@@ -6,6 +6,7 @@ export function attachTerrain(spec:ChunkSpec,data:TerrainData,material:Material,
   const geometry=new BufferGeometry();
   geometry.setAttribute('position',new BufferAttribute(data.positions,3));
   geometry.setAttribute('normal',new BufferAttribute(data.normals,3));
+  geometry.setAttribute('waterDepth',new BufferAttribute(data.waterDepth??new Float32Array(data.positions.length/3).fill(1000),1));
   geometry.setAttribute('color',new BufferAttribute(data.colors,3)); geometry.computeBoundingSphere();
   const mesh=new Mesh(geometry,material); mesh.receiveShadow=true; group.add(mesh);
   const marker=new Mesh(markerGeometry,markerMaterial); marker.visible=!cleared; group.add(marker);

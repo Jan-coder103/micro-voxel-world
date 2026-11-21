@@ -33,7 +33,7 @@ export class Frontier {
       // The cleared airfield has no procedural structures.
       if(airbaseReserved(o.x,o.z)&&airbaseReserved(o.x+d.x*r,o.z+d.z*r))return undefined;
       return this.population.world.ray(o,d,r,0,b=>airbaseReserved(b.x,b.z,Math.max(b.width,b.depth)/2));
-    },onDamage:t=>{if(t.id.startsWith('mutant:'))this.mutants.damaged(t);else this.population.damaged(t);},onKill:t=>{if(t.id.startsWith('mutant:')){const m=t as Mutant;this.bonusMoney+=m.cash-10;this.bonusXP+=m.xp-15;this.notice=`${m.kind==='colossus'?'Colossus':'Brute'} defeated · return to any base to bank rewards.`;}}});
+    },onDamage:t=>{if(t.id.startsWith('mutant:'))this.mutants.damaged(t);else this.population.damaged(t);},onKill:t=>{if(t.id.startsWith('mutant:')){const m=t as Mutant;this.bonusMoney+=m.cash-10;this.bonusXP+=m.xp-15;this.notice=`${m.kind==='colossus'?'Colossus':m.kind==='spider'?'Siege spider':'Brute'} defeated · return to any base to bank rewards.`;}}});
     this.rearm();
   }
   rearm(){this.flight.reset();this.flight.position={...baseSpawn(this.currentBase),y:this.currentBase.height+.08-Math.min(...PLAYER_FIXED_HULL.points.map(p=>p.y))};this.flight.speed=this.flight.throttle=0;this.flight.grounded=true;this.combat.reset();this.bonusMoney=this.bonusXP=0;this.stopTicks=0;this.departed=false;this.crashSeconds=0;this.state='hangar';this.paused=true;this.population.update(this.flight.position);}

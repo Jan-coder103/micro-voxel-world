@@ -2,7 +2,7 @@
 
 **Take off. Find the fight. Make it home.**
 
-Frontier is an arcade aircraft combat game set in a huge, procedurally generated world. Fly low across connected fields, dirt roads, forests, rivers and mountain ranges. Find roaming zombie hordes and towering mutant bosses, choose your attack, then bring your aircraft home to bank the rewards.
+Frontier is an arcade aircraft combat game set in a huge, procedurally generated world. Fly low across connected fields, dirt roads, forests, rivers and mountain ranges. Find roaming zombie hordes and towering mutant bosses and giant siege spiders, choose your attack, then bring your aircraft home to bank the rewards.
 
 <p align="center">
   <img src="docs/images/sunset.png" alt="Aircraft flies over forest, fields, and a coastal town at sunset with a colossal mutant nearby" width="100%">
@@ -12,7 +12,7 @@ Frontier is an arcade aircraft combat game set in a huge, procedurally generated
 
 Every run starts on the home runway. Take off and head for a horde, explore a new region, or follow the hangar’s navigation marker toward **Carrier Resolute** and the sparse battleship groups in the ocean. Airfields and carrier decks both support the same landing, reward banking, shopping and takeoff loop.
 
-Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. They never attack the aircraft, but their bodies are solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
+Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. Giant Siege Spiders stand on eight jointed legs, with 12,000 HP and a $2,200 / 3,200 XP base reward. These bosses never attack the aircraft, but their bodies are solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
 
 A kill earns money and XP, but the rewards stay at risk until you land and bring the aircraft to a full stop. A crash loses the unbanked haul. A successful landing opens the hangar, where you can train a pilot skill, buy and equip gear, or launch the next sortie. A carrier you land on becomes your recovery base for the rest of the session; reloading starts you back at home.
 
@@ -81,3 +81,8 @@ trees extend to 420 m and morph into distant silhouettes through 700 m.
 
 Elevator pull follows the banked aircraft, including sideways at knife-edge and
 downward while inverted. Base thrust is 30 kN (2.5× the earlier 12 kN tuning).
+
+Cloud banks now occupy seeded world positions and stream around the aircraft with
+soft translucent edges. Rivers have animated currents and ripples; coastlines have
+wet sand and breaking white foam. Pausing or disabling Combat effects freezes
+water animation.

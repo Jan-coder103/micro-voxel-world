@@ -45,13 +45,22 @@ it('keeps shaped banks under collision bounds and avoids vertical blue shoreline
     const z=l.riverZ(x)+side*42,b={minX:x-10,maxX:x+10,minZ:z-10,maxZ:z+10},top=regionalHeightCeiling(seed,b);
     for(let px=b.minX;px<=b.maxX;px+=2)for(let pz=b.minZ;pz<=b.maxZ;pz+=2)expect(surface(regionalSample(seed,px,pz))).toBeLessThanOrEqual(top);
     const data=generateTerrain({seed,x:Math.floor(x/32),z:Math.floor(z/32),lod:0,generator:'regional-v2',airbase:true});
+    expect(data.waterDepth?.length).toBe(data.positions.length/3);
     for(let i=0;i<data.positions.length;i+=9){
       // Test water triangles, excluding the brown/green decoration cuboids.
       if([0,3,6].every(j=>data.colors[i+j+2]>data.colors[i+j]*1.5)){
         waterTriangles++;
+        for(const j of [0,1,2])expect(data.waterDepth![i/3+j]).toBeGreaterThanOrEqual(0);
         expect(data.normals[i+1]).toBeGreaterThan(.9);
       }
     }
   }
   expect(waterTriangles).toBeGreaterThan(0);
+});
+
+
+it('keeps the river connected across the home approach apron while retaining a dry runway',()=>{
+  const seed=103,layout=regionLayout(seed);
+  for(let x=-200;x<=200;x+=4){const s=airbaseSample(seed,x,layout.riverZ(x));expect(s.water).not.toBeNull();}
+  for(let z=120;z<=600;z+=20)for(const x of [-22,0,22])expect(airbaseSample(seed,x,z).water).toBeNull();
 });
