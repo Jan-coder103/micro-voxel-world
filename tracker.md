@@ -1,5 +1,24 @@
 # Progress tracker
 
+## 21 November 2026 — Node.js 26 migration
+
+At Jan's request, moved the supported development runtime to Node 26.x in
+package.json, the lockfile, `.nvmrc`, README and the development guide. Added
+`tsx` for benchmark TypeScript parameter properties because Node 26 removed
+`--experimental-transform-types`; updated the existing combat CLI regression.
+Decision 0033 records the choice. No gameplay or browser bundle changes.
+
+Verification on Node 26.13.0 / npm 11.20.0: dependency installation, lint, all 23
+source validations, types and production build pass (existing bundle-size warning).
+The full serial unit run passed 273/274; only the asset-export CLI exceeded its
+5 s limit. Its five-case file passed on rerun with a 15 s limit in 3.50 s; all
+274 tests therefore pass across runs. Initial sandbox CLI subprocess failures
+were rerun outside the sandbox; a failed network install cleanup initially
+interrupted the first test attempt, then clean dependency installation completed.
+Benchmark regression and settlement module import work with tsx. Browser tests
+were not run; Chromium is not installed on this fresh laptop. Physical-GPU and
+human gameplay acceptance remain open. Local commit only; no push/deployment.
+
 ## Phase 1 — Project setup
 
 Status: automated checks passed; phase 1 exit met. Awaiting user verification.

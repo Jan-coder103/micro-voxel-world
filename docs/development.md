@@ -1,7 +1,7 @@
 # Development guide
 
 The supported pages are Frontier at `/` and the voxel workshop at
-`/tools/voxel-editor/`. Use Node.js 24 and run commands from the repository root.
+`/tools/voxel-editor/`. Use Node.js 26 and run commands from the repository root.
 Old lab routes and instructions are preserved in [development history](development-history.md).
 
 ## Voxel workshop
@@ -37,7 +37,7 @@ Twenty original editable reference sources are available in [assets/source](../a
 - `npx playwright install chromium` — install the browser once for smoke tests.
 - `npm run test:browser` — production browser checks (build first).
 - `npm run settlements:benchmark` — deterministic district-generation CPU/payload measurements (not GPU time).
-- `npm run combat:benchmark` — fixed-tick crowd/sustained-fire CPU measurements (Node 24 transform-types flag).
+- `npm run combat:benchmark` — fixed-tick crowd/sustained-fire CPU measurements (tsx handles TypeScript transforms on Node 26).
 - `npm run check` — lint, unit tests, source validation, production build, browser checks.
 
 PowerShell users whose execution policy blocks npm.ps1 can use npm.cmd / npx.cmd.
@@ -52,5 +52,5 @@ Platform and tooling choices are in docs/decisions/0001-foundation.md. The initi
 
 ## Continue on another computer
 
-Pull main (or clone the GitHub repository), use Node 24, then run `npm ci`, `npm run check`, and `npm run dev`. Use `npm run assets:export` to regenerate ignored GLBs. Read handoff.md for the latest stopping point. Browser-created session assets must be exported as JSON and transferred separately; they are not automatically committed.
+Pull main (or clone the GitHub repository), use Node 26, then run `npm ci`, `npm run check`, and `npm run dev`. Use `npm run assets:export` to regenerate ignored GLBs. Read handoff.md for the latest stopping point. Browser-created session assets must be exported as JSON and transferred separately; they are not automatically committed.
 

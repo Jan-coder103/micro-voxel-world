@@ -14,8 +14,8 @@
     "assets:validate": "node tools/assets/validate.ts",
     "assets:export": "node tools/assets/export.ts",
     "assets:benchmark": "node tools/assets/benchmark.ts",
-    "settlements:benchmark": "node --experimental-transform-types tools/benchmarks/settlements.ts",
-    "combat:benchmark": "node --experimental-transform-types tools/benchmarks/combat.ts"
+    "settlements:benchmark": "node --import tsx tools/benchmarks/settlements.ts",
+    "combat:benchmark": "node --import tsx tools/benchmarks/combat.ts"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +29,7 @@
     "@types/node": "^26.6.5",
     "@types/three": "^0.186.0",
     "eslint": "^10.13.0",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.0",
     "vite": "^8.3.5",
@@ -36,6 +37,6 @@
   },
   "private": true,
   "engines": {
-    "node": ">=24.0.0 <25"
+    "node": ">=26.0.0 <27"
   }
 }

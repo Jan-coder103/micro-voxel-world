@@ -38,7 +38,8 @@ To land, line up with the strip, level the wings and touch down below 48 m/s whi
 
 ## Run Frontier
 
-Use Node.js 24 and npm:
+Use Node.js 26 and npm. If you use nvm, run `nvm use` in this folder
+(the checked-in `.nvmrc` selects Node 26):
 
 ```sh
 npm ci
