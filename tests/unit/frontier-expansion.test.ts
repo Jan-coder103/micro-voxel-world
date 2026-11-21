@@ -63,7 +63,7 @@ it('migrates old pilot records and makes prerequisite skills, purchased loadouts
   expect(p.learn('ace')).toBe(false);expect(p.learn('thrust')).toBe(true);expect(p.learn('control')).toBe(true);expect(p.skillPoints).toBe(18);
   expect(p.purchase('engine-3')).toBe(false);expect(p.purchase('engine-1')).toBe(true);expect(p.equip('weapon','engine-1')).toBe(false);expect(p.equip('engine','engine-1')).toBe(true);expect(p.bonuses.engine).toBeCloseTo(1.21);
   const loaded=new PilotProgress(storage);expect(loaded.data).toEqual(p.data);expect(loaded.skillPoints).toBe(18);expect(storage.getItem('mvw:frontier:pilot:v1')).toContain('"schema":1');
-  const g=new Frontier(103,storage);g.launch();expect(g.flight.enginePower).toBeCloseTo(1.24*1.21);expect(g.learn('brakes')).toBe(false);expect(g.purchase('engine-2')).toBe(false);expect(g.equip('engine','')).toBe(false);
+  const g=new Frontier(103,storage);g.launch();expect(g.flight.enginePower).toBeCloseTo(1.24*1.21*g.plane.engine);expect(g.learn('brakes')).toBe(false);expect(g.purchase('engine-2')).toBe(false);expect(g.equip('engine','')).toBe(false);
 });
 
 it('rejects corrupt progression and mutant records atomically while preserving original bytes',()=>{

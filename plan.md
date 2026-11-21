@@ -1024,3 +1024,12 @@ mutants and close attacks; denser realistic distant billboard clouds; split hang
 showroom and locked aircraft slots; crash orbit/skip and two rescue helicopters;
 a fortified military base; and crash earnings / 100% safe-landing bonuses.
 Decision 0040 records bounded implementation and retained human/GPU acceptance.
+
+## Five-tier aircraft progression and run loop — 21 November 2026
+
+Jan requested a single-prop starter, larger twin-prop Tier 2, first jet at Tier 3,
+the current modern attacker at Tier 4 and an advanced fighter at Tier 5, with
+sequential unlocks and detailed original micro-voxel styling. Tie lifetime XP and
+credit spending to persistent aircraft ownership, base-only selection and a saved
+run debrief, while preserving the existing landing bonus, upgrades and equipment.
+Decision 0041 records the selected costs, migration and simulation approximation.

@@ -1,3 +1,66 @@
+## 21 November 2026 — Five-tier aircraft progression and run debriefs
+
+Implemented Jan's progression request; decision 0041 and README list the roster,
+XP/credit requirements and save behavior. Kestrel S-1 starts free (single center
+prop), then Mule T-2 (twin wing props), Comet J-3 (first jet), original Frontier A-4
+(Tier 4) and Spectre X-5 (advanced twin-engine delta/canard fighter). Four new
+original 0.1 m voxel sources have 8,632 / 12,450 / 13,486 / 24,578 cells. They retain
+cockpit glazing/frames, landing gear, control surfaces, maintenance details, lights,
+engine/weapon pods and distinct silhouettes. Props rotate from their source cells.
+Only one displayed aircraft owns render resources; replacements dispose the old
+mesh. All source JSON is bundled (~181 KB extra gzip); no world streaming increase.
+Source-derived cached conservative hulls and matching runway clearance follow the
+selected plane. Locked previews do not change authoritative flight. Selected thrust,
+speed, handling and damage stack with the retained global upgrades/equipment.
+Shared approximate aerodynamic core and all four existing weapons are retained.
+
+Tier 2–5 unlocks require the prior aircraft, 600 / 2,500 / 8,000 / 24,000 lifetime XP
+and the same credit costs. XP is not consumed. Aircraft unlock/select requires the
+hangar; cards preview locked planes and select owned ones. Credit/XP milestones,
+ownership, selected aircraft, completed run count and last debrief persist in pilot
+v3. Migration retains v1/v2 credits, XP, skills, upgrades and equipment without
+rewriting old bytes; both migrated and new pilots begin the aircraft chain at Tier 1.
+Corrupt records remain untouched and progress continues session-only. Landing/stop
+records and banks 2× cash/XP; crash records/banks 1× exactly once. Rescue and rearm do
+not pay again. Active run time survives pause/resume; a new sortie resets it. Hangar
+shows outcome, aircraft, kills, duration, base rewards and bonus, then the next unlock.
+
+Verification: all 336 unit tests / 47 files pass in the full serial subprocess-enabled
+run (126.05 s). Final source/preview alignment and reward/progression rerun passes all
+40 checks / 3 files (11.49 s). Includes all-five manual departures/climb-outs, strict
+unlock/save checks, render disposal/source-to-hull alignment and landing → debrief →
+unlock → upgrade → relaunch → crash/rescue. The new departure test initially released
+elevator at first liftoff; retaining the documented one-second rotation after lift-off
+fixes its three early-aircraft failures. Earlier upgrade expectations now include the
+starter's multiplier. Asset-benchmark CLI allowance increased from 30 to 60 s for the
+larger source library, retaining every invariant. Build/types, lint, all 27 asset
+validations and whitespace pass; existing bundle-size warning remains.
+
+Browser verification: nine unique focused checks pass across batches: aircraft
+chain/selection/reload, 15 perspective/front/top aircraft views, saved debrief,
+lossless workshop import/export/reload for all four sources, player shell/narrow,
+no-WebGL, paused map/showroom, prior static content and keyboard takeoff. Final
+four-check aircraft/debrief/workshop batch reports 4 passed (1.8 m); shell returned
+143 during preview teardown, but a process check confirmed no preview remained.
+An earlier longer batch terminated after six passing checks and left its own
+preview PID 133555; identified against the exact prior run PID and stopped. A retry
+correctly refused that occupied port. User servers were untouched.
+
+The initial keyboard check was airborne/climbing (51 m/s, 11 m AGL, +5.3 m/s) but
+missed its height deadline: one wall-clock second covered less than one simulation
+second under software rendering. The test now holds 60 actual flight ticks after
+liftoff, retaining height/speed/no-stall assertions; final check passes (31.8 s).
+Flight tuning was not changed to fix this test. One approval review timed out;
+permitted retry succeeded. Inspected all new aircraft, front/top views, workshop,
+hangar/narrow and debrief captures. Corrected Spectre's separated wingtip lights,
+regenerated hulls, and aligned previews with their source-derived gear clearance.
+Primary launch action stays above the longer aircraft/debrief panels.
+
+No sustained/heavy physical-GPU work under retained heat restriction. Full browser
+suite/npm check is not claimed; focused short UI/static/workshop checks were used.
+Human flight, art, unlock-economy balance and hardware FPS acceptance remain open.
+Playwright preview was stopped; no push/deployment. Required local commit follows.
+
 ## 21 November 2026 — Homing missiles, world map and expanded sortie presentation
 
 Implemented Jan's requested feature slice; decision 0040 records limits and costs.

@@ -5,7 +5,7 @@ test('showroom keeps aircraft between panels and world map pauses, pans, zooms a
   await page.setViewportSize({width:1280,height:800});await page.goto('/');
   const host=page.getByLabel('Aircraft flight scene',{exact:true}),menu=page.getByRole('dialog',{name:'Hangar and upgrades'}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');
   await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).frameCount).toBeGreaterThan(2);
-  await expect(page.locator('.plane-slots button:disabled')).toHaveCount(4);
+  await expect(page.locator('.plane-slots button')).toHaveCount(5);
   const left=await page.locator('.hangar-left').boundingBox(),right=await page.locator('.hangar-right').boundingBox();expect(left!.x+left!.width).toBeLessThan(600);expect(right!.x).toBeGreaterThan(700);
   await page.screenshot({path:'test-results/sortie-showroom.png'});await page.emulateMedia({reducedMotion:'reduce'});
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/sortie-home-narrow.png'});await page.setViewportSize({width:1280,height:800});

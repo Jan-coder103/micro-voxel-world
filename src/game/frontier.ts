@@ -4,7 +4,7 @@ import { NavalWorld,baseContains,baseSpawn,type LandingBase } from '../world/nav
 import { REGIONAL_HEIGHT_CEILING } from '../world/regional-terrain';
 import { FrontierTrees } from '../world/frontier-collision.ts';
 import { Flight, type Point, type FlightInput } from '../flight/flight.ts';
-import { PLAYER_FIXED_HULL } from '../flight/aircraft-hulls.ts';
+import { planeHull } from '../flight/roster-hulls';
 import { AircraftSetup } from '../flight/aircraft.ts';
 import { Combat, type Target, type WeaponId } from '../combat/weapons.ts';
 import { RegionalPopulation } from '../hordes/regional-population.ts';
@@ -22,14 +22,18 @@ export class Frontier {
   private plan:ChunkSpec[]=[];private planCell='';private stopTicks=0;
   get pendingMoney(){return Math.round((this.combat.kills*(10+this.progress.data.levels.bounty*2)+this.bonusMoney)*this.progress.bonuses.cash);}
   get pendingXP(){return Math.round((this.combat.kills*15+this.bonusXP)*this.progress.bonuses.xp);}
+  get plane(){return this.progress.plane;}
+  get hull(){return planeHull(this.plane.id);}
+  get clearance(){return .08-Math.min(...this.hull.points.map(p=>p.y));}
+  runSeconds=0;
   get baseHeight(){return airbaseHeight(this.seed);}
   constructor(readonly seed=103,storage?:StorageLike){
     this.progress=new PilotProgress(storage);this.navy=new NavalWorld(seed);this.mutants=new Mutants(seed,storage);this.currentBase=this.navigationBase=this.navy.home;this.population=new RegionalPopulation(seed,storage,true,true);
     this.ground=(x,z)=>{const s=airbaseSample(seed,x,z);const deck=this.navy.deckAt(x,z);if(deck!==undefined)return Math.max(deck,s.height,s.water??-Infinity);return onRunway(x,z)?this.baseHeight+.16:Math.max(s.height,s.water??-Infinity);};
     this.trees=new FrontierTrees(seed,this.population.world);
-    const clearance=.08-Math.min(...PLAYER_FIXED_HULL.points.map(p=>p.y));
+    const clearance=this.clearance;
     const baseObstacles=airbaseObstacles(seed);
-    this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,maxGroundHeight:REGIONAL_HEIGHT_CEILING+1,groundCeiling:b=>Math.max(airbaseHeightCeiling(seed,b),b.minX<this.navy.oceanEdge?24:0),maxObstacleHeight:400,worldLimit:900000000,runway:{height:this.baseHeight+.16,clearance,contains:onRunway},runwayAt:(x,z)=>{const b=this.navy.landingAt(x,z);return b?{height:b.height,clearance,contains:(x,z,m=0)=>baseContains(b,x,z,m)}:undefined;},obstacles:b=>[...this.navy.obstacles(b),...this.mutants.obstacles(b),...this.trees.query(b),...baseObstacles.filter(v=>v.minX<=b.maxX&&v.maxX>=b.minX&&v.minZ<=b.maxZ&&v.maxZ>=b.minZ),...this.population.world.buildings(b).filter(v=>!airbaseReserved(v.x,v.z,Math.max(v.width,v.depth)/2)).map(v=>({...v,minY:v.bottom,maxY:v.y+v.height}))]});
+    this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:this.hull,maxGroundHeight:REGIONAL_HEIGHT_CEILING+1,groundCeiling:b=>Math.max(airbaseHeightCeiling(seed,b),b.minX<this.navy.oceanEdge?24:0),maxObstacleHeight:400,worldLimit:900000000,runway:{height:this.baseHeight+.16,clearance,contains:onRunway},runwayAt:(x,z)=>{const b=this.navy.landingAt(x,z);return b?{height:b.height,clearance:this.clearance,contains:(x,z,m=0)=>baseContains(b,x,z,m)}:undefined;},obstacles:b=>[...this.navy.obstacles(b),...this.mutants.obstacles(b),...this.trees.query(b),...baseObstacles.filter(v=>v.minX<=b.maxX&&v.maxX>=b.minX&&v.minZ<=b.maxZ&&v.maxZ>=b.minZ),...this.population.world.buildings(b).filter(v=>!airbaseReserved(v.x,v.z,Math.max(v.width,v.depth)/2)).map(v=>({...v,minY:v.bottom,maxY:v.y+v.height}))]});
     this.flight.assisted=false;
     this.combat=new Combat([],this.ground,128,{index:{query:(min,max)=>[...this.population.query(min,max),...this.mutants.query(min,max)]},blocker:(o,d,r)=>{
       // The cleared airfield has no procedural structures.
@@ -38,10 +42,12 @@ export class Frontier {
     },onDamage:t=>{if(t.id.startsWith('mutant:'))this.mutants.damaged(t);else this.population.damaged(t);},onKill:t=>{if(t.id.startsWith('mutant:')){const m=t as Mutant;this.bonusMoney+=m.cash-10;this.bonusXP+=m.xp-15;this.notice=`${m.kind==='colossus'?'Colossus':m.kind==='spider'?'Siege spider':'Brute'} defeated · return to any base to bank rewards.`;}}});
     this.rearm();
   }
-  rearm(){this.flight.reset();this.flight.position={...baseSpawn(this.currentBase),y:this.currentBase.height+.08-Math.min(...PLAYER_FIXED_HULL.points.map(p=>p.y))};this.flight.speed=this.flight.throttle=0;this.flight.grounded=true;this.combat.reset();this.bonusMoney=this.bonusXP=0;this.stopTicks=0;this.departed=false;this.crashSeconds=0;this.state='hangar';this.paused=true;this.population.update(this.flight.position);}
+  rearm(){this.flight.setFixedWingHull(this.hull);this.flight.reset();this.flight.position={...baseSpawn(this.currentBase),y:this.currentBase.height+this.clearance};this.flight.speed=this.flight.throttle=0;this.flight.grounded=true;this.combat.reset();this.bonusMoney=this.bonusXP=0;this.stopTicks=0;this.departed=false;this.crashSeconds=0;this.state='hangar';this.paused=true;this.population.update(this.flight.position);}
   skipRescue(){if(this.state!=='crashed')return;this.rearm();this.notice='Rescued · run earnings retained.';}
-  launch(){if(this.state==='crashed')return;this.state='flying';this.paused=false;const b=this.progress.bonuses;this.flight.enginePower=(1+this.progress.data.levels.engine*.12)*b.engine;this.flight.handling=b.handling;this.flight.brakePower=b.brakes;this.flight.maxSpeed=100*b.speed;this.combat.damageMultiplier=(1+this.progress.data.levels.weapons*.2)*b.damage;this.combat.fireRateMultiplier=b.rate;this.combat.rangeMultiplier=b.range;this.combat.blastMultiplier=b.blast;this.combat.mutantMultiplier=b.boss;this.flight.start();this.notice='';}
+  launch(){if(this.state==='crashed')return;if(this.state==='hangar')this.runSeconds=0;this.state='flying';this.paused=false;const b=this.progress.bonuses;this.flight.enginePower=(1+this.progress.data.levels.engine*.12)*b.engine*this.plane.engine;this.flight.handling=b.handling*this.plane.handling;this.flight.brakePower=b.brakes;this.flight.maxSpeed=100*b.speed*this.plane.speed;this.combat.damageMultiplier=(1+this.progress.data.levels.weapons*.2)*b.damage*this.plane.damage;this.combat.fireRateMultiplier=b.rate;this.combat.rangeMultiplier=b.range;this.combat.blastMultiplier=b.blast;this.combat.mutantMultiplier=b.boss;this.flight.start();this.notice='';}
   pause(){this.paused=true;this.flight.pause();this.population.checkpoint();}
+  unlockPlane(id:string){if(this.state!=='hangar'||!this.progress.unlockPlane(id))return false;this.progress.selectPlane(id);this.rearm();return true;}
+  selectPlane(id:string){if(this.state!=='hangar'||!this.progress.selectPlane(id))return false;this.rearm();return true;}
   buy(id:Upgrade){return this.state==='hangar'&&this.progress.buy(id);}
   learn(id:string){return this.state==='hangar'&&this.progress.learn(id);}
   purchase(id:string){return this.state==='hangar'&&this.progress.purchase(id);}
@@ -50,7 +56,7 @@ export class Frontier {
   selectBase(id:string){const b=this.bases.find(b=>b.id===id);if(!b)return false;this.navigationBase=b;return true;}
   nearestMutant(){const p=this.flight.position;return this.mutants.nearby(p).sort((a,b)=>Math.hypot(a.position.x-p.x,a.position.z-p.z)-Math.hypot(b.position.x-p.x,b.position.z-p.z))[0];}
   get forward():Point{const f=this.flight;return {x:Math.sin(f.heading)*Math.cos(f.pitch),y:Math.sin(f.pitch),z:-Math.cos(f.heading)*Math.cos(f.pitch)};}
-  get muzzle(){const f=this.flight;return this.setup.muzzle(f.position,f.heading,f.pitch,f.bank,2);}
+  get muzzle(){const f=this.flight;return this.setup.muzzle(f.position,f.heading,f.pitch,f.bank,this.plane.length/9);}
   get lock():Target|undefined{
     const p=this.muzzle,d=this.forward;let best:Target|undefined,distance=Math.min(480,(this.selectedWeapon==='missile'?480:240)*this.combat.rangeMultiplier);
     for(const t of [...[...this.population.resident.values()].flatMap(r=>r.targets),...this.mutants.nearby(this.flight.position,480)]){if(t.health<=0)continue;const x=t.position.x-p.x,y=t.position.y-p.y,z=t.position.z-p.z,l=Math.hypot(x,y,z);if(l<distance&&l>0&&(x*d.x+y*d.y+z*d.z)/l>Math.cos(Math.PI*(this.selectedWeapon==='missile'?18:70)/180)){best=t;distance=l;}}
@@ -64,14 +70,14 @@ export class Frontier {
     if(this.state==='crashed'){this.crashSeconds=Math.max(0,this.crashSeconds-dt);if(this.crashSeconds===0){this.rearm();this.notice='Rescue complete. Run earnings retained. Aircraft replaced.';}return;}
     if(this.state!=='flying')return;
     this.flight.advance(dt,input,()=>{
-      const f=this.flight;this.population.update(f.position);this.mutants.step(f.position,1/60);if(this.mutants.attack(f.position,1/60)){f.state='crashed';f.reason='Struck by a mutant';}
+      this.runSeconds+=1/60;const f=this.flight;this.population.update(f.position);this.mutants.step(f.position,1/60);if(this.mutants.attack(f.position,1/60)){f.state='crashed';f.reason='Struck by a mutant';}
       if(!f.grounded)this.departed=true;else {const b=this.navy.landingAt(f.position.x,f.position.z);if(b)this.currentBase=b;}
       const origin=this.muzzle,lock=input.aim||input.weapon==='missile'?this.lock:undefined;
       this.combat.step(input.fire&&!f.grounded,input.weapon,origin,lock?{x:lock.position.x-origin.x,y:lock.position.y-origin.y,z:lock.position.z-origin.z}:this.forward,lock);
       if(this.departed&&f.grounded&&f.speed<.5&&f.throttle<.05)this.stopTicks++;else this.stopTicks=0;
-      if(this.stopTicks>=60){const cash=this.pendingMoney*2,xp=this.pendingXP*2;this.progress.bank(cash,xp);this.navigationBase=this.currentBase;this.rearm();this.notice=`Safe landing · 100% bonus · banked $${cash} and ${xp} XP. Upgrade or fly again.`;}
+      if(this.stopTicks>=60){const cash=this.pendingMoney*2,xp=this.pendingXP*2;this.progress.finishRun('landed',this.combat.kills,Math.round(this.runSeconds),this.pendingMoney,this.pendingXP);this.navigationBase=this.currentBase;this.rearm();this.notice=`Safe landing · 100% bonus · banked $${cash} and ${xp} XP. Upgrade or fly again.`;}
     });
-    if(this.flight.state==='crashed'){const cash=this.pendingMoney,xp=this.pendingXP;this.progress.bank(cash,xp);this.notice=`Run secured · $${cash} and ${xp} XP. Safe landing would pay double.`;this.state='crashed';this.crashSeconds=10;this.population.checkpoint();}
+    if(this.flight.state==='crashed'){const cash=this.pendingMoney,xp=this.pendingXP;this.progress.finishRun('crashed',this.combat.kills,Math.round(this.runSeconds),cash,xp);this.notice=`Run secured · $${cash} and ${xp} XP. Safe landing would pay double.`;this.state='crashed';this.crashSeconds=10;this.population.checkpoint();}
   }
   terrainPlan():readonly ChunkSpec[]{
     const p=this.flight.position,d=this.forward,cx=Math.floor((p.x+d.x*48)/32),cz=Math.floor((p.z+d.z*48)/32),key=`${cx},${cz}`;

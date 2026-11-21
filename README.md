@@ -10,7 +10,7 @@ Frontier is an arcade aircraft combat game set in a huge, procedurally generated
 
 ## The sortie
 
-Every run starts on the home runway. Take off and head for a horde, explore a new region, or follow the hangar’s navigation marker toward **Carrier Resolute** and the sparse battleship groups in the ocean. Airfields and carrier decks both support the same landing, reward banking, shopping and takeoff loop.
+A new pilot starts on the home runway with the Tier 1 Kestrel single-prop scout. Take off and head for a horde, explore a new region, or follow the hangar’s navigation marker toward **Carrier Resolute** and the sparse battleship groups in the ocean. Airfields and carrier decks both support the same landing, reward banking, shopping and takeoff loop.
 
 Hordes are your targets. **Mutant Brutes** and **Colossal Mutants** tower over the terrain and carry large health pools. Giant Siege Spiders stand on eight jointed legs, with 12,000 HP and a $2,200 / 3,200 XP base reward. Giants roam slowly, turn toward nearby aircraft and wind up a close-range strike for one second. Climb or fly clear to evade them; their bodies are also solid collision hazards. Choose your weapon, line up a pass and keep clear of the ground.
 
@@ -94,7 +94,7 @@ targets and deal 6,000 direct damage plus a blast. Each launcher reloads for thr
 seconds. Losing the target or switching weapons resets acquisition.
 
 The hangar places controls beside the aircraft and automatically orbits the runway
-showcase. Four locked aircraft slots reserve space for a future roster. Reduced
+showcase. Five aircraft cards let you preview locked planes and select owned aircraft. Reduced
 motion keeps the showcase camera still. The base includes fortified walls, watch
 towers, hangars, barracks, tents, supplies and armored guards with solid collision.
 After a crash the camera orbits the wreck as two rescue helicopters approach and
@@ -109,3 +109,35 @@ The procedural world has no small finite overview. The map can pan and zoom over
 the full playable coordinate range using a cached 48×48 top-down terrain grid,
 without loading another set of world chunks. It marks bases and nearby known
 hostiles; distant encounters are not generated merely by opening the map.
+
+## Build your aircraft collection
+
+Each sortie is a run: take off, hunt, return and stop to collect double credits and
+XP, read your debrief, train skills or buy equipment, then launch again. Crashes
+keep base earnings and also produce a debrief. The hangar remembers your last run’s
+aircraft, kills, flight time, earnings and landing bonus, and counts completed runs.
+
+| Tier | Aircraft | Configuration | Unlock credits | Lifetime XP |
+| --- | --- | --- | ---: | ---: |
+| 1 | Kestrel S-1 | High-wing single center prop | Free | 0 |
+| 2 | Mule T-2 | Larger twin wing props | 600 | 600 |
+| 3 | Comet J-3 | Early swept-wing jet | 2,500 | 2,500 |
+| 4 | Frontier A-4 | Original modern attack jet | 8,000 | 8,000 |
+| 5 | Spectre X-5 | Advanced delta/canard twin-engine fighter | 24,000 | 24,000 |
+
+Unlock the preceding aircraft first. XP is a lifetime requirement, not spent on
+aircraft; credits pay the listed purchase price. Unlocks are permanent and aircraft
+switching is free at a base. Click any aircraft card to inspect its detailed voxel
+model and requirements. Locked previews cannot be flown. Each tier changes thrust,
+speed, handling and weapon damage; purchased upgrades and equipment apply across
+the collection. All four existing weapons remain usable from Tier 1.
+
+Four original 0.1 m voxel sources add cockpit glazing and frames, access panels,
+control surfaces, lights, landing gear, vents, weapon pods and tier-specific shapes.
+Props rotate using cells from the editable model. The original Tier 4 model stays
+unchanged. Only the selected or previewed aircraft owns live render resources.
+
+Pilot v3 migrates v1/v2 credits, XP, upgrades, skills and equipment while preserving
+the original records. Both new and migrated pilots begin the aircraft unlock chain
+at Tier 1; earlier balances remain available to meet the new unlock requirements.
+Aircraft ownership, selection and the last completed run persist across reloads.

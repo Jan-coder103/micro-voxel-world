@@ -1,3 +1,4 @@
+import type { Hull } from './collision';
 import { rotateBody } from './attitude.ts';
 import { AIRFRAME,aerodynamicForces,bodyAxes,elevatorAcceleration } from './aerodynamics.ts';
 import { sweepAircraft,type FlightGeometry } from './collision.ts';
@@ -22,6 +23,7 @@ export class Flight {
   private accumulator=0;
   private previousPose:FlightPose|undefined;
   constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing',private readonly geometry:FlightGeometry={}) { this.kind=aircraftId(kind);this.reset(); }
+  setFixedWingHull(hull:Hull){this.geometry.fixedWing=hull;if(this.geometry.runway)this.geometry.runway.clearance=.08-Math.min(...hull.points.map(p=>p.y));}
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
   reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;this.verticalSpeed=this.angleOfAttack=this.pitchRate=0;this.velocityReady=false;this.loadFactor=1;this.stalled=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
