@@ -34,6 +34,7 @@ export class Sortie {
     this.selected=missionId(initialMission);if(this.selected!=='clearpass'&&!this.campaign?.unlocked(this.selected))throw new Error('Mission locked');
     this.ground=(x,z)=>heightAt(seed,x,z);this.store=new HordeStore(seed,storage);this.hordes=new Hordes(this.store,this.ground);
     this.flight=new Flight(this.ground,undefined,'fixed-wing',{fixedWing:PLAYER_FIXED_HULL,obstacles:this.hordes.obstacles,maxGroundHeight:11.5,maxObstacleHeight:14.5});
+    this.flight.legacyHandling=true;
     this.combat=new Combat([],this.ground,128,{index:this.hordes,blocker:this.hordes.blocker,onDamage:t=>this.hordes.damaged(t)});this.recover();
   }
   selectMission(value:string){const id=missionId(value);if(!this.campaign?.unlocked(id))throw new Error('Mission locked: complete Operation Clearpass first');if(id===this.selected)return;this.abort();this.selected=id;this.recover();}

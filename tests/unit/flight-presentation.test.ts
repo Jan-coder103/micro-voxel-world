@@ -25,15 +25,15 @@ describe('flight presentation',()=>{
     const positions:number[]=[];const tickCounts:number[]=[];
     for(let i=0;i<144;i++){flight.advance(1/144,neutral);flight.samplePose(out);positions.push(out.position.z);tickCounts.push(flight.ticks);}
     expect(flight.ticks).toBe(60);
-    for(let i=4;i<positions.length;i++)expect(positions[i-1]-positions[i]).toBeCloseTo(60/144,8);
+    for(let i=4;i<positions.length;i++)expect(positions[i-1]-positions[i]).toBeCloseTo(flight.speed/144,2);
     expect(tickCounts.some((v,i)=>i>4&&v===tickCounts[i-1])).toBe(true);
-    expect(out.position.z-flight.position.z).toBeCloseTo(1);
+    expect(out.position.z-flight.position.z).toBeCloseTo(flight.speed/60,2);
   });
   it('interpolates turns and altitude, then snaps to authoritative pose on pause/recovery',()=>{
     const flight=new Flight(()=>0),out=pose();flight.assisted=false;flight.start();
     flight.advance(1/60,{pitch:1,bank:1,throttle:0});flight.advance(1/120,neutral);flight.samplePose(out);
     expect(out.pitch).toBeCloseTo(flight.pitch/2);expect(out.bank).toBeCloseTo(flight.bank/2);expect(out.heading).toBeCloseTo(flight.heading/2);
-    expect(out.position.y).toBeGreaterThan(40);expect(out.position.y).toBeLessThan(flight.position.y);
+    expect(out.position.y).toBeCloseTo((40+flight.position.y)/2,8);expect(out.position.y).not.toBe(flight.position.y);
     flight.pause();flight.samplePose(out);expect(out.position).toEqual(flight.position);
     flight.reset();flight.position={x:500,y:80,z:1000};flight.samplePose(out);expect(out.position).toEqual(flight.position);
     flight.start();flight.samplePose(out);expect(out.position).toEqual(flight.position);

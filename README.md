@@ -31,7 +31,7 @@ Boss rewards before bonuses:
 
 - **E / Q:** increase / reduce throttle. Hold Q to idle and brake on a runway or carrier deck.
 - **W / S:** pitch down / up. **A / D:** bank and turn.
-- **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit.
+- **Space:** fire. **1 / 2 / 3:** select a weapon. **C:** toggle camera orbit. **V:** cockpit / chase view.
 - **Esc:** pause and open the hangar.
 
 To land, line up with the strip, level the wings and touch down below 48 m/s while descending less than 4 m/s. Keep the whole aircraft inside the marked strip, then hold Q until the aircraft stops for one second. The destination selector changes your bearing and marker; it does not teleport the aircraft.
@@ -70,3 +70,9 @@ checks against a completed production build.
 
 Historical prototype/lab instructions are kept in [development history](docs/development-history.md).
 Benchmark-only legacy code is documented in [tools/benchmarks/legacy](tools/benchmarks/legacy/README.md).
+
+Flight now trades speed for altitude: use a dive and power to build energy before
+a loop, and ease off the elevator when the STALL warning appears. Tight banks
+raise the stall speed. The cockpit loads only in first person. Combat effects
+also controls turn rumble, wing condensation and directional sun glare. Detailed
+trees extend to 420 m and morph into distant silhouettes through 700 m.

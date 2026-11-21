@@ -1,5 +1,42 @@
 # Handoff — 21 November 2026
 
+## 21 November 2026 — Energy flight and cockpit presentation
+
+Implemented Jan's requested flight/presentation slice; decision 0034 records scope
+and costs. Fixed-wing flight separates attitude/velocity, trades speed for altitude,
+adds load/angle-of-attack stalls and recovery, permits loops, and raises the safety
+ceiling to 2400 m. Reduced low-speed pitch authority preserves runway/carrier
+rotation. Retired headless Sortie explicitly retains historical handling.
+
+Trees use three instanced cuboids and a 420–700 m vertex/color morph, independently
+of terrain detail residency. Same canonical placement, tile/instance/draw budgets;
+three times forest vertex work. V toggles a dynamically imported cockpit with
+canopy, consoles, stick/throttle and six animated gauges; resources release on exit.
+Load-driven rumble/wing vapor and directional warm sun glare obey Combat effects.
+Glare is a stylized screen veil with a nearby terrain horizon check, not volumetric
+occlusion. Saves/world geometry are unchanged.
+
+Verification: all 280 unit tests / 39 files passed serially with subprocess access
+and a 15 s CLI timeout (74.15 s). Final tree/color/cockpit changes passed affected
+reruns (9 checks, then final 6). Final build/types/lint, all 23 asset validations
+and diff whitespace pass; existing bundle warning remains. Installed Chromium for
+short mostly paused checks: player shell and unavailable-WebGL passed; final
+cockpit lifecycle and isolated dense-forest shader checks passed (12.9 s).
+Inspected final cockpit and forest captures in test-results/. Initial sandbox CLI
+output failures passed outside sandbox. Initial takeoff stall regression was
+fixed. A browser check unnecessarily waited for all async forest generation and
+timed out; it now waits for actual tree instances to exercise shader compilation.
+The full forest queue completes in the isolated forest regression. Final cockpit
+placement was adjusted after inspecting cropped lower gauges.
+
+No sustained-flight/heavy browser suite or physical-device FPS check under the
+retained heat restriction. Human flight/visual/balance acceptance remains open.
+Approximate aerodynamics and sun occlusion limits are explicit in decision 0034.
+Preview owned/stopped by Playwright; user server untouched. Local commit only;
+consult git log. No push/deployment.
+
+# Handoff — 21 November 2026
+
 ## 21 November 2026 — Node.js 26 migration
 
 At Jan's request, moved the supported development runtime to Node 26.x in

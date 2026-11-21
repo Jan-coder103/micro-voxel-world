@@ -10,14 +10,18 @@ export class Flight {
   heading=0; pitch=0; bank=0; speed=60; throttle=.43; ticks=0;
   state:'ready'|'running'|'paused'|'crashed'='ready';
   reason=''; assisted=true; dropped=0;
+  /** Retired headless benchmarks may explicitly retain their historical handling. */
+  legacyHandling=false;
   grounded=false; enginePower=1;handling=1;brakePower=1;maxSpeed=100;
+  verticalSpeed=0; angleOfAttack=0; loadFactor=1; stalled=false;
+  private pathPitch=0;
   private accumulator=0;
   private previousPose:FlightPose|undefined;
   constructor(private readonly ground:(x:number,z:number)=>number,private readonly obstacle?:(origin:Point,direction:Point,range:number)=>number|undefined, private kind:AircraftId='fixed-wing',private readonly geometry:FlightGeometry={}) { this.kind=aircraftId(kind);this.reset(); }
   get aircraft(){return this.kind;}
   setAircraft(value:string){this.kind=aircraftId(value);this.reset();}
-  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
-  start() { if(this.state==='ready'||this.state==='paused') { this.previousPose=undefined; this.state='running'; } }
+  reset() { this.position={x:16,y:this.ground(16,16)+40,z:16}; this.heading=this.pitch=this.bank=this.ticks=this.accumulator=this.dropped=0; this.speed=60; this.throttle=3/7; this.state='ready'; this.reason='';this.grounded=false;this.verticalSpeed=this.angleOfAttack=this.pathPitch=0;this.loadFactor=1;this.stalled=false;if(this.kind==='helicopter'){this.speed=0;this.throttle=.5;} }
+  start() { if(this.state==='ready'||this.state==='paused') { if(this.state==='ready')this.pathPitch=this.pitch;this.previousPose=undefined; this.state='running'; } }
   pause() { if(this.state==='running') this.state='paused'; this.accumulator=0; }
   advance(dt:number,input:FlightInput,onStep?:()=>void) {
     if(!Number.isFinite(dt)||dt<0) throw new Error('Invalid flight elapsed time');
@@ -40,10 +44,40 @@ export class Flight {
       const next={x:this.position.x+Math.sin(this.heading)*this.speed*dt,y:runway.height+runway.clearance,z:this.position.z-Math.cos(this.heading)*this.speed*dt};
       if(!runway.contains(next.x,next.z,10)){this.state='crashed';this.reason='Left the runway';return;}
       this.pitch=this.bank=0;
-      if(input.pitch>0&&this.speed>=28){this.grounded=false;this.pitch=.06;next.y+=.8;this.move(next);}
+      if(input.pitch>0&&this.speed>=28){this.grounded=false;this.pitch=this.pathPitch=.06;next.y+=.8;this.move(next);}
       else {this.position=next;this.ticks++;}
       return;
     }
+    if(this.legacyHandling){this.legacyStep(input,!!runway);return;}
+    // Longitudinal point-mass aerodynamics: attitude and velocity direction are separate.
+    const control=clamp(input.pitch,-1,1), roll=clamp(input.bank,-1,1);
+    const authority=clamp(this.speed/38,.12,1.45)*this.handling;
+    const pitchRate=control*.78*authority*clamp((this.speed-20)/55,.12,1);
+    this.pitch+=pitchRate*dt;
+    this.bank=clamp(this.bank+roll*dt*1.3*this.handling,-1.48,1.48);
+    if(this.assisted) {
+      if(!control)this.pitch-=Math.sin(this.pitch)*Math.cos(this.pitch)*dt*.55;
+      if(!roll)this.bank*=Math.exp(-dt*2.5);
+    }
+    const angle=(a:number)=>Math.atan2(Math.sin(a),Math.cos(a));
+    this.angleOfAttack=angle(this.pitch-this.pathPitch);
+    const turnLoad=1/Math.max(.2,Math.cos(this.bank));
+    const required=25*Math.sqrt(turnLoad+Math.abs(pitchRate)*this.speed/9.81);
+    this.stalled=this.speed<required||Math.abs(this.angleOfAttack)>.32;
+    const response=this.stalled?.55:3.8;
+    this.pathPitch+=angle(this.pitch-this.pathPitch)*response*dt;
+    if(this.stalled){this.pathPitch-=Math.cos(this.pathPitch)*.42*dt;this.pitch-=Math.cos(this.pitch)*.22*dt;}
+    this.loadFactor=clamp(Math.cos(this.pathPitch)*turnLoad+pitchRate*this.speed/9.81,-3,9);
+    const drag=.00115*this.speed*this.speed+.35+Math.abs(this.loadFactor-1)*.65+(this.stalled?2:0);
+    this.speed=clamp(this.speed+(this.throttle*12*this.enginePower-drag-9.81*Math.sin(this.pathPitch))*dt,8,this.maxSpeed*1.35);
+    this.heading+=Math.sin(this.bank)*9.81/Math.max(18,this.speed)*dt*2;
+    const old=this.position;
+    this.verticalSpeed=Math.sin(this.pathPitch)*this.speed;
+    const next={x:old.x+Math.sin(this.heading)*Math.cos(this.pathPitch)*this.speed*dt,y:old.y+this.verticalSpeed*dt,z:old.z-Math.cos(this.heading)*Math.cos(this.pathPitch)*this.speed*dt};
+    this.move(next);
+  }
+  private legacyStep(input:FlightInput,runway:boolean){
+    const dt=1/60;
     this.speed+=((runway?0:30)+(runway?this.maxSpeed:70)*this.throttle-this.speed)*dt*(runway ? .35 : 1.5)*this.enginePower;
     this.pitch=clamp(this.pitch+clamp(input.pitch,-1,1)*dt*.55*this.handling,-.65,.65);
     this.bank=clamp(this.bank+clamp(input.bank,-1,1)*dt*1.3*this.handling,-1.05,1.05);
@@ -80,7 +114,7 @@ export class Flight {
     const direction=length>0?{x:(next.x-old.x)/length,y:(next.y-old.y)/length,z:(next.z-old.z)/length}:{x:0,y:1,z:0};
     const obstacle=this.obstacle?.(old,direction,length);
     if(obstacle!==undefined){this.position={x:old.x+direction.x*obstacle,y:old.y+direction.y*obstacle,z:old.z+direction.z*obstacle};this.state='crashed';this.reason='Obstacle collision';this.accumulator=0;return;}
-    next.y=Math.min(250,next.y);
+    next.y=Math.min(2400,next.y);
     const to:FlightPose={position:next,heading:this.heading,pitch:this.pitch,bank:this.bank};
     const hit=sweepAircraft(this.previousPose!,to,this.kind==='helicopter'?HELICOPTER_HULL:this.geometry.fixedWing??LAB_FIXED_HULL,this.ground,this.geometry);
     if(hit&&this.geometry.runway){

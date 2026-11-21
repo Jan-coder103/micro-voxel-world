@@ -968,3 +968,11 @@ from the player entry and retain distance LODs. This supersedes the finite legac
 mission quota/airborne base-ring reward flow for `/`; `/play/` keeps those labs.
 Decision 0024 records implementation and limits. This is integration work, not
 release/deployment approval or hardware/player-feel acceptance.
+
+## Accepted flight/presentation slice — 21 November 2026
+
+Jan requested energy-based fixed-wing handling with stalls and loops, substantially
+farther detailed trees with soft LOD transitions, load feedback/wing vapor, an
+on-demand detailed cockpit, directional sun glare and visual polish. Implement
+and regression-test together; see decision 0034. This does not close deferred
+physical-GPU, sustained-flight or human acceptance gates.
