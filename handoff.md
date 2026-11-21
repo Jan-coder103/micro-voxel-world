@@ -1,3 +1,43 @@
+## 21 November 2026 — Distant cutout cards and cheaper F8 reports
+
+Implemented Jan's authorized next steps after the sprite discussion. Shared
+four-triangle crossed cards and an 8 KiB code-authored four-variant atlas replace
+far boxes beyond tile-centre 1080 m, with an 80 m complementary dither dissolve.
+Conservative bounds keep every transitioning tree beyond the 700 m morph. Nearby
+shadow tiles and steep overhead views retain geometry. Opaque alpha cutout/depth
+writes, standard lighting/fog, unchanged placement/density/residency/collision.
+F8 Distant tree sprites compares/restores the mode; resident sprite/transition
+counts export. Buffers are shared with a child mesh; transition material pairs
+are lazy/bounded and resources dispose. Decision 0047 details tradeoffs.
+
+First prototype's broad per-instance blend dual-drew too many tiles and slightly
+increased submitted work. Final tile-centre dissolve reduces total fixture
+triangles 574,238 → 517,030 (low) and 557,138 → 500,238 (oblique), about 10%, with
+same/+1 draw respectively. Mean image channel differences 0.15/0.38 on 0–255;
+inspected comparisons. Sampled sun depth is identical; overhead image/geometry
+is identical. Retained docs/performance/2026-11-21-tree-sprites.json. This is
+submitted work and software-WebGL visual evidence, not target-device FPS.
+
+Profiler aggregation now builds columns once and uses nearest-rank quickselection
+instead of full sorts, preserving sparse/observed-only statistics. Live updates
+skip export-only cpuCalls and draw line/point summaries and refresh at 1 Hz;
+reset/toggles refresh immediately and full JSON keeps all fields. Reproducible
+CPU-only benchmark tools/benchmarks/profiler-report.ts retains the old algorithm;
+report docs/performance/2026-11-21-profiler-report.json: synthetic full-report
+mean 53.83 → 11.72 ms (30 iterations, 600 frames/160 metrics). Observer effects/layout/
+driver work remain; no uninstrumented/hardware FPS claim.
+
+Verification: production build/typecheck, lint and whitespace pass; retained
+bundle warning. Full serial subprocess-enabled unit suite passes 363/363 (55
+files, 127.35 s). Final three sprite/toggle/profiler checks pass again in 24.9 s.
+Six focused browser checks pass in 1.1 min, covering new sprite
+views/shadow guards, compact/reference parity, profiler export/native-hook
+restoration, prior shader/culling/shadow parity and worker integration. Initial
+unit fixture needed an all-containing frustum; first full unit run terminated
+before results, final rerun is clean. Full browser suite/npm check not claimed.
+No sustained physical-GPU work under retained heat restriction; hardware and
+long-flight human visual acceptance remain open. Local commit follows; no push.
+
 ## 21 November 2026 — Compact forest proxies and explain shadow rebuilds
 
 Implemented Jan's profiler-driven follow-up. Forest tile buffers now compact

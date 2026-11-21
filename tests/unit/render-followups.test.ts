@@ -11,7 +11,7 @@ it('far geometry removes two coincident boxes and tiles restore detail conservat
   expect(far.getAttribute('position').count).toBe(detail.getAttribute('position').count/3);
   expect(Array.from(far.getAttribute('position').array)).toEqual(Array.from(detail.getAttribute('farPosition').array).slice(0,108));
   vi.useFakeTimers();
-  const cube=new BoxGeometry(),forest=createFrontierForest(103,new SettlementWorld(103),cube);
+  const cube=new BoxGeometry(),forest=createFrontierForest(103,new SettlementWorld(103),cube,()=>{},{sprites:false});
   try{
     forest.update(0,0);vi.runAllTimers();forest.group.updateMatrixWorld();const tile=forest.group.children[0] as InstancedMesh;
     const camera=new PerspectiveCamera();camera.position.set(tile.position.x+128,105,tile.position.z+128);camera.updateMatrixWorld();forest.selectGeometry(camera);expect(tile.geometry.getAttribute('position').count).toBe(108);

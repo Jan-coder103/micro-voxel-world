@@ -164,6 +164,7 @@ function mount(){
   profiler.instrument(mutantView,'update','Mutant presentation');profiler.instrument(populationView,'update','Zombie presentation');
   profiler.instrument(cities,'update','Settlement update');profiler.instrument(combatView,'update','Combat presentation');
   profiler.instrument(scenery,'update','Scenery update (inclusive)');profiler.instrument(scenery.forest,'update','Tree streaming + LOD');profiler.instrument(scenery.clouds,'update','Cloud update');profiler.instrument(shadow,'update','Aircraft ground shadow update');
+  profiler.visual('Distant tree sprites',()=>scenery.forest.spritesEnabled,v=>{scenery.forest.spritesEnabled=v;});
   profiler.visual('Cache static shadows',()=>sunShadows.enabled,v=>{sunShadows.enabled=v;});
   profiler.visual('Shadow maps',()=>renderer.shadowMap.enabled,v=>{renderer.shadowMap.enabled=v;scene.traverse(o=>{const mesh=o as Mesh;if(mesh.material)for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.needsUpdate=true;});});
   profiler.visualGroup('Trees',scenery.forest.group);profiler.visualGroup('Clouds',scenery.clouds.group);

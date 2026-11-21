@@ -126,3 +126,21 @@ separate captures with only Trees off, only Shadow maps off, and render scale at
 75% with both enabled. Restore 100% afterwards. Compare pacing and triangle counts,
 not only CPU submission. Repeat with F8 closed using external browser tooling to
 check observer overhead; unsupported GPU timing remains unknown.
+
+## Distant tree cards and report cost
+
+**Distant tree sprites** compares four-triangle crossed cutout cards with solid
+far boxes. Near trees, tiles affecting nearby shadows, and steep overhead views
+retain geometry. Tile-centre distance uses a short 1000–1080 m dissolve, guarded
+so the entire tile is already beyond the geometry morph. Coverage/lighting are
+approximate; compare the same warmed view and watch both pacing and draw counts.
+`sceneState.forest.spriteInstances` and `transitionTiles` describe resident LOD
+selection, including off-camera tiles; transition draws temporarily overlap.
+
+The panel now refreshes at 1 Hz and computes only statistics it displays; JSON
+exports retain full detail. Metric aggregation uses linear column collection and
+nearest-rank selection instead of full sorting. This reduces observer work but
+does not remove instrumentation, layout or driver overhead. Reset/toggles refresh
+immediately. The CPU-only reproducible comparison is
+`node --import tsx tools/benchmarks/profiler-report.ts`.
+See [decision 0047](../decisions/0047-distant-tree-cards-profiler-cost.md).

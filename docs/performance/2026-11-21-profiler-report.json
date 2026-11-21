@@ -1,0 +1,14 @@
+{
+  "frames": 600,
+  "metrics": 160,
+  "iterations": 30,
+  "old": {
+    "meanMs": 53.83323303333336,
+    "maxMs": 63.58344800000009
+  },
+  "current": {
+    "meanMs": 11.722507066666731,
+    "maxMs": 14.64064899999994
+  },
+  "notes": "Synthetic CPU-only aggregation comparison, not browser/device/FPS evidence. UI also skips export-only call/line/point summaries and refreshes at 1 Hz."
+}

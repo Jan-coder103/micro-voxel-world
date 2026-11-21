@@ -16,5 +16,5 @@ export class DrawProfile {
   }
   finish(){this.cpu.finish();this.counts.finish();}
   reset(){this.cpu.reset();this.counts.reset();}
-  report(){const counts=this.counts.report();return Object.entries(this.cpu.report()).map(([name,cpu])=>({name,cpu,calls:counts[`${name} / calls`],triangles:counts[`${name} / triangles`],lines:counts[`${name} / lines`],points:counts[`${name} / points`]})).sort((a,b)=>b.cpu.mean-a.cpu.mean);}
+  report(full=true){const cpu=this.cpu.report(),counts=this.counts.report([],full?undefined:Object.keys(cpu).flatMap(name=>[`${name} / calls`,`${name} / triangles`]));return Object.entries(cpu).map(([name,cpu])=>({name,cpu,calls:counts[`${name} / calls`],triangles:counts[`${name} / triangles`],lines:counts[`${name} / lines`],points:counts[`${name} / points`]})).sort((a,b)=>b.cpu.mean-a.cpu.mean);}
 }

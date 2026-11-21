@@ -1,0 +1,134 @@
+{
+  "ready": true,
+  "views": [
+    {
+      "name": "low",
+      "variants": [
+        {
+          "enabled": false,
+          "triangles": 574238,
+          "calls": 53,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 0,
+            "transitionTiles": 0,
+            "spritesEnabled": false,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0,
+          "maxDifference": 0,
+          "shadowMaxDifference": 0
+        },
+        {
+          "enabled": true,
+          "triangles": 517030,
+          "calls": 53,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 10309,
+            "transitionTiles": 8,
+            "spritesEnabled": true,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0.14929861111111112,
+          "maxDifference": 80,
+          "shadowMaxDifference": 0
+        }
+      ]
+    },
+    {
+      "name": "oblique",
+      "variants": [
+        {
+          "enabled": false,
+          "triangles": 557138,
+          "calls": 52,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 0,
+            "transitionTiles": 0,
+            "spritesEnabled": false,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0,
+          "maxDifference": 0,
+          "shadowMaxDifference": 0
+        },
+        {
+          "enabled": true,
+          "triangles": 500238,
+          "calls": 53,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 10386,
+            "transitionTiles": 9,
+            "spritesEnabled": true,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0.3803715277777778,
+          "maxDifference": 80,
+          "shadowMaxDifference": 0
+        }
+      ]
+    },
+    {
+      "name": "overhead",
+      "variants": [
+        {
+          "enabled": false,
+          "triangles": 514490,
+          "calls": 84,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 0,
+            "transitionTiles": 0,
+            "spritesEnabled": false,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0,
+          "maxDifference": 0,
+          "shadowMaxDifference": 0
+        },
+        {
+          "enabled": true,
+          "triangles": 514490,
+          "calls": 84,
+          "stats": {
+            "generated": 22715,
+            "submitted": 22715,
+            "spriteInstances": 0,
+            "transitionTiles": 0,
+            "spritesEnabled": true,
+            "omitted": 0,
+            "tiles": 97,
+            "compactions": 400,
+            "pending": false
+          },
+          "meanDifference": 0,
+          "maxDifference": 0,
+          "shadowMaxDifference": 0
+        }
+      ]
+    }
+  ]
+}

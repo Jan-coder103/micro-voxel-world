@@ -7,14 +7,14 @@ test('profiler collects bounded timings, exports and restores toggles',async({pa
   await expect(page.locator('#hangar')).toBeVisible();await page.keyboard.press('F8');
   const panel=page.locator('.frame-profiler');await expect(panel).toBeVisible();
   await expect(panel.locator('[data-summary]')).toContainText('CPU frame callback',{timeout:30000});await expect(panel.locator('[data-summary]')).toContainText('Forest:');
-  await panel.getByLabel('Trees',{exact:true}).uncheck();
-  const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Export JSON'}).click();const file=await download;expect(file.suggestedFilename()).toBe('frontier-profile.json');const report=JSON.parse(await readFile((await file.path())!,'utf8'));expect(report.visuals.Trees).toBe(false);expect(report.budgetMs).toBeCloseTo(16.67,2);
+  await panel.getByLabel('Distant tree sprites',{exact:true}).uncheck();await panel.getByLabel('Trees',{exact:true}).uncheck();
+  const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Export JSON'}).click();const file=await download;expect(file.suggestedFilename()).toBe('frontier-profile.json');const report=JSON.parse(await readFile((await file.path())!,'utf8'));expect(report.visuals.Trees).toBe(false);expect(report.visuals['Distant tree sprites']).toBe(false);expect(report.sceneState.forest.spritesEnabled).toBe(false);expect(report.budgetMs).toBeCloseTo(16.67,2);
   expect(report.schemaVersion).toBe(2);expect(report.draws.some((d:{name:string;calls:{mean:number}})=>d.name.startsWith('Color / ')&&d.calls.mean>0)).toBe(true);
   expect(report.cpu['Scene transform propagation']).toBeTruthy();expect(report.cpu['Render traversal + setup (exclusive)']).toBeTruthy();expect(report.cpu['Shadow cache scan']).toBeTruthy();
   expect(report.sceneState.shadowCache.fallback).toBe(false);expect(report.sceneState.forest.submitted).toBeLessThanOrEqual(report.sceneState.forest.generated);expect(report.gpuSupported||report.gpuRender===null).toBe(true);
   await expect(panel.locator('[data-draws]')).toContainText('Color /');await panel.screenshot({path:'test-results/frame-profiler.png'});
   await panel.getByRole('button',{name:'Stop / close'}).click();await expect(panel).toBeHidden();
-  await page.keyboard.press('F8');await expect(panel.getByLabel('Trees',{exact:true})).toBeChecked();
+  await page.keyboard.press('F8');await expect(panel.getByLabel('Trees',{exact:true})).toBeChecked();await expect(panel.getByLabel('Distant tree sprites',{exact:true})).toBeChecked();
   await page.keyboard.press('F8');await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(panel).toHaveCount(0);expect(errors).toEqual([]);
 });
 
