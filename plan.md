@@ -992,3 +992,10 @@ Jan requested elevator pull about the banked aircraft wing axis and roughly 2–
 more thrust. Decision 0036 selects local-axis attitude integration and 2.5× base
 thrust. Acceptance includes banked/knife-edge/inverted pull, mirrored flight turns,
 retained loops and safe takeoff under the stronger engine.
+
+## Sunset tactical reference — 21 November 2026
+
+Jan requested a closer visual match to an attached sunset air-combat screenshot.
+Decision 0037 selects amber atmosphere, shaded cloud banks, green flight instruments,
+a heading tape and real heading-up radar, retaining Frontier's voxel world and combat.
+Human visual and retained hardware acceptance remain separate.

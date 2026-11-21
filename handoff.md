@@ -1,5 +1,28 @@
 # Handoff — 21 November 2026
 
+## 21 November 2026 — Sunset combat reference presentation
+
+Implemented the requested screenshot-inspired presentation; decision 0037. Amber
+sky/fog, lower shared sun direction, warm lighting and 72 shaded low-poly cloud
+puffs replace the purple/blue sky and flat cloud slabs. Green aviation instruments,
+continuous heading tape, open navigation diamonds, red target lock, top boss-health
+panel and heading-up 2.5 km radar use actual navigation/combat state. Radar omits
+out-of-range contacts and shows the base plus nearest horde and mutant. Desktop
+and narrow layouts keep the reticle clear. Simulation and world assets retained.
+
+Verification: all 306 unit tests / 42 files pass (103.91 s), including
+radar heading/range and compass wrap checks. Two browser checks pass (28.6 s), including green HUD,
+radar, seven heading ticks, narrow-screen fit, pause/tools and unavailable-WebGL
+fallback. Inspected final desktop/narrow captures in test-results. Build/types,
+lint, 23 asset validations and whitespace checks pass; existing bundle warning
+remains. Initial sandboxed unit run was stopped after subprocess CLI failures;
+final regression uses the required subprocess access. Cloud geometry increases
+from 864 to 7,200 triangles in the same single instanced draw; no new render targets.
+No sustained-flight/heavy GPU benchmark under retained heat restriction. Human
+visual/handling and physical-GPU acceptance remain open. Required local commit
+follows; no push/deployment. Browser preview owned/stopped by Playwright.
+
+
 ## 21 November 2026 — Banked elevator axis and 2.5× thrust
 
 Jan reported elevator pull still rotated toward the world sky during a bank, and

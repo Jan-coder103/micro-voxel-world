@@ -14,7 +14,10 @@ test('frontier player starts at the runway, gates tools, pauses and fits narrow 
   await expect.poll(async()=>(await read()).settled,{timeout:20000}).toBe(true);expect((await read()).distantTrees).toBeGreaterThan(0);expect((await read()).residents).toBeLessThanOrEqual(49);expect((await read()).hordes).toBeLessThanOrEqual(49);expect((await read()).lods.every((n:number)=>n>0)).toBe(true);
   await page.screenshot({path:'test-results/frontier-hangar.png'});
   // Close only the dialog for an idle landscape capture; flight remains paused.
-  await menu.evaluate((d:HTMLDialogElement)=>d.close());await page.screenshot({path:'test-results/frontier-runway.png'});
+  await menu.evaluate((d:HTMLDialogElement)=>d.close());
+  await expect(page.getByLabel('Tactical radar')).toBeVisible();await expect(page.locator('#compass-tape span')).toHaveCount(7);
+  await expect(page.locator('#flight-hud')).toHaveCSS('color','rgb(131, 241, 119)');
+  await page.screenshot({path:'test-results/frontier-runway.png'});
   await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'test-results/frontier-narrow.png'});
   await page.getByRole('button',{name:'Esc · Hangar / Pause'}).click();await expect(menu).toBeVisible();expect(await menu.evaluate(d=>d.scrollWidth<=d.clientWidth)).toBe(true);
   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));await expect(page.locator('canvas')).toHaveCount(0);expect(errors).toEqual([]);

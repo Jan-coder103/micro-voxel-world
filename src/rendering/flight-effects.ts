@@ -7,4 +7,4 @@ export function createWingVapor(){
   for(const x of [-4.5,4.5]){const m=new Mesh(geometry,material);m.rotation.x=-Math.PI/2;m.position.set(x,.25,0);m.scale.set(5,3,1);group.add(m);}
   return {group,update(strength:number){group.visible=strength>.01;material.uniforms.strength.value=strength;},dispose(){group.removeFromParent();geometry.dispose();material.dispose();group.clear();}};
 }
-export const SUN_DIRECTION=new Vector3(-850,380,-350).normalize();
+export const SUN_DIRECTION=new Vector3(-850,220,-350).normalize();
