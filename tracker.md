@@ -1421,3 +1421,58 @@ capture. Full browser suite/npm check not claimed. One automatic approval review
 timed out; permitted retry succeeded. Playwright stopped its preview. No sustained
 physical-GPU benchmark under retained heat restriction; hardware FPS and human
 visual/long-travel acceptance stay open. No push/deployment. Local commit follows.
+
+## 21 November 2026 — Shader fast paths, shadow reuse, cloud culling and worker coverage
+
+Implemented Jan's four follow-up optimizations; decision 0043 records algorithms,
+tradeoffs and verification. Terrain skips zero-contribution water, wave, reflection,
+land-grain and crop shading while calculating filtering derivatives outside fast
+paths. Reference fastPaths=false supports rendered comparisons. No quality/range
+or draw-resolution reduction. Ordered cloud-bank frustum compaction retains one
+instanced draw, billboard bounds and transparency order, uploading only when the
+visible bank selection changes. Three tested views submit 152/200/224 of 808
+instances with exactly unchanged pixels.
+
+Static sun depth is cached in the active Three shadow callback, GPU-blitted into
+the live depth target, then moving aircraft/props, mutants and rescue casters draw
+every frame. No extra lighting sample/light contribution; normal PCF sees the
+same combined depth. 32 m anchors, light-space texel snapping and ±256 m / 1096²
+maps preserve the prior footprint/density with travel margin. Visible caster
+transforms, membership, instance/position buffers, anchor/rebase and context
+restoration invalidate static depth. Failure restores ordinary shadows, cast
+flags/hooks restore in finally, GPU resources/listeners dispose. Extra target
+storage is approximately 10 MiB plus depth-copy bandwidth; target-device benefit
+requires measurement. F8 adds Cache static shadows and Shadow depth passes
+(inclusive)/Cloud bank culling timings. Error/build/copy status is in telemetry.
+
+A dedicated bounded worker prepares fallback recentering, normals and bounds after
+the unchanged synchronous initial coverage. Transfer/stage replies, atomically
+copy into existing attributes, coalesce travel, reject distant stale replies, and
+wake demand rendering on completion without rendering continuously while waiting.
+Worker creation/execution/deserialization failure retains the staged CPU fallback.
+Chunk workers provide bounds; attachment no longer rescans positions. Frontier
+uses a soft 2 ms / maximum-two integration budget, always progresses one payload,
+and wakes again for remaining ready replies even if workers are now idle.
+Additional worker bundle ~150 KB minified; collision/simulation/saves unchanged.
+
+Verification: production build/types/lint and whitespace pass; existing bundle
+warning remains. Full serial subprocess-enabled unit suite: 347/347 passes (50
+files, 165.83 s). Final six-test optimization rerun passes, including two additional
+shadow-driver/worker-construction failure checks; all 349 checks covered across
+runs. Five unique focused browser checks pass across batches: 15 rendered pixel
+comparisons, game worker/shadow integration, stable coastline, profiler/export /
+restore/disposal and keyboard takeoff. Final integration passes in 19 s. Retained
+report docs/performance/2026-11-21-render-parity.json has zero channel differences
+in all views; inspected shadow fixture and compact game captures.
+
+Initial shadow preparation outside renderer.render hit null render state; moved
+inside the active shadow callback and parity passed. A broad idle integration
+wait timed out because unrelated forest residency was still generating; terrain
+and worker coverage were already settled. Scoped that check to coverage (static
+reuse is tested by the controlled fixture). Tiny-viewport summary click waiting
+also blocked the engine check; direct demand-frame wake now verifies the intended
+integration independently of menu scrolling. One automatic review timed out;
+permitted retry succeeded. Full browser suite/npm check not claimed. No sustained
+physical-GPU benchmark under retained heat restriction; no hardware FPS gain or
+Pixel acceptance claimed. Reprofile the same device/view and compare the cache
+on/off. Preview stopped by Playwright; no push/deployment. Local commit follows.

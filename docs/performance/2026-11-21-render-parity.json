@@ -1,0 +1,96 @@
+{
+  "scope": "Short software WebGL pixel-parity and submission-count checks; no GPU timing or device FPS claim.",
+  "ready": true,
+  "cloudComparisons": [
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    }
+  ],
+  "cloudCounts": [
+    [
+      808,
+      152
+    ],
+    [
+      808,
+      200
+    ],
+    [
+      808,
+      224
+    ]
+  ],
+  "terrainComparisons": [
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    }
+  ],
+  "shadowComparisons": [
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    },
+    {
+      "max": 0,
+      "different": 0
+    }
+  ],
+  "buildCounts": [
+    1,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "shadowCacheFallback": false,
+  "shadowCacheError": "",
+  "depthCopies": 7
+}

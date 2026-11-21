@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial,Sphere,Vector3, type Material } from 'three';
 import { CHUNK_SIZE, type ChunkSpec, type TerrainData } from '../streaming/terrain-data';
 /** Chunk geometry is owned; terrain/marker materials and marker geometry belong to the scene. */
 export function attachTerrain(spec:ChunkSpec,data:TerrainData,material:Material,markerGeometry:BufferGeometry,markerMaterial:MeshStandardMaterial,cleared:boolean) {
@@ -7,7 +7,7 @@ export function attachTerrain(spec:ChunkSpec,data:TerrainData,material:Material,
   geometry.setAttribute('position',new BufferAttribute(data.positions,3));
   geometry.setAttribute('normal',new BufferAttribute(data.normals,3));
   geometry.setAttribute('waterDepth',new BufferAttribute(data.waterDepth??new Float32Array(data.positions.length/3).fill(1000),1));
-  geometry.setAttribute('color',new BufferAttribute(data.colors,3)); geometry.computeBoundingSphere();
+  geometry.setAttribute('color',new BufferAttribute(data.colors,3)); if(data.bounds)geometry.boundingSphere=new Sphere(new Vector3(...data.bounds.center),data.bounds.radius);else geometry.computeBoundingSphere();
   const mesh=new Mesh(geometry,material); mesh.receiveShadow=true; group.add(mesh);
   const marker=new Mesh(markerGeometry,markerMaterial); marker.visible=!cleared; group.add(marker);
   let disposed=false;

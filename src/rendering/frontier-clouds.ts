@@ -1,4 +1,4 @@
-import { Group,InstancedMesh,Object3D,PlaneGeometry,ShaderMaterial,Vector2 } from 'three';
+import { Frustum,Group,InstancedMesh,Matrix4,Object3D,PlaneGeometry,ShaderMaterial,Sphere,Vector2,Vector3,type Camera } from 'three';
 import { regionalHash } from '../world/regional-terrain';
 export const CLOUD_CELL=768,CLOUD_RADIUS=5,CLOUD_CAPACITY=968;
 /** Stable cloud banks; only their bounded residency follows the player. */
@@ -42,15 +42,22 @@ export function createFrontierClouds(seed:number){
         #include <colorspace_fragment>
       }`});
   const mesh=new InstancedMesh(geometry,material,CLOUD_CAPACITY),dummy=new Object3D();mesh.frustumCulled=false;mesh.count=0;group.add(mesh);
+  const frustum=new Frustum(),projection=new Matrix4();
+  const banks:{sphere:Sphere;matrices:Float32Array}[]=[];let selection='';
   let key='',disposed=false,builds=0;
+  const compact=(indices:number[])=>{const next=indices.join(',');if(next===selection)return;selection=next;let offset=0;for(const i of indices){mesh.instanceMatrix.array.set(banks[i].matrices,offset);offset+=banks[i].matrices.length;}mesh.count=offset/16;mesh.instanceMatrix.needsUpdate=true;};
   return {group,mesh,get rebuilds(){return builds;},update(x:number,z:number){
     if(disposed)return;const cx=Math.floor(x/CLOUD_CELL),cz=Math.floor(z/CLOUD_CELL),next=`${cx},${cz}`;
-    if(next!==key){key=next;builds++;group.position.set(cx*CLOUD_CELL,0,cz*CLOUD_CELL);anchor.value.set(group.position.x,group.position.z);let i=0;
-      for(let dz=-CLOUD_RADIUS;dz<=CLOUD_RADIUS;dz++)for(let dx=-CLOUD_RADIUS;dx<=CLOUD_RADIUS;dx++)for(const p of cloudCell(seed,cx+dx,cz+dz)){
-        dummy.position.set(p.x-group.position.x,p.y,p.z-group.position.z);dummy.scale.set(p.width,p.height,1);dummy.updateMatrix();mesh.setMatrixAt(i++,dummy.matrix);
-      }
-      mesh.count=i;mesh.instanceMatrix.needsUpdate=true;
+    if(next!==key){key=next;builds++;group.position.set(cx*CLOUD_CELL,0,cz*CLOUD_CELL);anchor.value.set(group.position.x,group.position.z);banks.length=0;selection='';let i=0;
+      for(let dz=-CLOUD_RADIUS;dz<=CLOUD_RADIUS;dz++)for(let dx=-CLOUD_RADIUS;dx<=CLOUD_RADIUS;dx++){const cells=cloudCell(seed,cx+dx,cz+dz);if(!cells.length)continue;const start=i,center=new Vector3();for(const p of cells)center.add(new Vector3(p.x-group.position.x,p.y,p.z-group.position.z));center.divideScalar(cells.length);let radius=0;for(const p of cells){
+        dummy.position.set(p.x-group.position.x,p.y,p.z-group.position.z);dummy.scale.set(p.width,p.height,1);dummy.updateMatrix();mesh.setMatrixAt(i++,dummy.matrix);radius=Math.max(radius,center.distanceTo(dummy.position)+Math.hypot(p.width,p.height)/2);
+      }banks.push({sphere:new Sphere(center,radius),matrices:new Float32Array(mesh.instanceMatrix.array.slice(start*16,i*16))});}
+      mesh.count=i;selection=banks.map((_,i)=>i).join(',');mesh.instanceMatrix.needsUpdate=true;
     }
     player.value.set(x-group.position.x,z-group.position.z);
-  },dispose(){if(disposed)return;disposed=true;mesh.dispose();geometry.dispose();material.dispose();group.removeFromParent();group.clear();}};
+  },cull(camera:Camera,enabled=true){
+    if(disposed)return;projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse).multiply(group.matrixWorld);frustum.setFromProjectionMatrix(projection,camera.coordinateSystem,camera.reversedDepth);
+    if(!enabled){compact(banks.map((_,i)=>i));return;}
+    const visible:number[]=[];for(let i=0;i<banks.length;i++)if(frustum.intersectsSphere(banks[i].sphere))visible.push(i);compact(visible);
+  },get bankCount(){return banks.length;},dispose(){if(disposed)return;disposed=true;banks.length=0;mesh.dispose();geometry.dispose();material.dispose();group.removeFromParent();group.clear();}};
 }

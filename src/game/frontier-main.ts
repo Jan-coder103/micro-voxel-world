@@ -14,7 +14,8 @@ import { configureFrontierMaterial } from '../rendering/frontier-material';
 import { ACESFilmicToneMapping,BoxGeometry,Color,DirectionalLight,Fog,Group,HemisphereLight,Mesh,MeshBasicMaterial,MeshStandardMaterial,PCFSoftShadowMap,PerspectiveCamera,Scene,SphereGeometry,Vector3,WebGLRenderer } from 'three';
 import { FlightCamera,bindFlightOrbit } from '../rendering/flight-camera';
 import { createAircraftShadow } from '../rendering/aircraft-shadow';
-import { createTerrainFallback } from '../rendering/terrain-fallback';
+import { createWorkerTerrainFallback } from '../rendering/worker-terrain-fallback';
+import { createCachedSunShadows } from '../rendering/cached-sun-shadows';
 import { createRegionalPopulationView } from '../rendering/regional-population-view';
 import { createFrontierSettlements } from '../rendering/frontier-settlements';
 import { createCombatView } from '../rendering/combat-view';
@@ -22,7 +23,7 @@ import { demandFrames } from '../rendering/demand-frames';
 import { attachTerrain } from '../rendering/streamed-terrain';
 import { createTerrainWorkers } from '../streaming/worker-pool';
 import { ChunkStream } from '../streaming/chunk-stream';
-import { AIRBASE,airbaseSample } from '../world/airbase';
+import { AIRBASE } from '../world/airbase';
 import { Frontier,type Upgrade } from './frontier';
 import { WeaponAudio } from '../combat/audio';
 import { WEAPONS,type WeaponId } from '../combat/weapons';
@@ -62,7 +63,7 @@ function mount(){
   const shadow=createAircraftShadow();world.add(shadow.mesh);
   const terrainMaterial=new MeshStandardMaterial({vertexColors:true,roughness:1}),terrainSurface=configureFrontierMaterial(terrainMaterial,model.seed),cube=new BoxGeometry(1,1,1),markerMaterial=new MeshStandardMaterial();
   // Reused coarse terrain covers the horizon while four worker LOD tiers arrive nearby.
-  const fallback=createTerrainFallback(model.seed,(x,z)=>{const s=airbaseSample(model.seed,x,z);return {height:Math.max(s.height,s.water??-Infinity),color:[...s.color],waterDepth:s.water!==null?Math.max(0,s.water-s.height):1000};},128,{innerExtent:512,innerSpacing:16,drop:1,material:terrainMaterial,samplesPerUpdate:128,budgetMs:2});world.add(fallback.mesh);
+  const fallback=createWorkerTerrainFallback(model.seed,terrainMaterial,()=>wake());world.add(fallback.mesh);
   const roads=createFrontierRoads(model.population.world,()=>wake()),naval=createNavalView(model.navy,cube),mutantView=createMutantView(model.mutants,cube);world.add(roads.group,naval.group,mutantView.group);
   const scenery=createFrontierScenery(model.seed,model.population.world,()=>wake());world.add(scenery.group);
   const populationView=createRegionalPopulationView(model.population),cities=createFrontierSettlements(model.population.world),combatView=createCombatView(model.combat);world.add(populationView.group,cities.group,combatView.group);
@@ -79,7 +80,7 @@ function mount(){
   let wake=()=>{};
   let terrainError='';
   let workers:ReturnType<typeof createTerrainWorkers>|undefined,stream:ChunkStream<Awaited<ReturnType<ReturnType<typeof createTerrainWorkers>['load']>>,ReturnType<typeof attachTerrain>>|undefined;
-  try{workers=createTerrainWorkers();stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,cube,markerMaterial,true);world.add(r.group);return r;},undefined,()=>wake());}catch{terrainError='Terrain detail unavailable; coarse terrain and collision remain active.';}
+  try{workers=createTerrainWorkers();stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,cube,markerMaterial,true);world.add(r.group);return r;},undefined,()=>wake(),undefined,2);}catch{terrainError='Terrain detail unavailable; coarse terrain and collision remain active.';}
   let hudDirty=true,lastHud=-Infinity;
   const listen=(target:EventTarget,type:string,fn:EventListener)=>{const wrapped:EventListener=e=>{fn(e);hudDirty=true;wake();};target.addEventListener(type,wrapped);releases.push(()=>target.removeEventListener(type,wrapped));};
   const clear=()=>{keys.clear();audio.stop();};
@@ -135,7 +136,10 @@ function mount(){
   listen(diagnostics.closest('details')!,'toggle',()=>{});
   const instrumentText=(id:string,text:string)=>{const element=app.querySelector(id)!;if(element.textContent!==text)element.textContent=text;};
   let compassHeading=-Infinity,bossMarkup='';
+  const sunShadows=createCachedSunShadows(renderer,scene,sun,[airframe,mutantView.group,rescue.group]);
   const profiler=createFrontierProfiler(renderer,app.querySelector('.settings')!,()=>wake());
+  profiler.instrument(renderer.shadowMap,'render','Shadow depth passes (inclusive)');
+  profiler.instrument(scenery.clouds,'cull','Cloud bank culling');
   profiler.instrument(model.flight,'advance','Plane + collision + tick glue',true);
   profiler.instrument(model.population,'update','Zombie simulation');
   profiler.instrument(model.mutants,'step','Mutant simulation');profiler.instrument(model.mutants,'attack','Mutant attacks');
@@ -146,6 +150,7 @@ function mount(){
   profiler.instrument(mutantView,'update','Mutant presentation');profiler.instrument(populationView,'update','Zombie presentation');
   profiler.instrument(cities,'update','Settlement update');profiler.instrument(combatView,'update','Combat presentation');
   profiler.instrument(scenery,'update','Scenery update (inclusive)');profiler.instrument(scenery.forest,'update','Tree streaming + LOD');profiler.instrument(scenery.clouds,'update','Cloud update');profiler.instrument(shadow,'update','Aircraft ground shadow update');
+  profiler.visual('Cache static shadows',()=>sunShadows.enabled,v=>{sunShadows.enabled=v;});
   profiler.visual('Shadow maps',()=>renderer.shadowMap.enabled,v=>{renderer.shadowMap.enabled=v;scene.traverse(o=>{const mesh=o as Mesh;if(mesh.material)for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.needsUpdate=true;});});
   profiler.visualGroup('Trees',scenery.forest.group);profiler.visualGroup('Clouds',scenery.clouds.group);
   profiler.visualGroup('Zombies',populationView.group);profiler.visualGroup('Mutants',mutantView.group);
@@ -168,8 +173,7 @@ function mount(){
     // Keep GPU world transforms near zero even after long flights.
     world.position.set(-Math.floor(p.x/4096)*4096,0,-Math.floor(p.z/4096)*4096);
     terrainSurface.updateOrigin(-world.position.x,-world.position.z);
-    sun.target.position.set(p.x+world.position.x,0,p.z+world.position.z);
-    sun.position.copy(sun.target.position).addScaledVector(SUN_DIRECTION,1000);
+    sunShadows.update(p.x,p.z,world.position.x,world.position.z);
     const tracking=chase.update(camera,pose,dt,snap);snap=false;
     camera.position.y=Math.max(camera.position.y,model.ground(camera.position.x,camera.position.z)+3);
     camera.position.x+=world.position.x;camera.position.z+=world.position.z;tracking.target.x+=world.position.x;tracking.target.z+=world.position.z;
@@ -202,8 +206,8 @@ function mount(){
     const glareAmount=effects.checked&&!crashed&&p.y>model.ground(p.x+SUN_DIRECTION.x*200,p.z+SUN_DIRECTION.z*200)-SUN_DIRECTION.y*200?sunGlare(viewDirection.dot(SUN_DIRECTION)):0;
     glare.style.opacity=String(glareAmount*.85);glare.style.setProperty('--sun-x',`${(sunPoint.x*.5+.5)*100}%`);glare.style.setProperty('--sun-y',`${(-sunPoint.y*.5+.5)*100}%`);
 profiler.mark('Aircraft + camera + effects (inclusive)');
-    scene.updateMatrixWorld();profiler.mark('Scene matrices');profiler.gpuBegin();renderer.render(scene,camera);profiler.gpuEnd();profiler.mark('Render CPU submission (inclusive)');frameCount++;
-    const continuing=!document.hidden&&(!model.paused||tracking.moving||fallback.pending||hangarOrbit&&!reducedMotion.matches);
+    scene.updateMatrixWorld();scenery.clouds.cull(camera);profiler.mark('Scene matrices');profiler.gpuBegin();renderer.render(scene,camera);profiler.gpuEnd();profiler.mark('Render CPU submission (inclusive)');frameCount++;
+    const continuing=!document.hidden&&(!model.paused||tracking.moving||fallback.needsFrame||hangarOrbit&&!reducedMotion.matches);
     if(hudDirty||now-lastHud>=100||!continuing){lastHud=now;hudDirty=false;
     const destination=model.navigationBase,homeDistance=Math.hypot(p.x-destination.x,p.z-destination.z),bearing=(Math.atan2(destination.x-p.x,-(destination.z-p.z))*180/Math.PI+360)%360,heading=(f.heading*180/Math.PI%360+360)%360;
     if(Math.round(heading)!==compassHeading){compassHeading=Math.round(heading);app.querySelector('#compass-tape')!.innerHTML=headingTape(heading);}
@@ -250,7 +254,7 @@ profiler.mark('Aircraft + camera + effects (inclusive)');
     app.querySelector('#save-status')!.textContent=model.progress.error||model.population.error||model.mutants.error?'Session only · '+(model.progress.error||model.population.error||model.mutants.error):'Pilot skills, equipment, hordes and mutant damage save in this browser. Reload starts at home.';
     }
     }else menuKey='';
-    const sample={flightTicks:f.ticks,runSeconds:model.runSeconds,plane:model.plane.id,displayPlane:aircraft.id,ownedPlanes:model.progress.data.planes,runs:model.progress.data.runs,lastRun:model.progress.data.lastRun,mapOpen:mapDialog.open,mapX:worldMap.x,mapZ:worldMap.z,mapSpan:worldMap.span,missileLock:model.combat.lockTicks,missiles:model.combat.missiles.length,firstPerson,cockpitLoaded:!!cockpit,loadFactor:f.loadFactor,stalled:f.stalled,assisted:f.assisted,orbit:chase.unlocked,renderPose:pose,groundShadow:{x:shadow.mesh.position.x,y:shadow.mesh.position.y,z:shadow.mesh.position.z},state:model.state,paused:model.paused,grounded:f.grounded,departed:model.departed,crashSeconds:model.crashSeconds,x:p.x,y:p.y,z:p.z,speed:f.speed,throttle:f.throttle,heading:f.heading,pitch:f.pitch,bank:f.bank,money:model.progress.data.money,xp:model.progress.data.xp,pendingMoney:model.pendingMoney,kills:model.combat.kills,residents:stream?.resident.size??0,jobs:stream?.pending??0,results:stream?.completed??0,hordes:model.population.resident.size,distantTrees:scenery.treeCount,roadTiles:roads.count,roadsPending:roads.pending,navalParts:naval.count,mutants:model.mutants.nearby(p).length,currentBase:model.currentBase.id,skillPoints:model.progress.skillPoints,forestPending:scenery.pending,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,frameCount,lods:[0,1,2,3].map(l=>[...stream?.resident.values()??[]].filter(r=>r.spec.lod===l).length),fallbackPending:fallback.pending,settled:(stream?.settled??true)&&!fallback.pending};host.dataset.sample=JSON.stringify(sample);if(dev.checked&&menu.open&&diagnostics.closest('details')!.open)diagnostics.textContent=JSON.stringify(sample,null,2);
+    const sample={flightTicks:f.ticks,runSeconds:model.runSeconds,plane:model.plane.id,displayPlane:aircraft.id,ownedPlanes:model.progress.data.planes,runs:model.progress.data.runs,lastRun:model.progress.data.lastRun,mapOpen:mapDialog.open,mapX:worldMap.x,mapZ:worldMap.z,mapSpan:worldMap.span,missileLock:model.combat.lockTicks,missiles:model.combat.missiles.length,firstPerson,cockpitLoaded:!!cockpit,loadFactor:f.loadFactor,stalled:f.stalled,assisted:f.assisted,orbit:chase.unlocked,renderPose:pose,groundShadow:{x:shadow.mesh.position.x,y:shadow.mesh.position.y,z:shadow.mesh.position.z},state:model.state,paused:model.paused,grounded:f.grounded,departed:model.departed,crashSeconds:model.crashSeconds,x:p.x,y:p.y,z:p.z,speed:f.speed,throttle:f.throttle,heading:f.heading,pitch:f.pitch,bank:f.bank,money:model.progress.data.money,xp:model.progress.data.xp,pendingMoney:model.pendingMoney,kills:model.combat.kills,residents:stream?.resident.size??0,jobs:stream?.pending??0,results:stream?.completed??0,hordes:model.population.resident.size,distantTrees:scenery.treeCount,visibleClouds:scenery.clouds.mesh.count,roadTiles:roads.count,roadsPending:roads.pending,navalParts:naval.count,mutants:model.mutants.nearby(p).length,currentBase:model.currentBase.id,skillPoints:model.progress.skillPoints,forestPending:scenery.pending,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,frameCount,lods:[0,1,2,3].map(l=>[...stream?.resident.values()??[]].filter(r=>r.spec.lod===l).length),fallbackPending:fallback.pending,coverageWorkerFailed:fallback.workerFailed,staticShadowBuilds:sunShadows.staticBuilds,shadowDepthCopies:sunShadows.depthCopies,shadowCacheFallback:sunShadows.fallback,shadowCacheError:sunShadows.lastError,settled:(stream?.settled??true)&&!fallback.pending};host.dataset.sample=JSON.stringify(sample);if(dev.checked&&menu.open&&diagnostics.closest('details')!.open)diagnostics.textContent=JSON.stringify(sample,null,2);
     }
     // Text/target discovery run at 10 Hz; projection still follows every displayed pose.
     const nav=model.navigationBase;
@@ -260,6 +264,6 @@ profiler.mark('Aircraft + camera + effects (inclusive)');
     if(hudMutant&&hudMutant.health>0)project('#boss-marker',{x:hudMutant.position.x,y:hudMutant.ground+hudMutant.height+6,z:hudMutant.position.z});else app.querySelector<HTMLElement>('#boss-marker')!.hidden=true;
     if(!continuing)previous=undefined;profiler.mark('HUD + diagnostics');profiler.end();return continuing;
   });wake=scheduler.invalidate;resize();openMenu();wake();
-  return ()=>{if(disposed)return;disposed=true;profiler.dispose();model.pause();scheduler.dispose();observer.disconnect();releases.forEach(r=>r());stream?.dispose();workers?.dispose();audio.dispose();cockpitRequest++;cockpit?.dispose();vapor.dispose();exhaust.dispose();rescue.dispose();fort.dispose();glare.remove();aircraft.dispose();shadow.dispose();fallback.dispose();cities.dispose();populationView.dispose();combatView.dispose();scenery.dispose();roads.dispose();naval.dispose();mutantView.dispose();terrainSurface.dispose();terrainMaterial.dispose();cube.dispose();markerMaterial.dispose();runwayMaterial.dispose();paint.dispose();hangarMaterial.dispose();roofMaterial.dispose();crashGeometry.dispose();fireMaterial.dispose();smokeMaterial.dispose();sun.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();app.querySelector('#map-canvas')?.remove();};
+  return ()=>{if(disposed)return;disposed=true;profiler.dispose();sunShadows.dispose();model.pause();scheduler.dispose();observer.disconnect();releases.forEach(r=>r());stream?.dispose();workers?.dispose();audio.dispose();cockpitRequest++;cockpit?.dispose();vapor.dispose();exhaust.dispose();rescue.dispose();fort.dispose();glare.remove();aircraft.dispose();shadow.dispose();fallback.dispose();cities.dispose();populationView.dispose();combatView.dispose();scenery.dispose();roads.dispose();naval.dispose();mutantView.dispose();terrainSurface.dispose();terrainMaterial.dispose();cube.dispose();markerMaterial.dispose();runwayMaterial.dispose();paint.dispose();hangarMaterial.dispose();roofMaterial.dispose();crashGeometry.dispose();fireMaterial.dispose();smokeMaterial.dispose();sun.dispose();scene.clear();renderer.dispose();renderer.domElement.remove();app.querySelector('#map-canvas')?.remove();};
 }
 const release=mount();const onHide=(e:PageTransitionEvent)=>{if(!e.persisted)release();};window.addEventListener('pagehide',onHide);if(import.meta.hot)import.meta.hot.dispose(()=>{window.removeEventListener('pagehide',onHide);release();});

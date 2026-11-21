@@ -19,7 +19,7 @@ export class ChunkStream<T, R extends OwnedChunk> {
     readyTotalMs: 0, readyMaxMs: 0,
   };
   /** wake lets demand-rendered owners pump replies without polling unfinished jobs. */
-  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}, private wake: () => void = () => {}, private clock: () => number = () => performance.now()) {}
+  constructor(private load: (spec: ChunkSpec, signal: AbortSignal) => Promise<T>, private attach: (spec: ChunkSpec,data: T) => R, private release: (data: T) => void = () => {}, private wake: () => void = () => {}, private clock: () => number = () => performance.now(),private integrationBudgetMs=Infinity) {}
   get pending() { return this.jobs.size; }
   get completed() { return this.ready.length; }
   get wanted() { return this.desired.size; }
@@ -42,7 +42,9 @@ export class ChunkStream<T, R extends OwnedChunk> {
       for (const [key,entry] of this.resident) if (!this.desired.has(key)) { entry.resource.dispose(); this.resident.delete(key); }
     }
     // At most two GPU integrations and two total outstanding payloads, per frame.
+    const integrationStart=this.clock();
     for (let i=0; i<2 && this.ready.length; i++) {
+      if(i>0&&this.clock()-integrationStart>=this.integrationBudgetMs)break;
       const result=this.ready.shift()!;
       const start=this.clock(),wait=start-result.received;
       this.timings.readyTotalMs+=wait;this.timings.readyMaxMs=Math.max(this.timings.readyMaxMs,wait);
@@ -56,6 +58,8 @@ export class ChunkStream<T, R extends OwnedChunk> {
         this.release(result.data);
       }
     }
+    // A time-budgeted reply may remain after both workers have gone idle.
+    if(this.ready.length)this.wake();
     for (const spec of this.desired.values()) {
       if (this.jobs.size+this.ready.length >= 2) break;
       if (this.failed.has(signature(spec))) continue;

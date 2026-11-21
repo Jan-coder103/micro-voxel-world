@@ -1,3 +1,4 @@
+import { terrainBounds,type TerrainBounds } from './terrain-bounds';
 import { airbaseSample, airbaseReserved } from '../world/airbase.ts';
 import { regionalSample, decorateRegion } from '../world/regional-terrain.ts';
 import { appendRoads, settlementWorld, type Building } from '../world/settlements.ts';
@@ -6,7 +7,7 @@ export const WORLD_LIMIT = 4096;
 export const GENERATOR_VERSION = 1;
 export type Lod = 0 | 1 | 2 | 3;
 export interface ChunkSpec { x: number; z: number; lod: Lod; seed: number; generator?: 'regional-v2'; structures?: true; airbase?: true }
-export interface TerrainData { positions: Float32Array; normals: Float32Array; colors: Float32Array; waterDepth?:Float32Array; buildings?: Building[] }
+export interface TerrainData { bounds?:TerrainBounds; positions: Float32Array; normals: Float32Array; colors: Float32Array; waterDepth?:Float32Array; buildings?: Building[] }
 export const chunkKey = (x: number, z: number) => `${x},${z}`;
 export const signature = (s: ChunkSpec) => `${s.seed}:${s.x},${s.z}:${s.lod}${s.generator ? `:${s.generator}` : ''}${s.structures ? ':s1' : ''}${s.airbase ? ':a1' : ''}`;
 export function heightAt(seed: number, x: number, z: number): number {
@@ -56,5 +57,6 @@ export function generateTerrain(spec: ChunkSpec): TerrainData {
   if (spec.generator) decorateRegion(spec,positions,normals,colors,spec.airbase||structures?(x,z)=>(!!spec.airbase&&airbaseReserved(x,z))||!!structures&&settlementWorld(spec.seed).reserved(x,z):undefined);
   const buildings=structures ? appendRoads(spec.seed,spec.x,spec.z,positions,normals,colors,spec.airbase?airbaseReserved:undefined,!spec.airbase) : undefined;
   while(waterDepth.length<positions.length/3)waterDepth.push(1000);
-  return { waterDepth:new Float32Array(waterDepth),positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors),...(buildings?{buildings}: {}) };
+  const positionArray=new Float32Array(positions);
+  return { bounds:terrainBounds(positionArray),waterDepth:new Float32Array(waterDepth),positions: positionArray, normals: new Float32Array(normals), colors: new Float32Array(colors),...(buildings?{buildings}: {}) };
 }

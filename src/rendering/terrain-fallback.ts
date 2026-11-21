@@ -1,4 +1,5 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
+import type { CoverageData } from '../streaming/coverage-data';
+import { BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial,Sphere,Vector3 } from 'three';
 import { heightAt } from '../streaming/terrain-data';
 type Field={height:number;color:number[];waterDepth?:number};
 interface CoverageOptions {
@@ -52,5 +53,9 @@ export function createTerrainFallback(seed:number, sample?: (x:number,z:number)=
     anchorX=build.x;anchorZ=build.z;cache=build.cache;build=undefined;
     mesh.position.set(anchorX,0,anchorZ);geometry.getAttribute('position').needsUpdate=true;geometry.getAttribute('color').needsUpdate=true;geometry.getAttribute('waterDepth').needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();
   };update(16,144);
-  return {mesh,update,get pending(){return !disposed&&(!!build||anchorX!==requestedX||anchorZ!==requestedZ);},get cachedSamples(){let n=0;for(const row of cache.values())n+=row.size;return n;},dispose(){if(disposed)return;disposed=true;cache.clear();build=undefined;mesh.removeFromParent();geometry.dispose();if(!options.material)material.dispose();}};
+  return {mesh,update,apply(data:CoverageData){
+    if(disposed)return;anchorX=requestedX=data.x;anchorZ=requestedZ=data.z;build=undefined;cache.clear();
+    for(const [name,array] of [['position',data.positions],['normal',data.normals],['color',data.colors],['waterDepth',data.waterDepth]] as const){const attribute=geometry.getAttribute(name);(attribute.array as Float32Array).set(array);attribute.needsUpdate=true;}
+    geometry.boundingSphere=new Sphere(new Vector3(...data.bounds.center),data.bounds.radius);mesh.position.set(data.x,0,data.z);
+  },get pending(){return !disposed&&(!!build||anchorX!==requestedX||anchorZ!==requestedZ);},get cachedSamples(){let n=0;for(const row of cache.values())n+=row.size;return n;},dispose(){if(disposed)return;disposed=true;cache.clear();build=undefined;mesh.removeFromParent();geometry.dispose();if(!options.material)material.dispose();}};
 }

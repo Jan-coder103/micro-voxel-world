@@ -54,3 +54,13 @@ only while visible, and uses 25 ground queries for its small blurred shadow.
 World marker projection and simulation still run each frame/tick respectively.
 Compare fresh captures of the same situation; the CPU-only benchmark report is
 not a substitute for measuring your device.
+
+The follow-up rendering work in [decision 0043](../decisions/0043-rendering-work-reuse.md)
+adds **Cache static shadows** for same-view comparison while leaving shadows on,
+and rows for **Shadow depth passes (inclusive)** and **Cloud bank culling**.
+Shadow depth timing is inside render submission, so do not add it again. Cached
+shadows trade an extra GPU target/depth blit for fewer static caster draws.
+Fallback recenter preparation now runs in a worker after initial coverage; its
+CPU time is off-thread and is not included in the main-thread fallback row.
+Worker publication still copies/uploads buffers. Snapshot diagnostics include
+coverage-worker status and shadow-cache fallback/build/copy counters.
