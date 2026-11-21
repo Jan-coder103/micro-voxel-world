@@ -8,7 +8,8 @@ export function attachTerrain(spec:ChunkSpec,data:TerrainData,material:Material,
   geometry.setAttribute('normal',new BufferAttribute(data.normals,3));
   geometry.setAttribute('waterDepth',new BufferAttribute(data.waterDepth??new Float32Array(data.positions.length/3).fill(1000),1));
   geometry.setAttribute('color',new BufferAttribute(data.colors,3)); if(data.bounds)geometry.boundingSphere=new Sphere(new Vector3(...data.bounds.center),data.bounds.radius);else geometry.computeBoundingSphere();
-  const mesh=new Mesh(geometry,material); mesh.receiveShadow=true; group.add(mesh);
+  group.updateMatrix();group.matrixAutoUpdate=false;
+  const mesh=new Mesh(geometry,material);mesh.matrixAutoUpdate=false; mesh.receiveShadow=true; group.add(mesh);
   const marker=new Mesh(markerGeometry,markerMaterial); marker.visible=!cleared; group.add(marker);
   let disposed=false;
   return {group,marker,dispose() { if (disposed) return; disposed=true; geometry.dispose(); group.removeFromParent(); group.clear(); }};

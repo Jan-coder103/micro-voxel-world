@@ -1,3 +1,37 @@
+## 21 November 2026 — Shadow region, far trees, cloud noise and matrix ownership
+
+Implemented Jan's four requested rendering improvements; decision 0044 records
+scope and tradeoffs. Static shadow stamps/temporary flags now exclude casters
+outside the sun frustum; outside streaming/movement reuses depth, entry/exit
+invalidates correctly. Visible traversal remains for robust transform/buffer
+change detection. Distant forest tiles use one box only once the whole tile is
+past the 700 m morph and outside the shadow frustum, restoring detail on approach
+and keeping prior shadow silhouettes. Rebase-safe conservative tile bounds.
+One 256 KiB R8 noise volume replaces cloud fragment hash octaves; retains the
+procedural reference option. Fine cloud detail changes slightly. Frontier owns
+one explicit scene matrix update; fixed terrain/tile local matrices are frozen.
+
+Rendered comparisons: far tree 36 → 12 triangles with identical pixels; manual
+matrices identical; cloud mean channel differences 0.13–0.22 / 255 across three
+headings (local maxima 43–100). Inspected cloud comparisons and runway capture.
+All 18 existing/expanded terrain, culling and cached-shadow comparisons have zero
+pixel differences. Three added shadow frames confirm outside add/move does not
+rebuild, entry does. Retained report: docs/performance/2026-11-21-render-followups.json.
+No sustained physical-GPU work under the retained heat restriction; hardware
+FPS gains and human long-flight/visual acceptance remain open. Reprofile the
+same device/view to establish the actual benefit. No push/deployment.
+
+Verification: production build/typecheck, lint, asset validation and whitespace
+checks pass; existing bundle-size warning remains. Final serial subprocess-enabled
+unit suite passes 352/352 (51 files, 120.09 s). Five focused browser checks pass
+(37.2 s); final shadow flag-filter refinement passes both rendering/integration
+checks again (26.5 s) and all three new unit checks. Full browser suite not run.
+Initial sandbox subprocess/server failures were retried with permitted access;
+new shadow mock needed the production light range and a disposable fake target.
+One redundant browser launch hit the occupied test port and was rerun serially.
+Local commit follows; no push/deployment.
+
+
 ## 21 November 2026 — Shader fast paths, shadow reuse, cloud culling and worker coverage
 
 Implemented Jan's four follow-up optimizations; decision 0043 records algorithms,

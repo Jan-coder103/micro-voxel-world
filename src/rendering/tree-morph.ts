@@ -22,3 +22,11 @@ export function configureTreeMorph(material:MeshStandardMaterial){
     shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed=mix(position,farPosition,treeBlend);').replace('#include <color_vertex>','#include <color_vertex>\nvColor.xyz=mix(vColor.xyz,vec3(1.),treeBlend);');
   };material.customProgramCacheKey=()=> 'frontier-tree-morph-v1';
 }
+
+/** One box exactly matches the three coincident boxes at the end of the morph. */
+export function createFarTreeGeometry(){
+  const source=new BoxGeometry(1,1,1),g=source.toNonIndexed();source.dispose();
+  g.setAttribute('farPosition',g.getAttribute('position').clone());
+  g.setAttribute('color',new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count*3).fill(1),3));
+  g.computeBoundingSphere();return g;
+}

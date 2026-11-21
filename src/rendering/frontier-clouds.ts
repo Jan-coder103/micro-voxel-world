@@ -1,3 +1,4 @@
+import { createCloudNoise,CLOUD_NOISE_SIZE } from './cloud-noise';
 import { Frustum,Group,InstancedMesh,Matrix4,Object3D,PlaneGeometry,ShaderMaterial,Sphere,Vector2,Vector3,type Camera } from 'three';
 import { regionalHash } from '../world/regional-terrain';
 export const CLOUD_CELL=768,CLOUD_RADIUS=5,CLOUD_CAPACITY=968;
@@ -12,9 +13,10 @@ export function cloudCell(seed:number,cx:number,cz:number){
       width:170+n(2106)*130,height:105+n(2107)*115};
   });
 }
-export function createFrontierClouds(seed:number){
+export function createFrontierClouds(seed:number,options:{textureNoise?:boolean}={}){
+  const noiseTexture=options.textureNoise===false?undefined:createCloudNoise();
   const group=new Group(),geometry=new PlaneGeometry(1,1),player={value:new Vector2()},anchor={value:new Vector2()};group.name='procedural-cloud-banks';
-  const material=new ShaderMaterial({transparent:true,depthWrite:false,uniforms:{cloudPlayer:player,cloudAnchor:anchor},
+  const material=new ShaderMaterial({transparent:true,depthWrite:false,uniforms:{cloudPlayer:player,cloudAnchor:anchor,cloudNoise:{value:noiseTexture}},
     vertexShader:`varying vec2 vUv; varying vec3 vCloud; varying float vFade; uniform vec2 cloudPlayer;uniform vec2 cloudAnchor;
       void main(){vUv=uv;vec3 centre=instanceMatrix[3].xyz;vCloud=centre+vec3(cloudAnchor.x,0.,cloudAnchor.y);
         vFade=1.-smoothstep(2800.,3900.,distance(centre.xz,cloudPlayer));
@@ -22,8 +24,10 @@ export function createFrontierClouds(seed:number){
         p.xy+=position.xy*vec2(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz));
         gl_Position=projectionMatrix*p;}`,
     fragmentShader:`varying vec2 vUv;varying vec3 vCloud;varying float vFade;
+      uniform highp sampler3D cloudNoise;
       float hash(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
       float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+        ${noiseTexture?`return texture(cloudNoise,(i+f+.5)/${CLOUD_NOISE_SIZE.toFixed(1)}).r;`:''}
         return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
           mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
       void main(){vec2 p=(vUv-.5)*2.;float r=dot(p,p);if(r>1.||vFade<.001)discard;
@@ -59,5 +63,5 @@ export function createFrontierClouds(seed:number){
     if(disposed)return;projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse).multiply(group.matrixWorld);frustum.setFromProjectionMatrix(projection,camera.coordinateSystem,camera.reversedDepth);
     if(!enabled){compact(banks.map((_,i)=>i));return;}
     const visible:number[]=[];for(let i=0;i<banks.length;i++)if(frustum.intersectsSphere(banks[i].sphere))visible.push(i);compact(visible);
-  },get bankCount(){return banks.length;},dispose(){if(disposed)return;disposed=true;banks.length=0;mesh.dispose();geometry.dispose();material.dispose();group.removeFromParent();group.clear();}};
+  },get bankCount(){return banks.length;},dispose(){if(disposed)return;disposed=true;banks.length=0;mesh.dispose();geometry.dispose();material.dispose();noiseTexture?.dispose();group.removeFromParent();group.clear();}};
 }

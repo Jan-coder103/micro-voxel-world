@@ -44,7 +44,7 @@ function mount(){
   try{renderer=new WebGLRenderer({antialias:true});}catch{hint.textContent='WebGL 2 is unavailable. Enable hardware acceleration and reload.';app.querySelector('#map-canvas')?.remove();app.querySelectorAll('button').forEach(b=>b.disabled=true);return ()=>{};}
   host.append(renderer.domElement);renderer.toneMapping=ACESFilmicToneMapping;renderer.toneMappingExposure=1;
   let storage:Storage|undefined;try{storage=localStorage;}catch{/* The pilot panel reports session-only saves. */}
-  const model=new Frontier(103,storage),scene=new Scene(),world=new Group();scene.add(world);scene.background=new Color('#bf8353');scene.fog=new Fog('#bf8353',650,1650);
+  const model=new Frontier(103,storage),scene=new Scene(),world=new Group();scene.add(world);scene.matrixWorldAutoUpdate=false;scene.background=new Color('#bf8353');scene.fog=new Fog('#bf8353',650,1650);
   const sun=new DirectionalLight('#ffbc7e',3);scene.add(sun,sun.target,new HemisphereLight('#d9ae83','#433c2b',1.05));
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=PCFSoftShadowMap;
   sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
@@ -206,7 +206,7 @@ function mount(){
     const glareAmount=effects.checked&&!crashed&&p.y>model.ground(p.x+SUN_DIRECTION.x*200,p.z+SUN_DIRECTION.z*200)-SUN_DIRECTION.y*200?sunGlare(viewDirection.dot(SUN_DIRECTION)):0;
     glare.style.opacity=String(glareAmount*.85);glare.style.setProperty('--sun-x',`${(sunPoint.x*.5+.5)*100}%`);glare.style.setProperty('--sun-y',`${(-sunPoint.y*.5+.5)*100}%`);
 profiler.mark('Aircraft + camera + effects (inclusive)');
-    scene.updateMatrixWorld();scenery.clouds.cull(camera);profiler.mark('Scene matrices');profiler.gpuBegin();renderer.render(scene,camera);profiler.gpuEnd();profiler.mark('Render CPU submission (inclusive)');frameCount++;
+    scene.updateMatrixWorld();sun.shadow.updateMatrices(sun);scenery.forest.selectGeometry(camera,sun.shadow.getFrustum());scenery.clouds.cull(camera);profiler.mark('Scene matrices');profiler.gpuBegin();renderer.render(scene,camera);profiler.gpuEnd();profiler.mark('Render CPU submission (inclusive)');frameCount++;
     const continuing=!document.hidden&&(!model.paused||tracking.moving||fallback.needsFrame||hangarOrbit&&!reducedMotion.matches);
     if(hudDirty||now-lastHud>=100||!continuing){lastHud=now;hudDirty=false;
     const destination=model.navigationBase,homeDistance=Math.hypot(p.x-destination.x,p.z-destination.z),bearing=(Math.atan2(destination.x-p.x,-(destination.z-p.z))*180/Math.PI+360)%360,heading=(f.heading*180/Math.PI%360+360)%360;

@@ -11,7 +11,7 @@ test('shader fast paths, ordered cloud culling and cached moving shadows preserv
   await page.goto('/__render-optimizations.html');
   const resultStats=await page.evaluate(()=>(window as unknown as {renderOptimizations:{ready:boolean;cloudComparisons:{max:number;different:number}[];terrainComparisons:{max:number;different:number}[];shadowComparisons:{max:number;different:number}[];cloudCounts:number[][];buildCounts:number[];shadowCacheFallback:boolean;depthCopies:number}}).renderOptimizations);
   await writeFile('test-results/render-optimizations.json',JSON.stringify(resultStats,null,2));
-  expect(resultStats,errors.join('\n')).toBeTruthy();expect(resultStats.shadowCacheFallback,JSON.stringify(resultStats)).toBe(false);expect(resultStats.depthCopies).toBe(7);expect(resultStats.buildCounts).toEqual([1,1,2,3,4,5,6]);
+  expect(resultStats,errors.join('\n')).toBeTruthy();expect(resultStats.shadowCacheFallback,JSON.stringify(resultStats)).toBe(false);expect(resultStats.depthCopies).toBe(10);expect(resultStats.buildCounts).toEqual([1,1,2,3,4,5,6,6,6,7]);
   for(const comparison of [...resultStats.cloudComparisons,...resultStats.terrainComparisons,...resultStats.shadowComparisons])expect(comparison.different,JSON.stringify(resultStats)).toBe(0);
   expect(resultStats.cloudCounts.every(([all,visible])=>visible<all&&visible>0)).toBe(true);
   await page.locator('canvas').screenshot({path:'test-results/render-optimizations.png'});expect(errors).toEqual([]);

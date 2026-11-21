@@ -1,5 +1,5 @@
-import { configureTreeMorph,createMorphTreeGeometry } from './tree-morph';
-import { Color,DynamicDrawUsage,Group,InstancedMesh,MeshStandardMaterial,Sphere,Vector3,type BufferGeometry } from 'three';
+import { configureTreeMorph,createMorphTreeGeometry,createFarTreeGeometry,TREE_DETAIL_END } from './tree-morph';
+import { Color,DynamicDrawUsage,Group,InstancedMesh,MeshStandardMaterial,Sphere,Vector3,type Camera,type Frustum,type BufferGeometry } from 'three';
 import { regionTrees,type RegionalTree } from '../world/regional-terrain';
 import { airbaseReserved } from '../world/airbase';
 import type { SettlementWorld } from '../world/settlements';
@@ -11,7 +11,7 @@ interface Tile { x:number;z:number;mesh:InstancedMesh;cursor:number;ranges:Map<s
 /** Dense canonical trees, small async generation batches, shared cuboids and tile frustum culling. */
 export function createFrontierForest(seed:number,world:SettlementWorld,_geometry:BufferGeometry,wake=()=>{}){
   const group=new Group(),material=new MeshStandardMaterial({color:new Color().setRGB(.16,.29,.12),roughness:1});
-  const treeGeometry=createMorphTreeGeometry();configureTreeMorph(material);
+  const treeGeometry=createMorphTreeGeometry(),farGeometry=createFarTreeGeometry(),cameraPosition=new Vector3(),bounds=new Sphere();configureTreeMorph(material);
   group.name='dense-distant-forest';
   const tiles=new Map<string,Tile>();let detail=new Set<string>(),anchor='',queue:Tile[]=[],timer:ReturnType<typeof setTimeout>|undefined,disposed=false,lastWake=0,rebuilds=0;
   const write=(tile:Tile,range:Range,visible:boolean)=>{
@@ -47,7 +47,7 @@ export function createFrontierForest(seed:number,world:SettlementWorld,_geometry
       for(let dz=-5;dz<=5;dz++)for(let dx=-5;dx<=5;dx++){
         if(Math.hypot(dx*256,dz*256)>FOREST_RADIUS)continue;
         const tx=cx+dx,tz=cz+dz,key=`${tx},${tz}`;wanted.add(key);if(tiles.has(key))continue;
-        const mesh=new InstancedMesh(treeGeometry,material,1024);mesh.castShadow=true;mesh.receiveShadow=true;mesh.count=0;mesh.name=`forest:${key}`;mesh.position.set(tx*256,0,tz*256);mesh.instanceMatrix.setUsage(DynamicDrawUsage);
+        const mesh=new InstancedMesh(treeGeometry,material,1024);mesh.castShadow=true;mesh.receiveShadow=true;mesh.count=0;mesh.name=`forest:${key}`;mesh.position.set(tx*256,0,tz*256);mesh.updateMatrix();mesh.matrixAutoUpdate=false;mesh.instanceMatrix.setUsage(DynamicDrawUsage);
         // The generator's full tree envelope is 0..210 m; avoid rescanning every matrix on growth.
         mesh.boundingSphere=new Sphere(new Vector3(128,105,128),215);
         const tile={x:tx,z:tz,mesh,cursor:0,ranges:new Map<string,Range>()};tiles.set(key,tile);group.add(mesh);
@@ -56,6 +56,14 @@ export function createFrontierForest(seed:number,world:SettlementWorld,_geometry
       queue=[...tiles.values()].filter(t=>t.cursor<64).sort((a,b)=>Math.hypot((a.x-cx)*256,(a.z-cz)*256)-Math.hypot((b.x-cx)*256,(b.z-cz)*256));
       if(queue.length&&timer===undefined)timer=setTimeout(pump,0);
     },
-    dispose(){if(disposed)return;disposed=true;if(timer!==undefined)clearTimeout(timer);queue=[];for(const t of tiles.values())t.mesh.dispose();tiles.clear();treeGeometry.dispose();material.dispose();group.removeFromParent();group.clear();}
+    selectGeometry(camera:Camera,shadowFrustum?:Frustum){
+      camera.getWorldPosition(cameraPosition);
+      for(const tile of tiles.values()){
+        bounds.copy(tile.mesh.boundingSphere!).applyMatrix4(tile.mesh.matrixWorld);
+        // Switch only when every tree centre in the tile has finished morphing.
+        tile.mesh.geometry=cameraPosition.distanceTo(bounds.center)-bounds.radius>=TREE_DETAIL_END&&!shadowFrustum?.intersectsSphere(bounds)?farGeometry:treeGeometry;
+      }
+    },
+    dispose(){if(disposed)return;disposed=true;if(timer!==undefined)clearTimeout(timer);queue=[];for(const t of tiles.values())t.mesh.dispose();tiles.clear();treeGeometry.dispose();farGeometry.dispose();material.dispose();group.removeFromParent();group.clear();}
   };
 }

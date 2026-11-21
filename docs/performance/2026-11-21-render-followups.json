@@ -1,0 +1,139 @@
+{
+  "followups": {
+    "cloudDiffs": [
+      {
+        "mean": 0.21752604166666667,
+        "max": 71
+      },
+      {
+        "mean": 0.13351128472222223,
+        "max": 43
+      },
+      {
+        "mean": 0.18133246527777777,
+        "max": 100
+      }
+    ],
+    "treeDiff": {
+      "mean": 0,
+      "max": 0
+    },
+    "detailTriangles": 36,
+    "farTriangles": 12,
+    "matrixDiff": {
+      "mean": 0,
+      "max": 0
+    }
+  },
+  "renderParity": {
+    "ready": true,
+    "cloudComparisons": [
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      }
+    ],
+    "cloudCounts": [
+      [
+        808,
+        152
+      ],
+      [
+        808,
+        200
+      ],
+      [
+        808,
+        224
+      ]
+    ],
+    "terrainComparisons": [
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      }
+    ],
+    "shadowComparisons": [
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      },
+      {
+        "max": 0,
+        "different": 0
+      }
+    ],
+    "buildCounts": [
+      1,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      6,
+      6,
+      7
+    ],
+    "shadowCacheFallback": false,
+    "shadowCacheError": "",
+    "depthCopies": 10
+  },
+  "notes": "Short software-WebGL correctness comparisons; not a hardware FPS benchmark."
+}

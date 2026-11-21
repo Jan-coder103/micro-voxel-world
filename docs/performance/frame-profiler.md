@@ -64,3 +64,9 @@ Fallback recenter preparation now runs in a worker after initial coverage; its
 CPU time is off-thread and is not included in the main-thread fallback row.
 Worker publication still copies/uploads buffers. Snapshot diagnostics include
 coverage-worker status and shadow-cache fallback/build/copy counters.
+
+The next rendering follow-up is described in [decision 0044](../decisions/0044-rendering-followups.md):
+shadow-region invalidation, real single-box far tree geometry, texture-backed
+cloud noise, and one explicit scene matrix traversal. Noise changes fine cloud
+detail slightly; the other changes preserve tested pixels. Re-capture a warmed,
+identical view on the target device; work reductions do not establish 60 FPS.

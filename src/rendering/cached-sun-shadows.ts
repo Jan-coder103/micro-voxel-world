@@ -1,4 +1,4 @@
-import { DirectionalLight,Matrix4,Mesh,Vector3,type Camera,type Group,type Scene,type WebGLRenderer,type InstancedMesh } from 'three';
+import { DirectionalLight,Matrix4,Mesh,Sphere,Vector3,type Camera,type Group,type Scene,type WebGLRenderer,type InstancedMesh } from 'three';
 import { SUN_DIRECTION } from './flight-effects';
 interface Stamp { matrix:number[];version:number;count:number;geometry:number;positionVersion:number }
 /** Reuse static depth, then draw moving casters into the same live depth map.
@@ -16,10 +16,18 @@ export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:Di
   const basis=new Matrix4().lookAt(SUN_DIRECTION,new Vector3(),new Vector3(0,1,0)),right=new Vector3().setFromMatrixColumn(basis,0),up=new Vector3().setFromMatrixColumn(basis,1),target=new Vector3();
   const restored=()=>{cached.shadow.needsUpdate=true;};renderer.domElement.addEventListener('webglcontextrestored',restored);
   renderer.shadowMap.autoUpdate=false;
+  const bounds=new Sphere();
   const scan=()=>{
+    sun.shadow.updateMatrices(sun);const frustum=sun.shadow.getFrustum();
     dynamic.clear();for(const root of dynamicRoots)root.traverse(o=>{if(o instanceof Mesh)dynamic.add(o);});
     casters.length=0;let dirty=false;const seen=new Set<Mesh>();
-    scene.traverseVisible(o=>{if(!(o instanceof Mesh)||!o.castShadow)return;casters.push(o);if(dynamic.has(o))return;seen.add(o);
+    scene.traverseVisible(o=>{if(!(o instanceof Mesh)||!o.castShadow)return;if(dynamic.has(o)){casters.push(o);return;}
+      // Instanced bounds include every instance; ordinary geometry bounds are local.
+      const bounded=o as InstancedMesh;
+      if(bounded.isInstancedMesh){if(!bounded.boundingSphere)bounded.computeBoundingSphere();bounds.copy(bounded.boundingSphere!);}
+      else{if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();bounds.copy(o.geometry.boundingSphere!);}
+      bounds.applyMatrix4(o.matrixWorld);if(!frustum.intersectsSphere(bounds))return;
+      casters.push(o);seen.add(o);
       const inst=o as InstancedMesh,version=inst.instanceMatrix?.version??-1,count=inst.count??-1,positionVersion=o.geometry.getAttribute('position')?.version??0,old=stamps.get(o);
       if(!old||old.version!==version||old.count!==count||old.geometry!==o.geometry.id||old.positionVersion!==positionVersion||old.matrix.some((v,i)=>v!==o.matrixWorld.elements[i])){
         stamps.set(o,{matrix:[...o.matrixWorld.elements],version,count,geometry:o.geometry.id,positionVersion});dirty=true;

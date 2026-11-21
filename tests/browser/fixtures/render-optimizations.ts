@@ -31,6 +31,13 @@ for(let i=0;i<7;i++){
   cache.update(i>=5?40:0,0,i===6?-4096:0,0);scene.updateMatrixWorld();renderer.render(scene,camera);const cached=read();buildCounts.push(cache.staticBuilds);
   cache.enabled=false;renderer.render(scene,camera);const normal=read();cache.enabled=true;shadowComparisons.push(compare(cached,normal));
 }
+// Out-of-region streaming must not invalidate cached depth; entering must.
+const outside=new Mesh(box,material);outside.castShadow=true;outside.position.set(10000,7.5,0);world.add(outside);
+for(let i=0;i<3;i++){
+  if(i===1)outside.position.x+=100;if(i===2)outside.position.set(0,7.5,20);
+  cache.update(40,0,-4096,0);scene.updateMatrixWorld();renderer.render(scene,camera);const cached=read();buildCounts.push(cache.staticBuilds);
+  cache.enabled=false;renderer.render(scene,camera);cache.enabled=true;shadowComparisons.push(compare(cached,read()));
+}
 const shadowCacheFallback=cache.fallback,depthCopies=cache.depthCopies;cache.dispose();sun.dispose();material.dispose();box.dispose();groundGeometry.dispose();
 Object.assign(window,{renderOptimizations:{ready:true,cloudComparisons,cloudCounts,terrainComparisons,shadowComparisons,buildCounts,shadowCacheFallback,shadowCacheError:cache.lastError,depthCopies}});
 addEventListener('pagehide',()=>renderer.dispose(),{once:true});
