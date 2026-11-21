@@ -141,3 +141,8 @@ Pilot v3 migrates v1/v2 credits, XP, upgrades, skills and equipment while preser
 the original records. Both new and migrated pilots begin the aircraft unlock chain
 at Tier 1; earlier balances remain available to meet the new unlock requirements.
 Aircraft ownership, selection and the last completed run persist across reloads.
+
+For lag investigation, press **F8** for the opt-in frame profiler (also available
+under Settings and developer tools). It reports CPU subsystem timings, GPU render
+time where supported, frame pacing and observer costs; visual toggles support
+shadow/tree/enemy comparisons. [Capture instructions and limitations](docs/performance/frame-profiler.md).

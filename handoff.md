@@ -1,3 +1,32 @@
+## 21 November 2026 — Opt-in frame profiler
+
+Implemented requested makeshift profiling without sustained GPU stress. F8 or
+Settings opens a bounded 600-frame CPU profiler: plane/collision/tick glue,
+zombies, mutants, combat, worker-result integration, terrain, roads, naval,
+settlements, trees/clouds, presentation, matrices, render submission and HUD.
+Inclusive stages are labeled; multiple fixed ticks accumulate per render frame.
+Asynchronous EXT_disjoint_timer_query_webgl2 measures whole-render GPU time,
+including shadow maps; unsupported GPU time remains unknown. At most eight pending
+queries, disjoint rejection, no synchronous GPU waits or extra render passes.
+Shadow/tree/cloud/zombie/mutant visibility toggles reset captures and restore on
+stop. Simulation/collision remain authoritative. F8 off restores original methods.
+JSON export includes buffer size, browser and active toggles. Observer bookkeeping
+and report work are measured separately with explicit lower-bound caveats.
+See docs/performance/frame-profiler.md for reproducible comparisons and CPU/GPU
+nonadditivity. No laggy-device timing or 60 FPS achievement is claimed.
+
+Verification: build/types/lint and whitespace pass (existing bundle warning).
+New aggregation tests pass. Full serial unit run: 334/338 pass; four retained CLI
+checks initially fail with sandbox-empty output/timeouts. Permitted four-file
+rerun passes 62/64; remaining export/validation five-second timeouts pass all 44
+checks in a final two-file rerun with --testTimeout=30000. Thus all 338 unit checks
+pass across runs; default full suite is not claimed clean. Final short browser
+check passes (18 s): capture display, visual toggle, JSON contents/export,
+restore/reopen and disposal; inspected compact panel capture. No full browser
+suite, sustained load or physical-GPU benchmark under the retained heat restriction.
+User-device lag attribution, observer A/B overhead and hardware FPS remain open.
+Preview stopped by Playwright; no push/deployment. Required local commit follows.
+
 ## 21 November 2026 — Five-tier aircraft progression and run debriefs
 
 Implemented Jan's progression request; decision 0041 and README list the roster,

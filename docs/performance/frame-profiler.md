@@ -1,0 +1,47 @@
+# Frontier makeshift profiler
+
+Open Settings and developer tools → Open frame profiler, or press F8. It is off
+by default. F8 / Stop restores original methods and all visual toggles. The panel
+works in the hangar and during flight; it does not pause flight or force frames.
+Reset before a capture. Export JSON saves the last 600 frames, drawing-buffer
+size, browser, enabled visuals and asynchronous GPU samples. No automatic upload.
+
+Fly to a reproducible laggy situation, allow loading/shader warm-up to settle,
+reset, collect a short window, export. Repeat in the same view with just Shadows,
+Trees, Clouds, Zombies or Mutants unchecked. Toggles affect visibility/rendering,
+not collision, rewards or simulation; returning to normal restores prior state.
+Switching any toggle resets samples. Avoid comparing the initial shader compile
+spike against warmed rendering. Use render scale separately to test fill cost.
+
+Numbers are milliseconds per rendered frame: mean / p95 / maximum. Multiple
+simulation ticks accumulate; frames without a subsystem update contribute zero.
+60 FPS allows 16.67 ms; frame interval is actual callback pacing, including browser
+scheduling, and is meaningful during continuous rendering, not demand-rendered
+idle interactions. CPU callback time excludes deferred browser layout/paint,
+other tasks, worker execution and GPU execution. Streaming integration includes
+worker-result uploads; worker generation runs independently and is not timed.
+
+Stage totals and child subsystem rows overlap: “inclusive” means do not sum it
+with its children. Plane + collision + tick glue excludes the instrumented zombie,
+mutant and combat calls inside flight.advance; remaining landing/target selection
+and tick bookkeeping are included. Tree streaming + LOD and Cloud update measure CPU preparation,
+not drawing. Shadows are part of Render CPU submission and GPU render, not the
+small aircraft ground-shadow placement update.
+
+GPU render uses EXT_disjoint_timer_query_webgl2 when supported. It measures the
+whole render including shadow maps, arrives asynchronously, uses at most eight
+pending queries, discards disjoint/context-invalid timing and never waits with
+finish/readPixels. Unsupported means unknown, never zero. GPU and CPU overlap;
+**do not add their times**. Visibility comparisons estimate marginal costs, not
+an additive GPU breakdown: shadows, overdraw, batching and occlusion interact.
+GPU samples and CPU frames are separate rolling populations, not paired frames.
+
+Observer bookkeeping is a measured lower bound for clock/aggregation/query work.
+Observer report/aggregation includes panel text generation, sampled twice a second.
+CPU callback includes instrumentation work; end-of-frame reporting is separate.
+These cannot measure every observer effect (driver overhead, JIT, cache changes,
+deferred panel layout). Compare profiler on/off frame pacing with browser tooling
+on the target device for a real overhead estimate. No extra render passes or
+synchronous GPU reads are introduced. Storage is bounded; no persistent capture
+log or per-frame console output. Numbers from software rendering do not establish
+Pixel 10a hardware performance.

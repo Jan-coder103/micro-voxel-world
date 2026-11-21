@@ -24,7 +24,7 @@ export function createFrontierScenery(seed:number,settlements:SettlementWorld,wa
   const cube=new BoxGeometry(1,1,1),clouds=createFrontierClouds(seed);
   const forest=createFrontierForest(seed,settlements,cube,wake);group.add(clouds.group,forest.group);
   let disposed=false;
-  return {group,get treeCount(){return forest.treeCount;},get pending(){return forest.pending;},get rebuilds(){return forest.rebuilds;},update(x:number,y:number,z:number,residents:Iterable<{spec:ChunkSpec}>=[]){
+  return {group,forest,clouds,get treeCount(){return forest.treeCount;},get pending(){return forest.pending;},get rebuilds(){return forest.rebuilds;},update(x:number,y:number,z:number,residents:Iterable<{spec:ChunkSpec}>=[]){
     if(disposed)return;sky.position.set(x,y,z);clouds.update(x,z);forest.update(x,z,residents);
   },dispose(){if(disposed)return;disposed=true;forest.dispose();clouds.dispose();skyGeometry.dispose();skyMaterial.dispose();cube.dispose();group.removeFromParent();group.clear();}};
 }
