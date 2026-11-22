@@ -1,3 +1,23 @@
+## 22 November 2026 — Mobile flight controls
+
+Added mobile/touch-coarse detection, right flight joystick, left vertical held
+throttle (0% brakes) and explicit Auto-shoot ON/OFF. Portrait shows a nonblocking
+landscape suggestion in flight and hangar. Input feeds existing simulation;
+keyboard remains available. Pointer capture/cancel centers the stick; pausing,
+crashing or leaving the app clears touch input and auto-shoot. Listeners/UI are
+disposed with the mount. Mobile HUD/short landscape hangar layouts avoid thumbs.
+See docs/decisions/0050-mobile-controls.md and README for behavior/controls.
+
+Verification: 372/372 unit tests pass; build/typecheck, lint and asset validation
+pass (existing bundle-size warning). Initial browser batch: mobile, production
+entry points and unavailable-WebGL checks pass; desktop resize exceeded 60 s
+while running in parallel. Final serial run passes all four checks in 1.6 min:
+mobile two-touch/cancel/orientation/pause, production game/workshop loading,
+desktop runway/menu/narrow view and unavailable WebGL. Mobile landscape screenshot
+inspected. Real-phone playtesting and physical-GPU acceptance remain open; no
+mobile frame-rate claim. Final build/lint/whitespace pass. User requested commit
+and push; the Pages workflow deploys main.
+
 ## 22 November 2026 — GitHub Pages build deployment
 
 Pages was publishing raw main-branch files, leaving the TypeScript entry point

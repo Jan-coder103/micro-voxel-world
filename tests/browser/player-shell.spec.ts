@@ -5,6 +5,8 @@ test('frontier player starts at the runway, gates tools, pauses and fits narrow 
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   await page.setViewportSize({width:800,height:600});await page.goto('/');
   const menu=page.getByRole('dialog',{name:'Hangar and upgrades'}),host=page.getByLabel('Aircraft flight scene',{exact:true}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');
+  await expect(page.getByRole('region',{name:'Touch flight controls'})).toBeHidden();
+  await expect(page.locator('.frontier>.landscape-notice')).toBeHidden();
   await expect(menu).toBeVisible();await expect.poll(async()=>(await read()).grounded).toBe(true);expect((await read()).speed).toBe(0);expect((await read()).money).toBe(0);
   await page.getByText('Settings and developer tools',{exact:true}).click();
   await expect(page.getByRole('link',{name:'Voxel workshop',exact:true})).toBeHidden();await page.getByLabel('Enable developer tools').check();await expect(page.getByRole('link',{name:'Voxel workshop',exact:true})).toBeVisible();await page.getByLabel('Enable developer tools').uncheck();

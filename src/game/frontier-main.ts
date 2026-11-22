@@ -1,3 +1,4 @@
+import { createMobileControls,throttleCommand } from './mobile-controls';
 import { createSceneryQueue } from '../streaming/scenery-queue';
 import { createFrontierProfiler } from '../performance/frontier-profiler';
 import { PLANES,planeDefinition,type PlaneId } from './aircraft-roster';
@@ -85,7 +86,9 @@ function mount(){
   try{workers=createTerrainWorkers();stream=new ChunkStream(workers.load,(spec,data)=>{const r=attachTerrain(spec,data,terrainMaterial,cube,markerMaterial,true);world.add(r.group);return r;},undefined,()=>wake(),undefined,2);}catch{terrainError='Terrain detail unavailable; coarse terrain and collision remain active.';}
   let hudDirty=true,lastHud=-Infinity;
   const listen=(target:EventTarget,type:string,fn:EventListener)=>{const wrapped:EventListener=e=>{fn(e);hudDirty=true;wake();};target.addEventListener(type,wrapped);releases.push(()=>target.removeEventListener(type,wrapped));};
-  const clear=()=>{keys.clear();audio.stop();};
+  const mobile=createMobileControls(app.querySelector<HTMLElement>('.frontier')!,menu,()=>{hudDirty=true;wake();});
+  releases.push(()=>mobile.dispose());
+  const clear=()=>{keys.clear();mobile.reset();audio.stop();};
   const pause=()=>{model.pause();clear();chase.reset();previous=undefined;wake();};
   const openMenu=()=>{pause();if(!menu.open)menu.showModal();};
   const closeMenu=()=>{if(model.state==='crashed'){menu.close();model.paused=false;previous=undefined;host.focus();return;}previewPlane=model.plane.id;displayPlane(previewPlane);menu.close();model.launch();previous=undefined;host.focus();wake();};
@@ -106,7 +109,7 @@ function mount(){
   let weapon:WeaponId='minigun';
   const codes=['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','Space','Digit1','Digit2','Digit3','Digit4'];
   listen(host,'keydown',e=>{const k=e as KeyboardEvent;if(k.code==='KeyV'&&!k.repeat){k.preventDefault();void toggleView();return;}if(model.paused)return;if(!codes.includes(k.code))return;k.preventDefault();keys.add(k.code);if(k.code.startsWith('Digit'))weapon=(['minigun','autocannon','shell','missile'] as WeaponId[])[Number(k.code.slice(-1))-1];});listen(host,'keyup',e=>keys.delete((e as KeyboardEvent).code));
-  listen(host,'blur',()=>{if(!menu.open)pause();});listen(window,'blur',pause);listen(document,'visibilitychange',()=>{if(document.hidden)pause();});
+  listen(host,'blur',e=>{if(!menu.open&&!((e as FocusEvent).relatedTarget as HTMLElement|null)?.closest('.mobile-controls'))pause();});listen(window,'blur',pause);listen(document,'visibilitychange',()=>{if(document.hidden)pause();});
   releases.push(bindFlightOrbit(host,chase,()=>wake()));
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');listen(reducedMotion,'change',()=>{});
   const mode=app.querySelector<HTMLSelectElement>('#flight-mode')!,aim=app.querySelector<HTMLInputElement>('#aim')!,effects=app.querySelector<HTMLInputElement>('#effects')!;effects.checked=!matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -178,7 +181,8 @@ function mount(){
     if(!document.hidden)displaySeconds+=Math.min(dt,.1);
     if(autoScale&&dt>0){scaleSample+=dt;scaleFrames++;if(scaleSample>=1){const frameMs=scaleSample*1000/scaleFrames;const next=frameMs>19?Math.max(.75,scale-.05):frameMs<16?Math.min(1,scale+.025):scale;if(next!==scale){scale=next;resize();}scaleSample=0;scaleFrames=0;}}
     if(!model.paused&&effects.checked)waterSeconds+=Math.min(dt,.1);terrainSurface.updateTime(waterSeconds);
-    model.advance(dt,{pitch:held('KeyS','ArrowDown')-held('KeyW','ArrowUp'),bank:held('KeyD','ArrowRight')-held('KeyA','ArrowLeft'),throttle:held('KeyE')-held('KeyQ'),fire:keys.has('Space'),weapon,aim:aim.checked});
+    model.advance(dt,{pitch:Math.max(-1,Math.min(1,held('KeyS','ArrowDown')-held('KeyW','ArrowUp')+mobile.state.pitch)),bank:Math.max(-1,Math.min(1,held('KeyD','ArrowRight')-held('KeyA','ArrowLeft')+mobile.state.bank)),throttle:held('KeyE')-held('KeyQ')||throttleCommand(mobile.state.target,model.flight.throttle,Math.min(dt,.1)),fire:keys.has('Space')||mobile.state.fire,weapon,aim:aim.checked});
+    mobile.update(!model.paused&&model.state==='flying',model.flight.throttle);
     profiler.mark('Simulation (inclusive)');
     if(lastState!==model.state){hudDirty=true;
       if(model.state==='crashed'){clear();chase.reset();audio.play('explosion');}
@@ -245,7 +249,7 @@ profiler.mark('Aircraft + camera + effects (inclusive)');
       const dot=app.querySelector<HTMLElement>(`#radar-${id}`)!;dot.hidden=!contact;
       if(contact){dot.style.left=`${contact.x}%`;dot.style.top=`${contact.y}%`;}
     }
-    instrumentText('#weapon-hud',`${WEAPONS[weapon].name} · ${weapon==='missile'?(model.combat.missileCooldown>0?`RELOAD ${model.combat.missileCooldown.toFixed(1)}s`:model.combat.lockReady?'LOCKED · FIRE':`LOCK ${Math.round(model.combat.lockTicks/60*100)}% · HOLD SIGHT 1s`):lock?'TARGET LOCK':aim.checked?'SEEKING TARGET':'NOSE AIM'} · 1 / 2 / 3 / 4 · M MAP`);
+    instrumentText('#weapon-hud',`${WEAPONS[weapon].name} · ${weapon==='missile'?(model.combat.missileCooldown>0?`RELOAD ${model.combat.missileCooldown.toFixed(1)}s`:model.combat.lockReady?'LOCKED · FIRE':`LOCK ${Math.round(model.combat.lockTicks/60*100)}% · HOLD SIGHT 1s`):lock?'TARGET LOCK':aim.checked?'SEEKING TARGET':'NOSE AIM'}${mobile.enabled?'':' · 1 / 2 / 3 / 4 · M MAP'}`);
     const crashPanel=app.querySelector<HTMLElement>('#crash-view')!;crashPanel.hidden=!crashed;instrumentText('#crash-message',`AIRCRAFT LOST\n${f.reason}\nEarnings retained · rescue in ${Math.ceil(model.crashSeconds)} s${model.paused?' · PAUSED':''}`);
     if(terrainError||stream?.failures)hint.textContent=terrainError||'Terrain detail failed; coarse coverage and collision remain active.';else hint.textContent=model.notice|| (model.paused?'Paused · Esc to resume':crashed?'Recovery team inbound':f.grounded?'E · throttle up / S · rotate at 32–35 m/s / Q · idle & brakes':'Hunt freely · Return to the strip to bank rewards · Esc to pause');
     if(menu.open){

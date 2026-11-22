@@ -35,6 +35,12 @@ Boss rewards before bonuses:
 - **M:** open the paused top-down world map. Pan with WASD or arrows, zoom with +/− or the buttons. M or Esc closes it.
 - **Esc:** pause and open the hangar.
 
+**Mobile:** Touch devices show a flight joystick on the right and a throttle slider
+plus Auto-shoot toggle on the left. Pull the joystick down to climb, push up to
+dive, and move sideways to bank. The throttle holds its setting; 0% applies the
+brakes. Auto-shoot starts off and resets when paused or interrupted. Portrait
+mode suggests rotating to landscape.
+
 To take off, hold E to full power, accelerate to 32–35 m/s, then hold S to rotate. Release S about one second after liftoff and use short inputs to adjust the climb. Direct mode is the default: auto-level is off and aerodynamic trim is fixed. Enable Assisted mode in Settings for automatic leveling and airspeed trim. Holding full elevator commands an increasingly steep maneuver.
 
 To land, line up with the strip, level the wings and touch down below 48 m/s while descending less than 4 m/s. Keep the whole aircraft inside the marked strip, then hold Q until the aircraft stops for one second. The destination selector changes your bearing and marker; it does not teleport the aircraft.

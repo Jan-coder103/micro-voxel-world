@@ -50,3 +50,20 @@ footer{background:none;color:var(--phosphor);text-shadow:var(--hud-shadow);paddi
 @media(max-width:760px){.plane-slots strong{font-size:9px}.plane-slots span{display:none}.plane-slots small{font-size:7px}.plane-slots button{padding:7px 3px}.plane-slots{height:72px}#plane-details{padding:12px 0}}
 
 .frame-profiler{position:fixed;z-index:30;top:60px;left:12px;max-width:calc(100vw - 24px);max-height:80vh;overflow:auto;padding:12px;background:#101a20f5;color:#e5f3eb;border:1px solid #c5ae72;font:12px monospace;pointer-events:auto}.frame-profiler[hidden]{display:none}.frame-profiler pre{font:11px monospace;white-space:pre;max-height:48vh;overflow:auto}.frame-profiler small{display:block;max-width:650px}.frame-profiler label{display:inline-block;margin:8px}
+
+/* Touch flight deck keeps both thumbs clear of the center sightline. */
+.mobile-controls{position:fixed;inset:0;z-index:8;pointer-events:none;color:var(--phosphor);font:10px ui-monospace,monospace;user-select:none}
+.mobile-controls[hidden],.landscape-notice[hidden]{display:none}
+.mobile-power,.mobile-stick{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));pointer-events:auto}
+.mobile-power{left:max(18px,env(safe-area-inset-left));display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;background:#142418b8;border:1px solid #83f17780;border-radius:12px}
+.mobile-power label{display:grid;gap:4px;text-align:center}.mobile-power output{font-size:14px}.mobile-power small{font-size:9px}
+#touch-throttle{writing-mode:vertical-lr;direction:rtl;width:44px;height:110px;margin:0;accent-color:#83f177;touch-action:none}
+#auto-shoot{min-height:44px;font-size:11px;padding:8px;color:#83f177;background:#142418e8;border:1px solid #83f17780}#auto-shoot[aria-pressed=true]{background:#83f177;color:#142418}
+.mobile-stick{right:max(20px,env(safe-area-inset-right));display:grid;justify-items:center;gap:10px}.mobile-stick>span{font-size:9px;text-shadow:0 1px 3px #000}
+#flight-stick{position:relative;width:140px;height:140px;border:2px solid #83f17799;border-radius:50%;touch-action:none;background:linear-gradient(90deg,transparent 49.5%,#83f17744 50%,transparent 50.5%),linear-gradient(transparent 49.5%,#83f17744 50%,transparent 50.5%),#14241880}
+#flight-stick i{position:absolute;left:50%;top:50%;width:48px;height:48px;border:2px solid #baffaf;border-radius:50%;background:#83f17755;transform:translate(-50%,-50%);pointer-events:none}
+.landscape-notice{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:40;width:max-content;max-width:calc(100vw - 32px);margin:0;padding:10px 14px;border:1px solid #dfc18b;border-radius:6px;background:#18261aee;color:#ffe0a4;font:12px/1.5 ui-monospace,monospace;text-align:center;pointer-events:none}
+.mobile-device #menu-button{min-height:44px}.mobile-device #radar{width:88px;left:50%;bottom:50px;transform:translateX(-50%);padding:5px}.mobile-device #radar small{display:none}.mobile-device footer{bottom:0;padding:8px 12px;text-align:center}.mobile-device #hint{display:none}.mobile-device #weapon-hud{padding:4px 8px;font-size:9px}.mobile-device #flight-hud{right:auto;left:50%;top:35%;font-size:10px}.mobile-device #boss-hud{top:70px;width:210px;left:50%;transform:translateX(-50%)}
+@media(max-height:500px){.mobile-device header{padding:8px 16px}.mobile-device .instruments{inset:60px 16px auto;font-size:9px}.mobile-device #heading{display:none}.mobile-device #compass-tape{top:65px;width:32vw}.mobile-device #run-hud{padding:5px;font-size:9px;max-width:150px}.mobile-device #flight-hud{top:32%;left:46%;font-size:9px;line-height:1.5}.mobile-device #boss-hud{top:100px;width:170px;font-size:9px}.mobile-device #hangar{padding:56px 12px 92px}.mobile-device #hangar[open]{grid-template-columns:1fr 1fr}.mobile-device .hangar-right{grid-column:2}.mobile-device .hangar-left,.mobile-device .hangar-right{padding:12px}.mobile-device #hangar h1{font-size:18px}.mobile-device .plane-slots{bottom:6px;height:72px}.mobile-device #launch{min-height:44px}}
+
+.mobile-device footer{display:flex;justify-content:center}.mobile-device #weapon-hud{margin:0}
