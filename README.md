@@ -51,6 +51,13 @@ npm run dev
 
 Open [http://localhost:5173/](http://localhost:5173/) to play. Sound starts muted. Pilot progression and world changes save in your browser; reloading starts a new sortie at home.
 
+## GitHub Pages
+
+Play [Frontier on GitHub Pages](https://jan-coder103.github.io/micro-voxel-world/).
+The Pages workflow builds with Node 26 and publishes only `dist`, including the
+repository URL prefix. In repository Settings → Pages, select **GitHub Actions**
+as the source; publishing the source branch directly cannot run TypeScript.
+
 ## Voxel workshop
 
 Open [the voxel workshop](http://localhost:5173/tools/voxel-editor/) directly, or

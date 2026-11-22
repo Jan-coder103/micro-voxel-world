@@ -1,3 +1,14 @@
+## 22 November 2026 — GitHub Pages build deployment
+
+Pages was publishing raw main-branch files, leaving the TypeScript entry point
+uncompiled. Added a pinned GitHub Actions workflow using Node 26, npm ci, the
+Pages base path and the dist artifact; switched Pages to workflow deployment.
+Home/workshop links use Vite BASE_URL. README documents the hosted URL/setup.
+Production build/typecheck and lint pass (existing bundle-size warning remains).
+A static-server software-WebGL check loaded game/workshop under the repository
+prefix with no HTTP/module errors. Retained deployment regression added; broader
+unit verification is in progress. Gameplay/hardware acceptance remains open.
+
 ## 22 November 2026 — Lazy scenery and coarse independent tree shadows
 
 Implemented Jan's three capture-5 fixes and authorization for delayed scenery
