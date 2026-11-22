@@ -5,7 +5,7 @@
 Frontier is an arcade aircraft combat game set in a huge, procedurally generated world. Fly low across connected fields, dirt roads, forests, rivers and mountain ranges. Find roaming zombie hordes and towering mutant bosses and giant siege spiders, choose your attack, then bring your aircraft home to bank the rewards.
 
 <p align="center">
-  <img src="docs/images/sunset.png" alt="Aircraft flies over forest, fields, and a coastal town at sunset with a colossal mutant nearby" width="100%">
+  <img src="docs/images/siege-spider.png" alt="Kestrel aircraft approaches a giant siege spider above forests, fields, and a river at sunset" width="100%">
 </p>
 
 ## The sortie
