@@ -6,7 +6,7 @@ export default defineConfig({
   outputDir: './test-results/playwright',
   use: { baseURL: 'http://127.0.0.1:4173', viewport: { width: 1280, height: 720 } },
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
+    command: `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort --base ${process.env.PAGES_BASE_PATH ?? '/'}`,
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,
   },

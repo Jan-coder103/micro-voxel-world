@@ -6,8 +6,13 @@ Pages base path and the dist artifact; switched Pages to workflow deployment.
 Home/workshop links use Vite BASE_URL. README documents the hosted URL/setup.
 Production build/typecheck and lint pass (existing bundle-size warning remains).
 A static-server software-WebGL check loaded game/workshop under the repository
-prefix with no HTTP/module errors. Retained deployment regression added; broader
-unit verification is in progress. Gameplay/hardware acceptance remains open.
+prefix with no HTTP/module errors. Retained deployment regression passes (16.1 s); preview uses PAGES_BASE_PATH
+to match the built prefix. Deployment run 44966787764 succeeded. Live HTML and
+its compiled entry module return HTTP 200; JavaScript MIME is correct. Full unit
+run: 366/370 pass in the restricted sandbox; the four CLI test files pass
+64/64 outside it (57.5 s), covering all four initial failures. All 370 checks
+therefore pass across the final runs. Lint/whitespace pass. The full browser
+suite was not rerun. Gameplay/hardware acceptance remains open.
 
 ## 22 November 2026 — Lazy scenery and coarse independent tree shadows
 
