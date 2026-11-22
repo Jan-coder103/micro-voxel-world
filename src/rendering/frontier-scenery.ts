@@ -1,3 +1,4 @@
+import type { SceneryQueue } from '../streaming/scenery-queue';
 import { BackSide,BoxGeometry,Group,Mesh,ShaderMaterial,SphereGeometry } from 'three';
 import { SUN_DIRECTION } from './flight-effects';
 import { createFrontierClouds } from './frontier-clouds';
@@ -6,7 +7,7 @@ import type { ChunkSpec } from '../streaming/terrain-data';
 import type { SettlementWorld } from '../world/settlements';
 
 /** Only the sky follows the view; clouds and trees stay anchored to the seeded world. */
-export function createFrontierScenery(seed:number,settlements:SettlementWorld,wake=()=>{}){
+export function createFrontierScenery(seed:number,settlements:SettlementWorld,wake=()=>{},generation?:SceneryQueue){
   const group=new Group(),direction=SUN_DIRECTION;
   const skyMaterial=new ShaderMaterial({side:BackSide,depthWrite:false,uniforms:{sunDirection:{value:direction}},vertexShader:'varying vec3 vDirection; void main(){vDirection=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:`
     varying vec3 vDirection; uniform vec3 sunDirection;
@@ -22,7 +23,7 @@ export function createFrontierScenery(seed:number,settlements:SettlementWorld,wa
     }`});
   const skyGeometry=new SphereGeometry(4400,24,12),sky=new Mesh(skyGeometry,skyMaterial);sky.renderOrder=-10;sky.frustumCulled=false;group.add(sky);
   const cube=new BoxGeometry(1,1,1),clouds=createFrontierClouds(seed);
-  const forest=createFrontierForest(seed,settlements,cube,wake);group.add(clouds.group,forest.group);
+  const forest=createFrontierForest(seed,settlements,cube,wake,{generation});group.add(clouds.group,forest.group);
   let disposed=false;
   return {group,forest,clouds,get treeCount(){return forest.treeCount;},get pending(){return forest.pending;},get rebuilds(){return forest.rebuilds;},update(x:number,y:number,z:number,residents:Iterable<{spec:ChunkSpec}>=[]){
     if(disposed)return;sky.position.set(x,y,z);clouds.update(x,z);forest.update(x,z,residents);

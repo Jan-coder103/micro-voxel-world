@@ -1,0 +1,51 @@
+{
+  "scope": "Native Node TypeScript; baseline 5ad7ce0 vs current, identical 6208 cells around home; includes JSON hashing; not GPU or user-device FPS",
+  "reports": [
+    {
+      "name": "baseline",
+      "runs": [
+        {
+          "ms": 574.060251,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 430.252167,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 418.27892900000006,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    },
+    {
+      "name": "current",
+      "runs": [
+        {
+          "ms": 238.92924900000003,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 179.05508399999985,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        },
+        {
+          "ms": 179.73838799999976,
+          "cells": 6208,
+          "trees": 19706,
+          "sha256": "4c4611781ba220cbea2fbe4e78029b54c41779f919b585de15cd73f71421e8ff"
+        }
+      ]
+    }
+  ]
+}

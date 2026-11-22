@@ -158,3 +158,13 @@ callbacks. These are included in outside-callback time, not CPU callback time.
 Do not add them to outside time or treat their separately aggregated samples as
 paired frames. Idle gaps are excluded. Worker execution remains untimed. See
 [decision 0048](../decisions/0048-frame-pacing-investigation.md).
+
+## Lazy scenery worker
+
+Forest, road and settlement presentation now share a scenery worker. Exports
+include `sceneState.sceneryGeneration`: queued/active/ready jobs, worker/failure
+state and completed/stale counts. `Scenery publication / fallback timer` replaces
+the former main-thread forest/road generation rows. In normal worker mode this
+measures main-thread publication/queue handling; in fallback it also includes
+cooperative generation. Worker CPU is outside these rows. See
+[decision 0049](../decisions/0049-lazy-scenery-tree-shadows.md).

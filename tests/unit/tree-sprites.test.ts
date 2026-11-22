@@ -14,13 +14,13 @@ it('selects transitions only at distance and restores geometry for steep views, 
   expect(treeSpriteMode(new Vector3(0,0,700),b,true,false)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,0,(TREE_SPRITE_START+TREE_SPRITE_END)/2),b,true,false)).toBe('transition');expect(treeSpriteMode(new Vector3(0,0,1300),b,true,false)).toBe('sprite');
   expect(treeSpriteMode(new Vector3(0,0,1300),b,true,true)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,0,1300),b,false,false)).toBe('geometry');expect(treeSpriteMode(new Vector3(0,1300,500),b,true,false)).toBe('geometry');
 });
-it('shares instance buffers, restores shadow-region geometry, toggles and disposes all sprite resources',()=>{
+it('shares color instance buffers, keeps independent shadow casters, toggles and disposes resources',()=>{
   vi.useFakeTimers();const cube=new BoxGeometry(),f=createFrontierForest(103,new SettlementWorld(103),cube);
   try{
     f.update(0,0);vi.runAllTimers();f.group.updateMatrixWorld();const tile=f.group.children[0] as InstancedMesh,sprite=tile.children[0] as InstancedMesh;
     expect(sprite.instanceMatrix).toBe(tile.instanceMatrix);const camera=new PerspectiveCamera();camera.position.copy(tile.position).add(new Vector3(128,105,2200));camera.updateMatrixWorld();f.selectGeometry(camera);expect(tile.geometry.index!.count).toBe(12);
     f.spritesEnabled=false;f.selectGeometry(camera);expect(tile.geometry.getAttribute('position').count).toBe(36);f.spritesEnabled=true;
-    const frustum=new Frustum();for(const p of frustum.planes)p.setComponents(0,0,0,1);f.selectGeometry(camera,frustum);expect(tile.geometry.getAttribute('position').count).toBe(108);expect(sprite.visible).toBe(false);
+    const frustum=new Frustum();for(const p of frustum.planes)p.setComponents(0,0,0,1);f.selectGeometry(camera,frustum);expect(tile.geometry.index!.count).toBe(12);expect(sprite.visible).toBe(false);expect(f.shadowCasters.size).toBeGreaterThan(0);expect([...f.shadowCasters].every(m=>!m.visible&&m.castShadow&&m.geometry.getAttribute('position').count===36)).toBe(true);
     f.selectGeometry(camera);const material=tile.material as ReturnType<typeof createTreeSpriteMaterial>,texture=material.map!,dispose=vi.spyOn(texture,'dispose');f.dispose();f.dispose();expect(dispose).toHaveBeenCalledOnce();
   }finally{f.dispose();cube.dispose();vi.useRealTimers();}
 });

@@ -8,7 +8,7 @@ interface Stamp { matrix:number[];version:number;count:number;geometry:number;po
  * Both passes use the same camera; depth union preserves normal PCF filtering.
  * The depth blit is GPU-to-GPU: no readback, second light or extra lighting samples.
  */
-export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:DirectionalLight,dynamicRoots:Group[]){
+export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:DirectionalLight,dynamicRoots:Group[],shadowOnly:Iterable<Mesh>=[]){
   const diagnostics:{timingSink?:TimingSink;counterSink?:(name:string,count:number)=>void}={};
   const reasons=new Set<Reason>(),changedCasters=new Set<string>(),changedGroups=new Set<string>();
   const totals=Object.fromEntries(SHADOW_INVALIDATIONS.map(r=>[r,0])) as Record<Reason,number>;
@@ -64,6 +64,10 @@ export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:Di
     return dirty;
   };
   renderer.shadowMap.render=function(lights,renderScene,camera:Camera){
+    // Three has already built its color list. Proxies participate only in depth passes.
+    const proxies=renderScene===scene?[...shadowOnly]:[],visibility=proxies.map(o=>o.visible);
+    for(const proxy of proxies)proxy.visible=true;
+    try{
       if(renderScene!==scene||!lights.includes(sun)||fallback||!enabled||!renderer.shadowMap.enabled){timed('Shadow uncached pass (inclusive)',()=>originalRender.call(renderer.shadowMap,lights,renderScene,camera));return;}
       if(disposed)return;
       const dirty=timed('Shadow cache scan',scan);const size=sun.shadow.mapSize.x;if(size!==lastSize){if(lastSize)invalidate('Map resized');lastSize=size;cached.shadow.mapSize.copy(sun.shadow.mapSize);cached.shadow.needsUpdate=true;}
@@ -88,6 +92,7 @@ export function createCachedSunShadows(renderer:WebGLRenderer,scene:Scene,sun:Di
         renderer.shadowMap.autoUpdate=fallback?originalAuto:false;renderer.shadowMap.needsUpdate=false;
       }
       if(fallback)timed('Shadow uncached pass (inclusive)',()=>originalRender.call(renderer.shadowMap,lights,renderScene,camera));
+    }finally{for(let i=0;i<proxies.length;i++)proxies[i].visible=visibility[i];}
   };
   return {diagnostics,get invalidationStats(){return {reasons:{...totals},lastReasons:[...lastReasons],lastCasters:[...lastCasters],pendingReasons:[...reasons]};},get staticBuilds(){return staticBuilds;},get depthCopies(){return depthCopies;},get fallback(){return fallback;},get lastError(){return lastError;},get enabled(){return enabled;},set enabled(value:boolean){enabled=value;renderer.shadowMap.autoUpdate=value&&!fallback?false:originalAuto;},
     update(x:number,z:number,offsetX:number,offsetZ:number){

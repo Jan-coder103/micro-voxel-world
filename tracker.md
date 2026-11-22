@@ -1,3 +1,41 @@
+## 22 November 2026 — Lazy scenery and coarse independent tree shadows
+
+Implemented Jan's three capture-5 fixes and authorization for delayed scenery
+arrival/coarse tree shadows. Bounded immutable layout/site caches and early
+candidate rejection preserve canonical trees. One shared scenery worker prepares
+forest, road tessellation/normals/bounds and settlement discovery; nearest jobs
+win, obsolete replies drop, old settlement meshes stay until replacement.
+One staged reply publishes per 16 ms pump rather than bursting on the UI thread.
+Worker failure uses the same generators in small cooperative slices. Collision,
+full resolution, MSAA and 896² sun maps retain their existing settings.
+
+Completed forest tiles now publish once. Separate immutable shadow batches cover
+128 m quadrants with 12-triangle boxes (vs 36-triangle detailed trees), anchored
+to canonical positions and the existing sun direction. Color residency/LOD edits
+do not dirty these buffers; actual caster/anchor/rebase changes remain immediate.
+Proxies are visible only inside depth rendering, restored in finally. Views and
+shared queue dispose worker/timers/staged data/meshes. F8 exports worker/queue and
+shadow-group counters plus main-thread publication/fallback timings.
+Decision 0049 documents ownership, failure paths, soft-budget limits and tradeoffs.
+
+Evidence: CPU-only warm 6,208-cell benchmark ~424 → ~179 ms (~58% less generator
+CPU), same 19,706-tree hashes; retained docs/performance/2026-11-22-scenery-generation.json.
+Four-seed eviction/boundary hashes and road hashes match pre-change fixtures.
+Five software-WebGL browser checks pass in 51.8 s: actual worker use, lazy arrival,
+shadow/color parity through rebase, hidden proxies, prior cached-shadow behavior
+and profiler restoration. Inspected forest screenshot showing coarse directional
+shadows. Typecheck/build/lint/whitespace pass; existing bundle warning remains.
+Full serial unit run: 368/370 passed, two unchanged asset CLI tests exceeded their
+5 s limits; separate rerun results follow. No full browser suite/npm check,
+physical GPU/long-flight acceptance or stable 60 FPS claim. Local commit follows;
+no push/deployment.
+
+Final verification: all 370 unit checks pass across the final runs: the full
+serial run passed 368/370, then both asset CLI files passed 44/44 with a 30 s
+allowance (14.6 s). The two initial failures were 5 s timeouts, not assertion
+failures. Five browser checks pass; final build/typecheck/lint and whitespace
+pass. No push/deployment or hardware FPS claim.
+
 ## 22 November 2026 — Capture 5 generation investigation
 
 New capture is detailed and ~31.2 FPS. Background forest jobs now directly

@@ -16,7 +16,8 @@ it('compacts hidden cells even during generation and restores exact canonical ma
     const versions=compact.group.children.map(o=>(o as InstancedMesh).instanceMatrix.version);
     compact.update(p.x,p.z,residents);expect(compact.group.children.map(o=>(o as InstancedMesh).instanceMatrix.version)).toEqual(versions);
     compact.update(p.x,p.z);reference.update(p.x,p.z);expect(matrices(compact)).toEqual(matrices(reference));expect(compact.stats.omitted).toBe(0);
-    const original=matrices(compact);compact.update(p.x,p.z,residents);compact.update(p.x,p.z);expect(matrices(compact)).toEqual(original);
+    const proxyVersions=[...compact.shadowCasters].map(m=>[m.id,m.instanceMatrix.version,m.count]);
+    const original=matrices(compact);compact.update(p.x,p.z,residents);compact.update(p.x,p.z);expect(matrices(compact)).toEqual(original);expect([...compact.shadowCasters].map(m=>[m.id,m.instanceMatrix.version,m.count])).toEqual(proxyVersions);
   }finally{compact.dispose();reference.dispose();cube.dispose();vi.useRealTimers();}
 });
 it('records each invalidation cause once per successful rebuild while stable frames and disabled cache add no events',()=>{
@@ -38,4 +39,18 @@ it('records each invalidation cause once per successful rebuild while stable fra
     mesh.visible=false;render(40,-4096);expect(cache.invalidationStats.lastReasons).toEqual(['Caster removed']);
     const builds=cache.staticBuilds;cache.enabled=false;render(40,-4096);expect(cache.staticBuilds).toBe(builds);expect(cache.invalidationStats.reasons['Instance buffer']).toBe(1);replaced.dispose();
   }finally{cache.dispose();box.dispose();material.dispose();sun.dispose();}
+});
+it('keeps shadow-only proxies out of the color pass and ignores color membership changes',()=>{
+  vi.useFakeTimers();const cube=new BoxGeometry(),forest=createFrontierForest(103,new SettlementWorld(103),cube),scene=new Scene(),sun=new DirectionalLight(),camera=new PerspectiveCamera();
+  const geometry=new BoxGeometry(),material=new MeshStandardMaterial(),color=new InstancedMesh(geometry,material,1),proxy=new InstancedMesh(geometry,material,1);proxy.castShadow=true;proxy.visible=false;scene.add(sun,sun.target,color,proxy);sun.shadow.camera.far=1600;sun.shadow.camera.updateProjectionMatrix();
+  const render=vi.fn((lights:DirectionalLight[])=>{expect(proxy.visible).toBe(true);if(lights[0]!==sun){lights[0].shadow.map={dispose(){}} as never;lights[0].shadow.needsUpdate=false;}});
+  const renderer={domElement:new EventTarget(),shadowMap:{autoUpdate:true,enabled:true,needsUpdate:false,render},clear:vi.fn()} as unknown as WebGLRenderer;
+  const cache=createCachedSunShadows(renderer,scene,sun,[],new Set([proxy]));
+  const frame=()=>{cache.update(0,0,0,0);scene.updateMatrixWorld();renderer.shadowMap.render([sun],scene,camera);expect(proxy.visible).toBe(false);};
+  try{
+    frame();expect(cache.staticBuilds).toBe(1);color.instanceMatrix.needsUpdate=true;color.count=0;frame();expect(cache.staticBuilds).toBe(1);
+    proxy.instanceMatrix.needsUpdate=true;frame();expect(cache.staticBuilds).toBe(2);
+    cache.enabled=false;frame();expect(proxy.visible).toBe(false);
+    forest.update(0,0);vi.runAllTimers();expect(forest.shadowCasters.size).toBeGreaterThan(0);forest.dispose();expect(forest.shadowCasters.size).toBe(0);
+  }finally{cache.dispose();forest.dispose();cube.dispose();geometry.dispose();material.dispose();sun.dispose();vi.useRealTimers();}
 });

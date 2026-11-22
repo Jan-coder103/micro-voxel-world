@@ -88,7 +88,11 @@ export function regionalHeightBounds(seed:number,b:TerrainRect) {
 export function regionalHeightCeiling(seed:number,b:TerrainRect):number {
   const bounds=regionalHeightBounds(seed,b);return Math.max(bounds.height,bounds.water);
 }
-export function regionLayout(seed:number) {
+const layouts=new Map<number,ReturnType<typeof buildRegionLayout>>();
+export function regionLayout(seed:number){
+  let layout=layouts.get(seed);if(!layout){layout=Object.freeze(buildRegionLayout(seed));layouts.set(seed,layout);if(layouts.size>8)layouts.delete(layouts.keys().next().value!);}return layout;
+}
+function buildRegionLayout(seed:number) {
   const offset=(regionalHash(seed,0,0,71)-.5)*400;
   const coast=-1400+offset;
   return {coast, lakeX:500+offset, riverZ:(x:number)=>offset+100*Math.sin(x/570+regionalHash(seed,0,0,99)*6.28)};
@@ -182,15 +186,23 @@ export function regionTrees(spec:ChunkSpec):RegionalTree[] {
   for(let z=spec.z*32;z<(spec.z+1)*32;z+=8)for(let x=spec.x*32;x<(spec.x+1)*32;x+=8){
     const px=x+1+regionalHash(spec.seed,x,z,21)*6,pz=z+1+regionalHash(spec.seed,x,z,22)*6;
     const sample=regionalSample(spec.seed,px,pz);
+
+    if(sites.some(site=>Math.hypot(site.x-px,site.z-pz)<site.radius+3) || sample.water!==null || cropFieldAt(spec.seed,px,pz) || !['forest','plains'].includes(sample.biome) || regionalHash(spec.seed,x,z,23)>(sample.biome==='forest'?.8:.08))continue;
     const slope=Math.max(Math.abs(regionalSample(spec.seed,px+2,pz).height-sample.height),Math.abs(regionalSample(spec.seed,px,pz+2).height-sample.height))/2;
-    if(sites.some(site=>Math.hypot(site.x-px,site.z-pz)<site.radius+3) || sample.water!==null || cropFieldAt(spec.seed,px,pz) || slope>.5 || !['forest','plains'].includes(sample.biome) || regionalHash(spec.seed,x,z,23)>(sample.biome==='forest'?.8:.08))continue;
+    if(slope>.5)continue;
     result.push({x:px,z:pz,y:sample.height,height:4+regionalHash(spec.seed,x,z,24)*5});
   }
   return result;
 }
 export interface SettlementSite { id:string; x:number; z:number; y:number; radius:number }
 /** Regional candidates only; roads/buildings and collision are Phase 14. */
+const sitesCache=new Map<string,SettlementSite|null>();
 export function settlementSite(seed:number,rx:number,rz:number):SettlementSite|null {
+  const key=`${seed}:${rx},${rz}`;if(sitesCache.has(key))return sitesCache.get(key)!;
+  const generated=buildSite(seed,rx,rz),site=generated?Object.freeze(generated):null;
+  sitesCache.set(key,site);if(sitesCache.size>256)sitesCache.delete(sitesCache.keys().next().value!);return site;
+}
+function buildSite(seed:number,rx:number,rz:number):SettlementSite|null {
   for(let attempt=0;attempt<12;attempt++){
     const x=(rx+regionalHash(seed,rx,rz,100+attempt*2))*512,z=(rz+regionalHash(seed,rx,rz,101+attempt*2))*512;
     const s=regionalSample(seed,x,z),radius=18;

@@ -23,7 +23,8 @@ test('Frontier publishes worker coverage and uses cached shadow depth',async({pa
   const host=page.getByLabel('Aircraft flight scene',{exact:true}),read=async()=>JSON.parse(await host.getAttribute('data-sample')??'{}');
   // Forest residency streams independently; static reuse is checked in the controlled fixture.
   await expect.poll(async()=>(await read()).settled,{timeout:30000}).toBe(true);
-  const sample=await read();expect(sample.coverageWorkerFailed).toBe(false);expect(sample.fallbackPending).toBe(false);expect(sample.shadowCacheFallback,JSON.stringify(sample)).toBe(false);expect(sample.staticShadowBuilds).toBeGreaterThan(0);expect(sample.shadowDepthCopies).toBeGreaterThan(0);
+  await expect.poll(async()=>(await read()).sceneryGeneration?.completed??0,{timeout:30000}).toBeGreaterThan(2);
+  const sample=await read();expect(sample.sceneryGeneration.worker).toBe(true);expect(sample.sceneryGeneration.failed).toBe(false);expect(sample.coverageWorkerFailed).toBe(false);expect(sample.fallbackPending).toBe(false);expect(sample.shadowCacheFallback,JSON.stringify(sample)).toBe(false);expect(sample.staticShadowBuilds).toBeGreaterThan(0);expect(sample.shadowDepthCopies).toBeGreaterThan(0);
   // Wake one demand frame directly; player controls have separate browser coverage.
   await page.locator('#menu-button').evaluate((element:HTMLElement)=>element.click());
   await expect.poll(async()=>(await read()).shadowDepthCopies).toBeGreaterThan(sample.shadowDepthCopies);

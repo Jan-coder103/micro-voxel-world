@@ -158,6 +158,17 @@ export class SettlementWorld {
     }
     return result;
   }
+  *inBoundsGradually(bounds:Rect):Generator<void,Settlement[]>{
+    if(![bounds.minX,bounds.maxX,bounds.minZ,bounds.maxZ].every(n=>Number.isFinite(n)&&Math.abs(n)<=920000000)||bounds.maxX<=bounds.minX||bounds.maxZ<=bounds.minZ||Math.max(bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ)>1024)throw new Error('Invalid settlement bounds');
+    const result:Settlement[]=[];
+    for(let rz=Math.floor(bounds.minZ/512);rz<Math.ceil(bounds.maxZ/512);rz++)for(let rx=Math.floor(bounds.minX/512);rx<Math.ceil(bounds.maxX/512);rx++){const s=this.region(rx,rz);if(s)result.push(s);yield;}
+    for(let bz=Math.floor((bounds.minZ-16)/FARM_BLOCK_SIZE);bz<Math.ceil((bounds.maxZ+16)/FARM_BLOCK_SIZE);bz++)for(let bx=Math.floor((bounds.minX-16)/FARM_BLOCK_SIZE);bx<Math.ceil((bounds.maxX+16)/FARM_BLOCK_SIZE);bx++){
+      const key=`${bx},${bz}`;
+      if(!this.farmCache.has(key)){this.farmCache.set(key,this.farms(bx,bz));if(this.farmCache.size>128)this.farmCache.delete(this.farmCache.keys().next().value!);}
+      const farm=this.farmCache.get(key);if(farm)result.push(farm);yield;
+    }
+    return result;
+  }
   private farms(bx:number,bz:number):Settlement|null{
       const fields=cropFields(this.seed,bx,bz).filter(f=>!f.flower);
       if(fields.length<2)return null;
